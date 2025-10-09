@@ -9,7 +9,30 @@ struct PostFlopSolver {
 #[pymethods]
 impl PostFlopSolver {
     #[new]
-    #[pyo3(signature = (oop_range, ip_range, flop, starting_pot, effective_stack, bet_sizes, raise_sizes, turn=None, river=None))]
+    #[pyo3(signature = (
+        oop_range, 
+        ip_range, 
+        flop, 
+        starting_pot, 
+        effective_stack, 
+        bet_sizes="60%, e, a",
+        raise_sizes="2.5x",
+        turn=None, 
+        river=None,
+        rake_rate=0.0,
+        rake_cap=0.0,
+        flop_bet_sizes_oop=None,
+        flop_bet_sizes_ip=None,
+        turn_bet_sizes_oop=None,
+        turn_bet_sizes_ip=None,
+        river_bet_sizes_oop=None,
+        river_bet_sizes_ip=None,
+        turn_donk_sizes=None,
+        river_donk_sizes=None,
+        add_allin_threshold=1.5,
+        force_allin_threshold=0.15,
+        merging_threshold=0.1,
+    ))]
     fn new(
         oop_range: &str,
         ip_range: &str,
@@ -20,6 +43,19 @@ impl PostFlopSolver {
         raise_sizes: &str,
         turn: Option<&str>,
         river: Option<&str>,
+        rake_rate: f64,
+        rake_cap: f64,
+        flop_bet_sizes_oop: Option<(&str, &str)>,
+        flop_bet_sizes_ip: Option<(&str, &str)>,
+        turn_bet_sizes_oop: Option<(&str, &str)>,
+        turn_bet_sizes_ip: Option<(&str, &str)>,
+        river_bet_sizes_oop: Option<(&str, &str)>,
+        river_bet_sizes_ip: Option<(&str, &str)>,
+        turn_donk_sizes: Option<&str>,
+        river_donk_sizes: Option<&str>,
+        add_allin_threshold: f64,
+        force_allin_threshold: f64,
+        merging_threshold: f64,
     ) -> PyResult<Self> {
         // Parse ranges
         let oop_range = oop_range.parse()
@@ -54,8 +90,63 @@ impl PostFlopSolver {
             river,
         };
 
-        let bet_sizes = BetSizeOptions::try_from((bet_sizes, raise_sizes))
+        // Parse default bet sizes (used if street-specific sizes not provided)
+        let default_bet_sizes = BetSizeOptions::try_from((bet_sizes, raise_sizes))
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid bet sizes: {}", e)))?;
+
+        // Parse per-street, per-player bet sizes (or use defaults)
+        let flop_sizes_oop = if let Some((bet, raise)) = flop_bet_sizes_oop {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid flop OOP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        let flop_sizes_ip = if let Some((bet, raise)) = flop_bet_sizes_ip {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid flop IP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        let turn_sizes_oop = if let Some((bet, raise)) = turn_bet_sizes_oop {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid turn OOP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        let turn_sizes_ip = if let Some((bet, raise)) = turn_bet_sizes_ip {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid turn IP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        let river_sizes_oop = if let Some((bet, raise)) = river_bet_sizes_oop {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid river OOP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        let river_sizes_ip = if let Some((bet, raise)) = river_bet_sizes_ip {
+            BetSizeOptions::try_from((bet, raise))
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid river IP sizes: {}", e)))?
+        } else {
+            default_bet_sizes.clone()
+        };
+
+        // Parse donk sizes
+        let turn_donk = turn_donk_sizes
+            .map(|s| DonkSizeOptions::try_from(s))
+            .transpose()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid turn donk sizes: {}", e)))?;
+
+        let river_donk = river_donk_sizes
+            .map(|s| DonkSizeOptions::try_from(s))
+            .transpose()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid river donk sizes: {}", e)))?;
 
         let initial_state = if river != NOT_DEALT {
             BoardState::River
@@ -69,16 +160,16 @@ impl PostFlopSolver {
             initial_state,
             starting_pot,
             effective_stack,
-            rake_rate: 0.0,
-            rake_cap: 0.0,
-            flop_bet_sizes: [bet_sizes.clone(), bet_sizes.clone()],
-            turn_bet_sizes: [bet_sizes.clone(), bet_sizes.clone()],
-            river_bet_sizes: [bet_sizes.clone(), bet_sizes],
-            turn_donk_sizes: None,
-            river_donk_sizes: None,
-            add_allin_threshold: 1.5,
-            force_allin_threshold: 0.15,
-            merging_threshold: 0.1,
+            rake_rate,
+            rake_cap,
+            flop_bet_sizes: [flop_sizes_oop, flop_sizes_ip],
+            turn_bet_sizes: [turn_sizes_oop, turn_sizes_ip],
+            river_bet_sizes: [river_sizes_oop, river_sizes_ip],
+            turn_donk_sizes: turn_donk,
+            river_donk_sizes: river_donk,
+            add_allin_threshold,
+            force_allin_threshold,
+            merging_threshold,
         };
 
         let action_tree = ActionTree::new(tree_config)
@@ -90,8 +181,9 @@ impl PostFlopSolver {
         Ok(PostFlopSolver { game })
     }
 
-    fn solve(&mut self, max_iterations: u32, target_exploitability: f32) -> PyResult<f32> {
-        self.game.allocate_memory(false);
+    #[pyo3(signature = (max_iterations, target_exploitability, enable_compression=false))]
+    fn solve(&mut self, max_iterations: u32, target_exploitability: f32, enable_compression: bool) -> PyResult<f32> {
+        self.game.allocate_memory(enable_compression);
         Ok(solve(&mut self.game, max_iterations, target_exploitability, true))
     }
 
