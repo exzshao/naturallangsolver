@@ -14,7 +14,8 @@ async fn main() {
         .route("/healthz", post(healthz))
         .route("/solve", post(solve));
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8080));
+    let port: u16 = std::env::var("PORT").ok().and_then(|s| s.parse().ok()).unwrap_or(8080);
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
     tracing::info!("listening on {}", addr);
     axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
         .await
@@ -87,8 +88,11 @@ struct Options {
 struct SolveResponse {
     exploitability: f32,
     available_actions: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chance_cards: Option<Vec<CardAction>>, // present when at chance node
     node_path: Vec<usize>,
     averages: Averages,
+    zero_sum_ev: [f32; 2],
     #[serde(skip_serializing_if = "Vec::is_empty")]
     warnings: Vec<String>,
 }
@@ -99,6 +103,12 @@ struct Averages {
     equity_p1: f32,
     ev_p0: f32,
     ev_p1: f32,
+}
+
+#[derive(Serialize)]
+struct CardAction {
+    index: usize,
+    card: String,
 }
 
 #[derive(Serialize)]
@@ -235,18 +245,48 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
     let equity_p1 = postflop_solver::compute_average(&game.equity(1), weights1);
     let ev_p1 = postflop_solver::compute_average(&game.expected_values(1), weights1);
 
-    // Available actions (strings)
-    let actions = game.available_actions().iter().map(|a| format!("{:?}", a)).collect::<Vec<_>>();
+    // Available actions
+    let actions_enum = game.available_actions();
+    let actions = actions_enum.iter().map(|a| format!("{:?}", a)).collect::<Vec<_>>();
+
+    // If chance node, include card labels
+    let chance_cards = if game.is_chance_node() {
+        let mask = game.possible_cards();
+        let mut out = Vec::new();
+        for (i, a) in actions_enum.iter().enumerate() {
+            let dbg = format!("{:?}", a);
+            if let Some(idx) = parse_chance_index(&dbg) {
+                if idx < 52 && (mask & (1u64 << idx)) != 0 {
+                    if let Ok(s) = postflop_solver::card_to_string(idx as u8) {
+                        out.push(CardAction { index: i, card: s });
+                    }
+                }
+            }
+        }
+        Some(out)
+    } else { None };
 
     let resp = SolveResponse {
         exploitability,
         available_actions: actions,
+        chance_cards,
         node_path: req.node_path,
         averages: Averages { equity_p0, equity_p1, ev_p0, ev_p1 },
+        zero_sum_ev: postflop_solver::compute_current_ev(&game),
         warnings,
     };
 
     Ok(Json(resp))
+}
+
+fn parse_chance_index(action_dbg: &str) -> Option<usize> {
+    // format is "Chance(n)" from Debug
+    if let Some(s) = action_dbg.strip_prefix("Chance(") {
+        if let Some(end) = s.strip_suffix(")") {
+            return end.parse::<usize>().ok();
+        }
+    }
+    None
 }
 
 fn bad_request(code: &str, message: &str) -> (axum::http::StatusCode, Json<ErrorResponse>) {
