@@ -1,5 +1,39 @@
 from postflop_solver_python import PostFlopSolver
 
+def test_minimal_interface():
+    """Test the new simplified 5-parameter interface"""
+    print("\n" + "="*50)
+    print("Testing Minimal Interface (5 params)")
+    print("="*50)
+    
+    try:
+        # Test absolute minimum
+        solver = PostFlopSolver(
+            oop_range="QQ+,AKs",
+            ip_range="88+,AJs+",
+            flop="Ah8d3c",
+            starting_pot=100,
+            effective_stack=500
+        )
+        print("✅ Created solver with only 5 required params")
+        
+        # Quick solve
+        exploitability = solver.solve(50, 1.0)
+        print(f"✅ Solved! Exploitability: {exploitability:.2f}")
+        
+        # Test results
+        frequencies = solver.get_action_frequencies()
+        print(f"✅ Got {len(frequencies)} actions")
+        for action, freq in frequencies:
+            print(f"   {action}: {freq*100:.1f}%")
+        
+        print("\n🎉 Minimal interface test passed!\n")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Minimal interface test failed: {e}\n")
+        return False
+
 def test_solver():
     try:
         # Initialize solver with the same parameters from your example
@@ -83,4 +117,24 @@ def test_solver():
         print(f"❌ Error: {str(e)}")
 
 if __name__ == "__main__":
-    test_solver()
+    print("\n" + "="*60)
+    print("PostFlopSolver Test Suite")
+    print("="*60)
+    
+    # Run all tests
+    test1_passed = test_minimal_interface()
+    test2_passed = False
+    
+    try:
+        test_solver()
+        test2_passed = True
+    except Exception as e:
+        print(f"❌ Full solver test failed: {e}")
+    
+    # Summary
+    print("\n" + "="*60)
+    print("Test Summary")
+    print("="*60)
+    print(f"Minimal Interface Test: {'✅ PASSED' if test1_passed else '❌ FAILED'}")
+    print(f"Full Solver Test: {'✅ PASSED' if test2_passed else '❌ FAILED'}")
+    print("="*60 + "\n")

@@ -1,10 +1,13 @@
 from openai import OpenAI
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List  # Added this import
+from typing import Optional, List
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from postflop_solver_python import PostFlopSolver
 
 load_dotenv()
 client = OpenAI()
@@ -18,6 +21,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Thread pool for CPU-intensive Rust operations
+executor = ThreadPoolExecutor(max_workers=4)
 
 class Ranges(BaseModel):
     ip_range: List[str]
@@ -37,10 +43,83 @@ class BetAndRaiseSizes(BaseModel):
     bet_sizes: List[int]
     raise_sizes: List[int]
 
+class SolveRequest(BaseModel):
+    # Required parameters
+    oop_range: str
+    ip_range: str
+    flop: str
+    starting_pot: int
+    effective_stack: int
+    
+    # Optional with sensible defaults
+    bet_sizes: str = "60%, e, a"
+    raise_sizes: str = "2.5x"
+    turn: Optional[str] = None
+    river: Optional[str] = None
+    max_iterations: int = 1000
+    target_exploitability: float = 1.0
+    
+    # Advanced options (rarely needed, defaults don't affect behavior)
+    rake_rate: float = 0.0
+    rake_cap: float = 0.0
+    enable_compression: bool = False
+
 ranges = {
     "ip_range": [],
     "oop_range": []
 }
+
+@app.post("/solve")
+async def solve_poker_scenario(request: SolveRequest):
+    """
+    Solve a poker scenario using native Rust solver.
+    """
+    
+    def run_solver():
+        try:
+            # Create Rust solver instance (simple by default!)
+            solver = PostFlopSolver(
+                oop_range=request.oop_range,
+                ip_range=request.ip_range,
+                flop=request.flop,
+                starting_pot=request.starting_pot,
+                effective_stack=request.effective_stack,
+                bet_sizes=request.bet_sizes,
+                raise_sizes=request.raise_sizes,
+                turn=request.turn,
+                river=request.river,
+                rake_rate=request.rake_rate,
+                rake_cap=request.rake_cap
+            )
+            
+            # Run the solver (CPU-intensive Rust code)
+            exploitability = solver.solve(
+                max_iterations=request.max_iterations,
+                target_exploitability=request.target_exploitability,
+                enable_compression=request.enable_compression
+            )
+            
+            # Extract results
+            actions = solver.get_available_actions()
+            frequencies = solver.get_action_frequencies()
+            hands = solver.get_private_cards(player=0)
+            equity = solver.get_equity(player=0)
+            
+            return {
+                "exploitability": exploitability,
+                "actions": actions,
+                "frequencies": frequencies,
+                "hands": hands,
+                "equity": equity
+            }
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # Run on thread pool to avoid blocking event loop
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(executor, run_solver)
+    
+    return result
 
 @app.post("/api/ranges")
 async def handle_ranges(data: Ranges):
