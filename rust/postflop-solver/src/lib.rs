@@ -1,3 +1,4 @@
+#![allow(dangerous_implicit_autorefs)]
 //! An open-source postflop solver library.
 //!
 //! # Examples

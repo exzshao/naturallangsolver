@@ -1,6 +1,7 @@
 use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{fmt, EnvFilter};
+use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -159,12 +160,36 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
         None => None,
     };
 
+    // Convert request numeric types to crate expectations
+    let starting_pot_i32 = req.config.tree_config.starting_pot as i32;
+    let effective_stack_i32 = req.config.tree_config.effective_stack as i32;
+    let rake_rate_f64 = req.config.tree_config.rake_rate as f64;
+    let rake_cap_f64 = req.config.tree_config.rake_cap as f64;
+    let add_allin_threshold_f64 = req
+        .config
+        .tree_config
+        .add_allin_threshold
+        .map(|v| v as f64)
+        .unwrap_or(1.5);
+    let force_allin_threshold_f64 = req
+        .config
+        .tree_config
+        .force_allin_threshold
+        .map(|v| v as f64)
+        .unwrap_or(0.15);
+    let merging_threshold_f64 = req
+        .config
+        .tree_config
+        .merging_threshold
+        .map(|v| v as f64)
+        .unwrap_or(0.1);
+
     let mut tree_config = TreeConfig {
         initial_state: if river != None { BoardState::River } else if turn != None { BoardState::Turn } else { BoardState::Flop },
-        starting_pot: req.config.tree_config.starting_pot,
-        effective_stack: req.config.tree_config.effective_stack,
-        rake_rate: req.config.tree_config.rake_rate,
-        rake_cap: req.config.tree_config.rake_cap,
+        starting_pot: starting_pot_i32,
+        effective_stack: effective_stack_i32,
+        rake_rate: rake_rate_f64,
+        rake_cap: rake_cap_f64,
         flop_bet_sizes: [
             BetSizeOptions::try_from((req.config.tree_config.flop_bet_sizes[0].as_str(), req.config.tree_config.flop_bet_sizes[0].as_str())).unwrap_or(flop_bs.clone()),
             BetSizeOptions::try_from((req.config.tree_config.flop_bet_sizes[1].as_str(), req.config.tree_config.flop_bet_sizes[1].as_str())).unwrap_or(flop_bs.clone()),
@@ -173,9 +198,9 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
         river_bet_sizes: [river_bs.clone(), river_bs.clone()],
         turn_donk_sizes: turn_donk,
         river_donk_sizes: river_donk,
-        add_allin_threshold: req.config.tree_config.add_allin_threshold.unwrap_or(1.5),
-        force_allin_threshold: req.config.tree_config.force_allin_threshold.unwrap_or(0.15),
-        merging_threshold: req.config.tree_config.merging_threshold.unwrap_or(0.1),
+        add_allin_threshold: add_allin_threshold_f64,
+        force_allin_threshold: force_allin_threshold_f64,
+        merging_threshold: merging_threshold_f64,
     };
 
     // Construct tree and game
@@ -198,7 +223,8 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
 
     // Solve
     let target = req.options.target_exploitability.unwrap_or(1e9);
-    let exploitability = solve(&mut game, req.options.max_iters, target, req.options.verbose.unwrap_or(false));
+    let max_iters_u32 = (req.options.max_iters).min(u32::MAX as usize) as u32;
+    let exploitability = solve(&mut game, max_iters_u32, target, req.options.verbose.unwrap_or(false));
 
     // Compute averages
     game.cache_normalized_weights();

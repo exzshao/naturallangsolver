@@ -11,6 +11,6 @@ serde_json = "1"
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
-postflop-solver = { path = "../postflop-solver" }
+postflop-solver = { path = "../postflop-solver", default-features = false, features = ["rayon"] }
 
 
