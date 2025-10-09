@@ -115,7 +115,7 @@ struct ErrorBody {
 async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (axum::http::StatusCode, Json<ErrorResponse>)> {
     use postflop_solver::*;
 
-    let mut warnings = Vec::new();
+    let warnings = Vec::new();
 
     let flop = match flop_from_str(&req.config.card_config.flop) {
         Ok(f) => f,
@@ -184,7 +184,7 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
         .map(|v| v as f64)
         .unwrap_or(0.1);
 
-    let mut tree_config = TreeConfig {
+    let tree_config = TreeConfig {
         initial_state: if river != None { BoardState::River } else if turn != None { BoardState::Turn } else { BoardState::Flop },
         starting_pot: starting_pot_i32,
         effective_stack: effective_stack_i32,
@@ -226,12 +226,14 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
     let max_iters_u32 = (req.options.max_iters).min(u32::MAX as usize) as u32;
     let exploitability = solve(&mut game, max_iters_u32, target, req.options.verbose.unwrap_or(false));
 
-    // Compute averages
+    // Compute averages using the crate's utility
     game.cache_normalized_weights();
-    let equity_p0 = average(&game.equity(0), game.normalized_weights(0));
-    let ev_p0 = average(&game.expected_values(0), game.normalized_weights(0));
-    let equity_p1 = average(&game.equity(1), game.normalized_weights(1));
-    let ev_p1 = average(&game.expected_values(1), game.normalized_weights(1));
+    let weights0 = game.normalized_weights(0);
+    let weights1 = game.normalized_weights(1);
+    let equity_p0 = postflop_solver::compute_average(&game.equity(0), weights0);
+    let ev_p0 = postflop_solver::compute_average(&game.expected_values(0), weights0);
+    let equity_p1 = postflop_solver::compute_average(&game.equity(1), weights1);
+    let ev_p1 = postflop_solver::compute_average(&game.expected_values(1), weights1);
 
     // Available actions (strings)
     let actions = game.available_actions().iter().map(|a| format!("{:?}", a)).collect::<Vec<_>>();
@@ -245,12 +247,6 @@ async fn solve(Json(req): Json<SolveRequest>) -> Result<Json<SolveResponse>, (ax
     };
 
     Ok(Json(resp))
-}
-
-fn average(values: &[f32], weights: &[f32]) -> f32 {
-    let mut s = 0.0f32;
-    for (v, w) in values.iter().zip(weights.iter()) { s += v * w; }
-    s
 }
 
 fn bad_request(code: &str, message: &str) -> (axum::http::StatusCode, Json<ErrorResponse>) {
