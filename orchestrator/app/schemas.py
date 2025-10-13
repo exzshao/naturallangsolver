@@ -38,31 +38,8 @@ class SolverSolveRequest(BaseModel):
     node_path: List[int] = []
     lock_strategy: Optional[List[float]] = None
 
-
-class SolverCardAction(BaseModel):
-    index: int
-    card: str
-
-
-class SolverAverages(BaseModel):
-    equity_p0: float
-    equity_p1: float
-    ev_p0: float
-    ev_p1: float
-
-
-class SolverSolveResponse(BaseModel):
-    exploitability: float
-    available_actions: List[str]
-    chance_cards: Optional[List[SolverCardAction]] = None
-    node_path: List[int]
-    averages: SolverAverages
-    zero_sum_ev: List[float]
-    warnings: List[str] = []
-
-
 class ChatResponse(BaseModel):
     message: ChatMessage
-    solver: Optional[SolverSolveResponse] = None
+    solver: Optional[Dict[str, Any]] = None
 
 
