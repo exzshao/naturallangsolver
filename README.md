@@ -8,7 +8,6 @@ WIP - will be live soon
 
 - the engine used is b-inary's (WASM Postflop) engine, linked [here](https://github.com/b-inary/postflop-solver).  
 
-- new idea: If input is not solverable use openAI reasoning instead.
 UI Preview! : 
 
 <img width="1440" alt="image" src="https://github.com/user-attachments/assets/0c5bd777-3e00-4a13-b356-d47e80f84a24" />
