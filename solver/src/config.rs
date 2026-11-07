@@ -9,6 +9,17 @@ use postflop_solver::{
 use crate::api::{PlayerSide, SolveRequest};
 use crate::error::{Reason, SolveError};
 
+/// Shared secret for the `x-solver-key` header. `Debug` never prints the value,
+/// so the startup log line can include the settings.
+#[derive(Clone, PartialEq, Eq)]
+pub struct ApiKey(pub String);
+
+impl std::fmt::Debug for ApiKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ApiKey(<redacted>)")
+    }
+}
+
 /// Settings read once from the environment at startup.
 #[derive(Debug, Clone)]
 pub struct Settings {
@@ -16,6 +27,19 @@ pub struct Settings {
     pub max_memory_mb: u64,
     pub solve_timeout: Duration,
     pub max_iterations: u32,
+    /// `SOLVER_API_KEY`. When set, every route except `/health` needs a matching
+    /// `x-solver-key` header. Unset or empty disables auth (local dev).
+    pub api_key: Option<ApiKey>,
+    /// `RATE_LIMIT_PER_IP_HOUR`: admits per client IP in any rolling hour.
+    pub rate_limit_per_ip_hour: u32,
+    /// `RATE_LIMIT_GLOBAL_DAY`: admits across all IPs in any rolling 24 hours.
+    pub rate_limit_global_day: u32,
+    /// `QUEUE_MAX_WAITING`: requests that may wait behind the running solve.
+    /// More than that get `SOLVER_BUSY` right away. 0 disables queueing.
+    pub queue_max_waiting: usize,
+    /// `QUEUE_MAX_WAIT_SECS`: how long a request may wait in line before
+    /// giving up with `SOLVER_BUSY`.
+    pub queue_max_wait: Duration,
 }
 
 impl Default for Settings {
@@ -25,13 +49,19 @@ impl Default for Settings {
             max_memory_mb: 1024,
             solve_timeout: Duration::from_secs(90),
             max_iterations: 1000,
+            api_key: None,
+            rate_limit_per_ip_hour: 100,
+            rate_limit_global_day: 10_000,
+            queue_max_waiting: 5,
+            queue_max_wait: Duration::from_secs(120),
         }
     }
 }
 
 impl Settings {
     /// Reads `PORT`, `MAX_MEMORY_MB`, `SOLVE_TIMEOUT_SECS`, `MAX_ITERATIONS`,
-    /// falling back to defaults when unset or unparseable.
+    /// `SOLVER_API_KEY`, `RATE_LIMIT_PER_IP_HOUR`, `RATE_LIMIT_GLOBAL_DAY`,
+    /// `QUEUE_MAX_WAITING`, `QUEUE_MAX_WAIT_SECS`, falling back to defaults when unset or unparseable.
     pub fn from_env() -> Self {
         fn var<T: std::str::FromStr>(name: &str, default: T) -> T {
             match std::env::var(name) {
@@ -48,6 +78,15 @@ impl Settings {
             max_memory_mb: var("MAX_MEMORY_MB", d.max_memory_mb),
             solve_timeout: Duration::from_secs(var("SOLVE_TIMEOUT_SECS", d.solve_timeout.as_secs())),
             max_iterations: var("MAX_ITERATIONS", d.max_iterations),
+            api_key: std::env::var("SOLVER_API_KEY")
+                .ok()
+                .map(|k| k.trim().to_string())
+                .filter(|k| !k.is_empty())
+                .map(ApiKey),
+            rate_limit_per_ip_hour: var("RATE_LIMIT_PER_IP_HOUR", d.rate_limit_per_ip_hour),
+            rate_limit_global_day: var("RATE_LIMIT_GLOBAL_DAY", d.rate_limit_global_day),
+            queue_max_waiting: var("QUEUE_MAX_WAITING", d.queue_max_waiting),
+            queue_max_wait: Duration::from_secs(var("QUEUE_MAX_WAIT_SECS", d.queue_max_wait.as_secs())),
         }
     }
 }
@@ -230,6 +269,16 @@ pub fn prepare(req: &SolveRequest, settings: &Settings) -> Result<Prepared, Solv
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn default_limits_and_redacted_key() {
+        let d = Settings::default();
+        assert_eq!((d.rate_limit_per_ip_hour, d.rate_limit_global_day), (100, 10_000));
+        assert_eq!((d.queue_max_waiting, d.queue_max_wait), (5, Duration::from_secs(120)));
+        assert!(d.api_key.is_none());
+        let s = Settings { api_key: Some(ApiKey("hunter2".into())), ..d };
+        assert!(!format!("{s:?}").contains("hunter2"));
+    }
 
     fn c(s: &str) -> Card {
         card_from_str(s).unwrap()

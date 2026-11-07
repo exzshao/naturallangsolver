@@ -1,0 +1,10 @@
+# Vercel builds app/ (project Root Directory). Upload only that, never secrets.
+/solver
+/SPEC.md
+.env
+.env.*
+**/node_modules
+**/.next
+**/target
+app/screenshots
+app/evals

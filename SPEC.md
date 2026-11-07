@@ -133,7 +133,8 @@ The app checks first (cheap, before any HTTP call), and the solver re-checks aut
 | `INVALID_STACKS` | app | pot ≤ 0 or stack ≤ 0, or inconsistent `actions` amounts (§5) |
 | `TREE_TOO_LARGE` | solver | `memory_usage()` is over `MAX_MEMORY_MB` even compressed, or "Too many nodes" |
 | `TIMEOUT` | solver | Wall clock passed `SOLVE_TIMEOUT_SECS` before the target was reached (see §8) |
-| `SOLVER_BUSY` | solver | Another solve is already running (see §8) |
+| `SOLVER_BUSY` | solver | The solver queue is full (`QUEUE_MAX_WAITING` already waiting), or the request waited `QUEUE_MAX_WAIT_SECS` without starting (see §8) |
+| `RATE_LIMITED` | solver `/admit` | Per-IP (100/hour) or global (10000/day) limit reached; checked before the LLM call |
 | `LLM_UNAVAILABLE` | app | Provider error or timeout |
 | `SOLVER_UNAVAILABLE` / `INTERNAL` | app / solver | Network error or an unexpected panic |
 
@@ -188,7 +189,22 @@ Success `200`:
 }
 ```
 
-Errors return `422` (input problems), `503` (`SOLVER_BUSY`), or `504` (`TIMEOUT`), using the §6 body shape. Keep the payload small: 2 nodes, at most 6 `top_classes` per action, and no per-hand arrays.
+Errors return `422` (input problems), `503` (`SOLVER_BUSY`), or `504` (`TIMEOUT`), using the §6 body shape. Input is validated before the request joins the queue, so bad input gets its `422` right away even when the solver is busy. Keep the payload small: 2 nodes, at most 6 `top_classes` per action, and no per-hand arrays.
+
+**Streaming (`Accept: application/x-ndjson`).** Same request. Errors that happen before the request is queued (malformed body, validation, queue full, auth) still come back as plain JSON with the status codes above. Otherwise the response is `200` with `Content-Type: application/x-ndjson`, one JSON object per line:
+
+```
+{"type":"queued","position":3}     // place in line, 1 = next; sent on joining and on every move
+{"type":"queued","position":2}
+{"type":"queued","position":1}
+{"type":"solving"}                 // holding the solve slot
+{"type":"result", ...200 body}     // final line on success (the body above plus "type")
+{"type":"error",  ...§6 body}      // final line on failure, e.g. SOLVER_BUSY "queue timed out", TIMEOUT
+```
+
+A request that finds the solver idle skips straight to `solving`. While queued or solving, the current status line repeats every 5 s as a heartbeat (keeps proxies from closing an idle connection, and lets the solver notice a client that hung up). Readers should treat repeats as no-ops and skip blank lines. Exactly one `result` or `error` line ends the stream.
+
+`/api/solve` speaks the same protocol to the browser when sent `Accept: application/x-ndjson`: it relays the solver's `queued`/`solving` lines and ends with `{"type":"result", ...SolveApiResponse}` or `{"type":"error", ...§6 body}` (app messages). It opens with one blank 1 KB padding line, because WebKit holds back the first ~1 KB of a stream. Bad input and `/admit` refusals stay plain JSON (`400`/`429`/`503`). Without the header, `/api/solve` returns one JSON body as before. If the browser disconnects, the app aborts its solver request, which frees the queue place.
 
 `top_classes` groups the acting player's combos into hand classes (`KK` pair, `KQs` suited, `KQo` offsuit), skipping zero-weight combos (board-blocked or out of range). Classes are ordered by frequency (compared at 1% resolution), ties broken by the range weight they send into the action (sum of weight × frequency over their combos). Each class's `frequency` is the weight-averaged probability that its live combos take the action. `top_hands` lists the same class names as plain strings, for older clients.
 
@@ -232,7 +248,7 @@ finalize(&mut game);
 ```
 If the deadline passed and `e > target * 3`, return `TIMEOUT`. Otherwise return the result with the exploitability it actually reached; the UI flags it if it's above target.
 
-**Concurrency:** run the whole build-and-solve inside `tokio::task::spawn_blocking`, because the solve is CPU-bound and rayon already uses every core. Allow **one solve at a time** using a `tokio::sync::Semaphore(1)` with `try_acquire`. If the permit isn't available, return `SOLVER_BUSY`. Catch panics (`std::panic::catch_unwind`, or check the `JoinError` from the join handle) and return `INTERNAL`.
+**Concurrency:** run the whole build-and-solve inside `tokio::task::spawn_blocking`, because the solve is CPU-bound and rayon already uses every core. Allow **one solve at a time**, behind a bounded FIFO queue (`solver/src/queue.rs`): up to `QUEUE_MAX_WAITING` (5) requests wait in arrival order, each for at most `QUEUE_MAX_WAIT_SECS` (120). A full queue returns `SOLVER_BUSY` immediately; a wait that runs out returns `SOLVER_BUSY` with "queue timed out". The queue is an explicit `VecDeque` of tickets plus a `watch` channel, so a waiter's position is exact and can be streamed. (`tokio::sync::Semaphore` is FIFO too, but it can't report positions, and a waiter only joins its queue on first poll.) Dropping a ticket (client disconnect, timeout) leaves the line. The slot's permit moves into the blocking task, so it's held until the solve really ends, even if the client is gone. Catch panics (`std::panic::catch_unwind`, or check the `JoinError` from the join handle) and return `INTERNAL`.
 
 **Reading results** (after `finalize`):
 - Call `game.cache_normalized_weights()` once at the root.

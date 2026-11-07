@@ -1,0 +1,48 @@
+# Fly.io config for the Rust solver. Cost cap: exactly one machine
+# (`fly scale count 1`), suspended when idle, resumed by the next request.
+# Suspend (vs stop) keeps process memory, so the in-memory /admit rate-limit
+# counters survive idle periods (not deploys). Requires <= 2 GB RAM, no swap,
+# no schedule; a missing or invalid snapshot falls back to a cold start.
+
+app = "nlpsolver-solver"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  MAX_MEMORY_MB = "1024"
+  SOLVE_TIMEOUT_SECS = "90"
+  MAX_ITERATIONS = "1000"
+  RATE_LIMIT_PER_IP_HOUR = "100"
+  RATE_LIMIT_GLOBAL_DAY = "10000"
+  QUEUE_MAX_WAITING = "5"
+  QUEUE_MAX_WAIT_SECS = "120"
+  # SOLVER_API_KEY is a secret: `fly secrets set SOLVER_API_KEY=...`
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  # Above 1 running + QUEUE_MAX_WAITING queued solves, plus /admit and /health,
+  # so the solver (not the proxy) answers "queue full".
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 12
+    hard_limit = 20
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-4x"
+  memory = "2048mb"

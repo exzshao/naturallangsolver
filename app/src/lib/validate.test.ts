@@ -1,7 +1,7 @@
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, it, vi } from "vitest";
 import { applyDefaults } from "./defaults";
-import { extractSpot, LlmUnavailableError, resolveModel } from "./llm";
+import { extractSpot, LLM_MAX_OUTPUT_TOKENS, LlmUnavailableError, resolveModel } from "./llm";
 import { extraction } from "./test-helpers";
 import { CANT_SOLVE_REASONS } from "./types";
 import { CANT_SOLVE_MESSAGES, cantSolve, validateExtraction, validateSpot } from "./validate";
@@ -137,5 +137,13 @@ describe("LLM_UNAVAILABLE", () => {
       }),
     });
     await expect(extractSpot("BTN on Td9d6h", model)).resolves.toEqual(out);
+    expect(model.doGenerateCalls[0].maxOutputTokens).toBe(LLM_MAX_OUTPUT_TOKENS);
+  });
+
+  it("refuses the mock model in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() => resolveModel("mock:fixture")).toThrow(LlmUnavailableError);
+    vi.unstubAllEnvs();
+    expect(() => resolveModel("mock:fixture")).not.toThrow();
   });
 });

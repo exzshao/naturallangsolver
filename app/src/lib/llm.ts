@@ -19,6 +19,12 @@ export const registry = createProviderRegistry({
 });
 
 export const LLM_TIMEOUT_MS = 20_000;
+/**
+ * Output cap per extraction. The largest eval fixture (6 actions + notes) is
+ * ~300 tokens; a 2000-char input pasted back verbatim as ranges is ~1000. A
+ * truncated reply fails schema parsing and surfaces as LLM_UNAVAILABLE.
+ */
+export const LLM_MAX_OUTPUT_TOKENS = 1200;
 
 /** Thrown for any provider error, timeout, or missing configuration. Maps to cant_solve: LLM_UNAVAILABLE. */
 export class LlmUnavailableError extends Error {
@@ -62,6 +68,7 @@ export async function extractSpot(
       temperature: 0,
       reasoning: "none",
       timeout: LLM_TIMEOUT_MS,
+      maxOutputTokens: LLM_MAX_OUTPUT_TOKENS,
       maxRetries: 1,
     });
     return output;

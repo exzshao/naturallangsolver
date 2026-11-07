@@ -3,6 +3,7 @@
 import { CantSolve, Divider, SolveResult } from "@/components/results";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { SolveApiResponse } from "@/lib/present";
+import { applyLine, INITIAL_STREAM, isNdjson, NDJSON, type Progress, readLines } from "@/lib/stream";
 import { cantSolve } from "@/lib/validate";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,7 +15,7 @@ const EXAMPLES = [
 
 type State =
   | { kind: "idle" }
-  | { kind: "loading"; input: string; startedAt: number }
+  | { kind: "loading"; input: string; startedAt: number; progress: Progress }
   | { kind: "done"; input: string; result: SolveApiResponse };
 
 function Elapsed({ since }: { since: number }) {
@@ -26,18 +27,37 @@ function Elapsed({ since }: { since: number }) {
   return <span className="tabular-nums">{Math.max(0, Math.floor((now - since) / 1000))}s</span>;
 }
 
-function Loading({ since }: { since: number }) {
+function Loading({ since, progress }: { since: number; progress: Progress }) {
+  const queued = progress.phase === "queued" ? progress.position : null;
   return (
     <div role="status" className="inv -mx-3 px-3 py-[1.6em]">
       <p>
-        SOLVING... <Elapsed since={since} />
+        {queued ? `QUEUED (#${queued})... ` : "SOLVING... "}
+        <Elapsed since={since} />
         <span aria-hidden className="cursor-blink">
           _
         </span>
       </p>
-      <p className="text-mute">RIVER: ~1s. FLOP: UP TO ~90s.</p>
+      <p className="text-mute">
+        {queued
+          ? `${queued} SOLVE${queued > 1 ? "S" : ""} AHEAD. FLOP: ~15s EACH.`
+          : "RIVER: ~1s. FLOP: UP TO ~90s."}
+      </p>
     </div>
   );
+}
+
+/** Reads /api/solve: an NDJSON stream (progress, then the result) or a plain JSON error. */
+async function readSolve(res: Response, onProgress: (p: Progress) => void): Promise<SolveApiResponse> {
+  if (!isNdjson(res) || !res.body) return (await res.json()) as SolveApiResponse;
+  let state = INITIAL_STREAM;
+  for await (const line of readLines(res.body)) {
+    const next = applyLine(state, line);
+    if (next.progress !== state.progress) onProgress(next.progress);
+    state = next;
+    if (state.result) return state.result;
+  }
+  return cantSolve("INTERNAL", "Can't solve this: the connection closed before the result arrived.");
 }
 
 export default function Home() {
@@ -45,20 +65,23 @@ export default function Home() {
   const [state, setState] = useState<State>({ kind: "idle" });
   const resultRef = useRef<HTMLDivElement>(null);
   const loading = state.kind === "loading";
+  const queued = state.kind === "loading" && state.progress.phase === "queued";
 
   async function solve(input: string) {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
-    setState({ kind: "loading", input: trimmed, startedAt: Date.now() });
+    setState({ kind: "loading", input: trimmed, startedAt: Date.now(), progress: INITIAL_STREAM.progress });
     requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
     let result: SolveApiResponse;
     try {
       const res = await fetch("/api/solve", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", accept: NDJSON },
         body: JSON.stringify({ text: trimmed }),
       });
-      result = (await res.json()) as SolveApiResponse;
+      result = await readSolve(res, (progress) =>
+        setState((s) => (s.kind === "loading" ? { ...s, progress } : s)),
+      );
     } catch {
       result = cantSolve("INTERNAL", "Can't solve this: couldn't reach the server.");
     }
@@ -67,15 +90,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <main className="mx-auto w-full max-w-[640px] flex-1 px-5 pt-[4.8em]">
+      <main className="mx-auto w-full max-w-[640px] flex-1 px-5 pt-[2.4em]">
         <header className="mb-[2em]">
-          <div className="flex items-baseline justify-between gap-[2ch]">
-            <h1>
-              <span className="inv px-[1ch]">NLP SOLVER</span>
-            </h1>
+          <h1 className="sr-only">NLP Solver</h1>
+          <div className="flex justify-end">
             <ThemeToggle />
           </div>
-          <p className="mt-[1.6em] text-mute uppercase">
+          <p className="mt-[0.8em] text-mute uppercase">
             Describe a heads-up postflop spot. A GTO solver returns the strategy. Missing details get defaults, listed
             as assumptions.
           </p>
@@ -105,7 +126,7 @@ export default function Home() {
           <div className="mt-[0.8em] flex items-center justify-between gap-[2ch]">
             <span className="hidden text-mute uppercase sm:inline">⌘/Ctrl+Enter</span>
             <button type="submit" disabled={loading || !text.trim()} className="btn ml-auto uppercase">
-              {loading ? "[Solving...]" : "[Solve]"}
+              {queued ? "[Queued...]" : loading ? "[Solving...]" : "[Solve]"}
             </button>
           </div>
         </form>
@@ -133,7 +154,7 @@ export default function Home() {
 
         <div ref={resultRef} className="scroll-mt-[1.6em]" aria-live="polite">
           {state.kind !== "idle" && <Divider />}
-          {state.kind === "loading" && <Loading since={state.startedAt} />}
+          {state.kind === "loading" && <Loading since={state.startedAt} progress={state.progress} />}
           {state.kind === "done" &&
             (state.result.status === "ok" ? (
               <SolveResult r={state.result} />

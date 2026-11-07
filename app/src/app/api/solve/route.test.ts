@@ -76,19 +76,36 @@ const SPEC_EXAMPLE = extraction({
   notes: "BB checks to hero.",
 });
 
+// The route calls the solver twice: POST /admit (rate limit), then POST /solve.
+type Reply = () => Promise<Response>;
+let admitReply: Reply;
+let solveReply: Reply;
+
+const callsTo = (path: string) => fetchMock.mock.calls.filter(([url]) => new URL(String(url)).pathname === path);
+
 function solverReplies(status: number, body: unknown) {
-  fetchMock.mockResolvedValue(Response.json(body, { status }));
+  solveReply = async () => Response.json(body, { status });
+}
+
+function solverRaw(res: Response) {
+  solveReply = async () => res;
+}
+
+function solverRejects(err: unknown) {
+  solveReply = async () => {
+    throw err;
+  };
 }
 
 function solverError(status: number, reason: string) {
   solverReplies(status, { status: "cant_solve", reason, message: "solver detail" });
 }
 
-async function post(body: unknown) {
+async function post(body: unknown, headers: Record<string, string> = {}) {
   const res = await POST(
     new Request("http://localhost/api/solve", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...headers },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
@@ -97,6 +114,17 @@ async function post(body: unknown) {
 
 beforeEach(() => {
   vi.stubEnv("SOLVER_URL", "http://solver.test");
+  vi.stubEnv("SOLVER_API_KEY", "");
+  admitReply = async () => Response.json({ status: "ok" });
+  solveReply = async () => {
+    throw new Error("unexpected /solve call");
+  };
+  fetchMock.mockImplementation(async (url) => {
+    const path = new URL(String(url)).pathname;
+    if (path === "/admit") return admitReply();
+    if (path === "/solve") return solveReply();
+    throw new Error(`unexpected fetch ${String(url)}`);
+  });
   vi.stubGlobal("fetch", fetchMock);
   vi.spyOn(console, "error").mockImplementation(() => {});
   vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -142,8 +170,10 @@ describe("POST /api/solve", () => {
     expect(ok.stats.exploitabilityPct).toBe(0.42);
 
     // The solver got the defaulted request in chips.
-    const [url, init] = fetchMock.mock.calls[0];
+    expect(callsTo("/admit")).toHaveLength(1);
+    const [url, init] = callsTo("/solve")[0];
     expect(String(url)).toBe("http://solver.test/solve");
+    expect(new Headers(init?.headers).has("x-solver-key")).toBe(false);
     const sent = JSON.parse(String(init?.body));
     expect(sent).toMatchObject({ board: "Td9d6h", starting_pot: 550, effective_stack: 9750, hero: { player: "ip", hand: "AhKh" } });
   });
@@ -158,7 +188,7 @@ describe("POST /api/solve", () => {
     const { status, body } = await post({ text: "some spot" });
     expect(status).toBe(422);
     expect(body).toEqual({ status: "cant_solve", reason, message: CANT_SOLVE_MESSAGES[reason as keyof typeof CANT_SOLVE_MESSAGES] });
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(callsTo("/solve")).toHaveLength(0);
   });
 
   it.each([
@@ -181,14 +211,14 @@ describe("POST /api/solve", () => {
 
   it("maps a non-JSON 503 from the solver to SOLVER_BUSY", async () => {
     mockExtract.mockResolvedValue(SPEC_EXAMPLE);
-    fetchMock.mockResolvedValue(new Response("busy", { status: 503 }));
+    solverRaw(new Response("busy", { status: 503 }));
     const { body } = await post({ text: "spot" });
     expect(body.reason).toBe("SOLVER_BUSY");
   });
 
   it("returns SOLVER_UNAVAILABLE when the solver is down", async () => {
     mockExtract.mockResolvedValue(SPEC_EXAMPLE);
-    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    solverRejects(new TypeError("fetch failed"));
     const { status, body } = await post({ text: "spot" });
     expect(status).toBe(503);
     expect(body).toMatchObject({ status: "cant_solve", reason: "SOLVER_UNAVAILABLE" });
@@ -204,7 +234,7 @@ describe("POST /api/solve", () => {
 
   it("returns TIMEOUT when the solver doesn't answer in time", async () => {
     mockExtract.mockResolvedValue(SPEC_EXAMPLE);
-    fetchMock.mockRejectedValue(new DOMException("timed out", "TimeoutError"));
+    solverRejects(new DOMException("timed out", "TimeoutError"));
     const { status, body } = await post({ text: "spot" });
     expect(status).toBe(504);
     expect(body.reason).toBe("TIMEOUT");
@@ -219,7 +249,7 @@ describe("POST /api/solve", () => {
       reason: "LLM_UNAVAILABLE",
       message: CANT_SOLVE_MESSAGES.LLM_UNAVAILABLE,
     });
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(callsTo("/solve")).toHaveLength(0);
   });
 
   it.each([
@@ -233,5 +263,230 @@ describe("POST /api/solve", () => {
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ status: "cant_solve", reason: "INVALID_REQUEST" });
     expect(mockExtract).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("rate limiting and solver auth", () => {
+  it("sends the client IP to /admit before extracting", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverReplies(200, SOLVER_OK);
+    const { status } = await post({ text: "spot" }, { "x-forwarded-for": "203.0.113.7, 10.0.0.1", "x-real-ip": "10.9.9.9" });
+    expect(status).toBe(200);
+    const [url, init] = callsTo("/admit")[0];
+    expect(String(url)).toBe("http://solver.test/admit");
+    expect(JSON.parse(String(init?.body))).toEqual({ ip: "203.0.113.7" });
+    expect(fetchMock.mock.invocationCallOrder[0]).toBeLessThan(mockExtract.mock.invocationCallOrder[0]);
+  });
+
+  it.each([
+    [{ "x-real-ip": "198.51.100.4" }, "198.51.100.4"],
+    [{}, "unknown"],
+  ])("falls back for the client IP (%o)", async (headers, ip) => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverReplies(200, SOLVER_OK);
+    await post({ text: "spot" }, headers);
+    expect(JSON.parse(String(callsTo("/admit")[0][1]?.body))).toEqual({ ip });
+  });
+
+  it("returns RATE_LIMITED (429) without calling the LLM when /admit refuses", async () => {
+    admitReply = async () =>
+      Response.json({ status: "cant_solve", reason: "RATE_LIMITED", message: "x" }, { status: 429 });
+    const { status, body } = await post({ text: "spot" });
+    expect(status).toBe(429);
+    expect(body).toEqual({ status: "cant_solve", reason: "RATE_LIMITED", message: CANT_SOLVE_MESSAGES.RATE_LIMITED });
+    expect(body.message).toBe("Can't solve this: too many solves. Try again later.");
+    expect(mockExtract).not.toHaveBeenCalled();
+    expect(callsTo("/solve")).toHaveLength(0);
+  });
+
+  it.each([
+    ["unreachable", async () => Promise.reject(new TypeError("fetch failed"))],
+    ["timing out", async () => Promise.reject(new DOMException("timed out", "TimeoutError"))],
+    ["returning 500", async () => new Response("oops", { status: 500 })],
+    ["rejecting the key (401)", async () => Response.json({ status: "cant_solve", reason: "UNAUTHORIZED" }, { status: 401 })],
+  ])("fails closed with SOLVER_UNAVAILABLE when /admit is %s", async (_, reply) => {
+    admitReply = reply;
+    const { status, body } = await post({ text: "spot" });
+    expect(status).toBe(503);
+    expect(body.reason).toBe("SOLVER_UNAVAILABLE");
+    expect(mockExtract).not.toHaveBeenCalled();
+  });
+
+  it("sends x-solver-key on /admit and /solve when SOLVER_API_KEY is set", async () => {
+    vi.stubEnv("SOLVER_API_KEY", "s3cret");
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverReplies(200, SOLVER_OK);
+    await post({ text: "spot" });
+    for (const path of ["/admit", "/solve"]) {
+      expect(new Headers(callsTo(path)[0][1]?.headers).get("x-solver-key")).toBe("s3cret");
+    }
+  });
+
+  it("maps a 401 from /solve to SOLVER_UNAVAILABLE", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverError(401, "UNAUTHORIZED");
+    const { status, body } = await post({ text: "spot" });
+    expect(status).toBe(503);
+    expect(body.reason).toBe("SOLVER_UNAVAILABLE");
+  });
+});
+
+describe("streaming (Accept: application/x-ndjson)", () => {
+  const NDJSON_HEADERS = { "content-type": "application/x-ndjson" };
+
+  function ndjsonBody(lines: unknown[], { hang = false, signal }: { hang?: boolean; signal?: AbortSignal } = {}) {
+    const enc = new TextEncoder();
+    return new ReadableStream<Uint8Array>({
+      start(c) {
+        for (const l of lines) c.enqueue(enc.encode(`${JSON.stringify(l)}\n`));
+        if (!hang) c.close();
+        signal?.addEventListener("abort", () => c.error(signal.reason));
+      },
+    });
+  }
+
+  function solverStreams(lines: unknown[]) {
+    solveReply = async () => new Response(ndjsonBody(lines), { headers: NDJSON_HEADERS });
+  }
+
+  async function postStream(body: unknown) {
+    const res = await POST(
+      new Request("http://localhost/api/solve", {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/x-ndjson" },
+        body: JSON.stringify(body),
+      }),
+    );
+    const text = await res.text();
+    const events = text
+      .split("\n")
+      .filter((l) => l.trim())
+      .map((l) => JSON.parse(l));
+    return { res, events };
+  }
+
+  it("relays queue positions and solving, then the rendered result", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverStreams([
+      { type: "queued", position: 2 },
+      { type: "queued", position: 2 },
+      { type: "queued", position: 1 },
+      { type: "solving" },
+      { type: "result", ...SOLVER_OK },
+    ]);
+    const { res, events } = await postStream({ text: "flop spot" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+    expect(res.headers.get("cache-control")).toContain("no-transform");
+    expect(res.headers.get("x-accel-buffering")).toBe("no");
+
+    expect(events.slice(0, -1)).toEqual([
+      { type: "queued", position: 2 },
+      { type: "queued", position: 2 },
+      { type: "queued", position: 1 },
+      { type: "solving" },
+    ]);
+    const last = events.at(-1);
+    expect(last).toMatchObject({ type: "result", status: "ok", spot: { board: "Td9d6h", heroPosition: "BTN" } });
+    expect(last.nodes[1].actions[1]).toMatchObject({ label: "Bet 2.75bb", frequency: 0.6 });
+
+    const [, init] = callsTo("/solve")[0];
+    expect(new Headers(init?.headers).get("accept")).toBe("application/x-ndjson");
+  });
+
+  it("ends with the app's message when the solver's queue times out", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverStreams([
+      { type: "queued", position: 1 },
+      { type: "error", status: "cant_solve", reason: "SOLVER_BUSY", message: "queue timed out" },
+    ]);
+    const { res, events } = await postStream({ text: "flop spot" });
+    expect(res.status).toBe(200);
+    expect(events.map((e) => e.type)).toEqual(["queued", "error"]);
+    expect(events[1]).toEqual({ type: "error", ...cantSolveBody("SOLVER_BUSY") });
+  });
+
+  it("maps a plain 503 (queue full, before any stream) to a final error line", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverError(503, "SOLVER_BUSY");
+    const { events } = await postStream({ text: "flop spot" });
+    expect(events).toEqual([{ type: "error", ...cantSolveBody("SOLVER_BUSY") }]);
+  });
+
+  it("streams app-side validation failures without calling the solver", async () => {
+    mockExtract.mockResolvedValue(extraction({ street: "preflop", board: null }));
+    const { res, events } = await postStream({ text: "preflop" });
+    expect(res.status).toBe(200);
+    expect(events).toEqual([{ type: "error", ...cantSolveBody("PREFLOP") }]);
+    expect(callsTo("/solve")).toHaveLength(0);
+  });
+
+  it("returns SOLVER_UNAVAILABLE when the solver stream ends without a result", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverStreams([{ type: "queued", position: 1 }, { type: "solving" }]);
+    const { events } = await postStream({ text: "flop spot" });
+    expect(events.at(-1)).toEqual({ type: "error", ...cantSolveBody("SOLVER_UNAVAILABLE") });
+  });
+
+  it("keeps plain JSON errors for bad input and rate limits", async () => {
+    const bad = await POST(
+      new Request("http://localhost/api/solve", {
+        method: "POST",
+        headers: { accept: "application/x-ndjson" },
+        body: JSON.stringify({ text: " " }),
+      }),
+    );
+    expect(bad.status).toBe(400);
+    expect(bad.headers.get("content-type")).toContain("application/json");
+
+    admitReply = async () => Response.json({ status: "cant_solve", reason: "RATE_LIMITED" }, { status: 429 });
+    const limited = await POST(
+      new Request("http://localhost/api/solve", {
+        method: "POST",
+        headers: { accept: "application/x-ndjson" },
+        body: JSON.stringify({ text: "spot" }),
+      }),
+    );
+    expect(limited.status).toBe(429);
+    expect(mockExtract).not.toHaveBeenCalled();
+  });
+
+  it("aborts the solver request when the browser cancels the stream", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    let solverSignal: AbortSignal | undefined;
+    fetchMock.mockImplementation(async (url, init) => {
+      const path = new URL(String(url)).pathname;
+      if (path === "/admit") return admitReply();
+      solverSignal = init?.signal ?? undefined;
+      return new Response(ndjsonBody([{ type: "queued", position: 3 }], { hang: true, signal: solverSignal }), {
+        headers: NDJSON_HEADERS,
+      });
+    });
+    const res = await POST(
+      new Request("http://localhost/api/solve", {
+        method: "POST",
+        headers: { accept: "application/x-ndjson" },
+        body: JSON.stringify({ text: "spot" }),
+      }),
+    );
+    const reader = res.body!.getReader();
+    const dec = new TextDecoder();
+    let seen = "";
+    while (!seen.includes('"position":3')) seen += dec.decode((await reader.read()).value);
+    expect(solverSignal?.aborted).toBe(false);
+    await reader.cancel();
+    expect(solverSignal?.aborted).toBe(true);
+  });
+
+  it("does not ask the solver for NDJSON on the plain JSON path", async () => {
+    mockExtract.mockResolvedValue(SPEC_EXAMPLE);
+    solverReplies(200, SOLVER_OK);
+    await post({ text: "spot" });
+    expect(new Headers(callsTo("/solve")[0][1]?.headers).has("accept")).toBe(false);
+  });
+});
+
+function cantSolveBody(reason: keyof typeof CANT_SOLVE_MESSAGES) {
+  return { status: "cant_solve", reason, message: CANT_SOLVE_MESSAGES[reason] };
+}

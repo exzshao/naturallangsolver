@@ -8,6 +8,9 @@ use axum::{
 
 use crate::api::ErrorBody;
 
+/// Message for a request that waited `QUEUE_MAX_WAIT_SECS` without reaching the slot.
+pub const QUEUE_TIMED_OUT: &str = "Can't solve this right now: queue timed out. Try again shortly.";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Reason {
     /// Body is not valid JSON or is missing fields. Not in SPEC §6; added so
@@ -20,6 +23,11 @@ pub enum Reason {
     TreeTooLarge,
     Timeout,
     SolverBusy,
+    /// Missing or wrong `x-solver-key`. Not in SPEC §6; the app treats it as a
+    /// misconfiguration and shows SOLVER_UNAVAILABLE.
+    Unauthorized,
+    /// `/admit` refused: per-IP or global solve limit reached.
+    RateLimited,
     Internal,
 }
 
@@ -34,6 +42,8 @@ impl Reason {
             Reason::TreeTooLarge => "TREE_TOO_LARGE",
             Reason::Timeout => "TIMEOUT",
             Reason::SolverBusy => "SOLVER_BUSY",
+            Reason::Unauthorized => "UNAUTHORIZED",
+            Reason::RateLimited => "RATE_LIMITED",
             Reason::Internal => "INTERNAL",
         }
     }
@@ -42,6 +52,8 @@ impl Reason {
         match self {
             Reason::SolverBusy => StatusCode::SERVICE_UNAVAILABLE,
             Reason::Timeout => StatusCode::GATEWAY_TIMEOUT,
+            Reason::Unauthorized => StatusCode::UNAUTHORIZED,
+            Reason::RateLimited => StatusCode::TOO_MANY_REQUESTS,
             Reason::Internal => StatusCode::INTERNAL_SERVER_ERROR,
             _ => StatusCode::UNPROCESSABLE_ENTITY,
         }
@@ -62,7 +74,9 @@ impl Reason {
                 "Can't solve this: the game tree is too large to solve within the memory limit."
             }
             Reason::Timeout => "Can't solve this: the solve didn't converge within the time limit.",
-            Reason::SolverBusy => "Can't solve this right now: the solver is busy. Try again shortly.",
+            Reason::SolverBusy => "Can't solve this right now: the solver queue is full. Try again shortly.",
+            Reason::Unauthorized => "Can't solve this: missing or invalid solver key.",
+            Reason::RateLimited => "Can't solve this: too many solves. Try again later.",
             Reason::Internal => "Can't solve this: the solver hit an unexpected error.",
         }
     }
@@ -73,24 +87,32 @@ impl Reason {
 pub struct SolveError {
     pub reason: Reason,
     pub detail: String,
+    /// Replaces `reason.message()` in the response body when set.
+    pub message: Option<&'static str>,
 }
 
 impl SolveError {
     pub fn new(reason: Reason, detail: impl Into<String>) -> Self {
-        Self { reason, detail: detail.into() }
+        Self { reason, detail: detail.into(), message: None }
+    }
+
+    /// Same reason, different user-facing message (e.g. queue timeout vs full).
+    pub fn with_message(mut self, message: &'static str) -> Self {
+        self.message = Some(message);
+        self
     }
 
     /// Wraps an `Err(String)` from `ActionTree::new` / `PostFlopGame::with_config`.
     pub fn from_crate(msg: impl Into<String>) -> Self {
         let msg = msg.into();
-        Self { reason: map_crate_error(&msg), detail: msg }
+        Self { reason: map_crate_error(&msg), detail: msg, message: None }
     }
 
     pub fn body(&self) -> ErrorBody {
         ErrorBody {
             status: "cant_solve".into(),
             reason: self.reason.code().into(),
-            message: self.reason.message().into(),
+            message: self.message.unwrap_or_else(|| self.reason.message()).into(),
         }
     }
 }
@@ -101,9 +123,15 @@ impl std::fmt::Display for SolveError {
     }
 }
 
+impl SolveError {
+    pub fn log(&self) {
+        tracing::warn!(reason = self.reason.code(), detail = %self.detail, "solve rejected");
+    }
+}
+
 impl IntoResponse for SolveError {
     fn into_response(self) -> Response {
-        tracing::warn!(reason = self.reason.code(), detail = %self.detail, "solve rejected");
+        self.log();
         (self.reason.status(), Json(self.body())).into_response()
     }
 }
@@ -222,6 +250,8 @@ mod tests {
         assert_eq!(Reason::SolverBusy.status(), StatusCode::SERVICE_UNAVAILABLE);
         assert_eq!(Reason::Timeout.status(), StatusCode::GATEWAY_TIMEOUT);
         assert_eq!(Reason::Internal.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(Reason::Unauthorized.status(), StatusCode::UNAUTHORIZED);
+        assert_eq!(Reason::RateLimited.status(), StatusCode::TOO_MANY_REQUESTS);
     }
 
     #[test]

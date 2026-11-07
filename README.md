@@ -17,7 +17,7 @@ browser ──▶ app/ (Next.js)  ──▶ LLM (structured extraction)
 ```
 
 - **`app/`**: Next.js UI and `/api/solve` route. Extraction uses the Vercel AI SDK with a zod schema, so the model is swappable via one env var (`LLM_MODEL=provider:model`). Defaults, validation, and action-history math (pot and stacks from the betting) are pure functions in `app/src/lib/`.
-- **`solver/`**: thin HTTP service around [b-inary/postflop-solver](https://github.com/b-inary/postflop-solver). Checks tree size before allocating, enforces a timeout, runs one solve at a time.
+- **`solver/`**: thin HTTP service around [b-inary/postflop-solver](https://github.com/b-inary/postflop-solver). Checks tree size before allocating, enforces a timeout, runs one solve at a time with a small FIFO queue behind it (the UI shows `QUEUED (#N)` while waiting).
 - **`SPEC.md`**: full spec: schema, defaults, every can't-solve reason, the `/solve` contract.
 
 ## Run locally
@@ -52,6 +52,40 @@ No API key? Set `LLM_MODEL=mock:fixture` for canned extractions (dev only).
 | `MAX_MEMORY_MB` | 1024 | larger trees return `TREE_TOO_LARGE` |
 | `SOLVE_TIMEOUT_SECS` | 90 | |
 | `MAX_ITERATIONS` | 1000 | |
+| `SOLVER_API_KEY` | unset | required `x-solver-key` header; unset disables auth |
+| `RATE_LIMIT_PER_IP_HOUR` | 100 | `/admit` slots per IP per rolling hour |
+| `RATE_LIMIT_GLOBAL_DAY` | 10000 | `/admit` slots per rolling 24 hours |
+| `QUEUE_MAX_WAITING` | 5 | solves that may wait behind the running one; more get `SOLVER_BUSY` |
+| `QUEUE_MAX_WAIT_SECS` | 120 | longest wait in the queue before `SOLVER_BUSY` |
+
+## Deploy
+
+Live at https://nlpsolver.com. The solver runs on Fly.io, the app on Vercel.
+
+**Solver (Fly, `solver/fly.toml`)**: app `nlpsolver-solver`, region `sjc`, one `shared-cpu-4x` / 2 GB machine that is suspended when idle and resumed by the next request. Suspend keeps process memory, so the rate-limit counters survive idle periods; a deploy or a lost snapshot means a cold start.
+
+```sh
+cd solver
+fly secrets set SOLVER_API_KEY=<random hex>      # e.g. openssl rand -hex 32
+fly deploy --remote-only --ha=false
+fly scale count 1 && fly machines list           # cost cap: exactly one machine
+```
+
+**App (Vercel)**: project `nlpsolver`, Root Directory `app`, Fluid compute on. `/api/solve` sets `maxDuration = 300` (LLM + up to 120 s in the solver queue + up to 90 s solving) and streams progress as NDJSON (SPEC §7).
+
+```sh
+vercel env add OPENAI_API_KEY production        # use a key with a spend limit
+vercel env add SOLVER_API_KEY production        # same value as the Fly secret
+vercel env add SOLVER_URL production            # https://nlpsolver-solver.fly.dev
+vercel env add LLM_MODEL production             # openai:gpt-6-luna
+vercel deploy --prod                            # from the repo root
+```
+
+**Safeguards**
+
+- Every solver route except `/health` needs `x-solver-key` = `SOLVER_API_KEY` (unset means no auth, for local dev).
+- Before the LLM call, the app asks the solver's `POST /admit {"ip"}` for a slot. Limits are in-memory sliding windows: `RATE_LIMIT_PER_IP_HOUR` (100) and `RATE_LIMIT_GLOBAL_DAY` (10000). Refusals return `RATE_LIMITED`; if `/admit` can't be reached the app refuses too (`SOLVER_UNAVAILABLE`). Counters survive auto-suspend but reset on deploys and cold starts.
+- LLM output is capped at 1200 tokens, input at 2000 characters. The mock model is refused in production.
 
 ## Tests
 

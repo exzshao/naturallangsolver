@@ -16,8 +16,15 @@ cargo test --release -- --ignored   # full srp river + slim flop spot
 | `MAX_MEMORY_MB` | 1024 | tree memory cap; falls back to compressed storage, else `TREE_TOO_LARGE` |
 | `SOLVE_TIMEOUT_SECS` | 90 | wall clock per solve; past it, `TIMEOUT` if exploitability > 3x target, else partial result |
 | `MAX_ITERATIONS` | 1000 | hard cap on `max_iterations` from the request |
+| `SOLVER_API_KEY` | unset | when set, every route except `/health` needs header `x-solver-key` with this value (else `401 UNAUTHORIZED`) |
+| `RATE_LIMIT_PER_IP_HOUR` | 100 | `POST /admit {"ip": "..."}` slots per IP per rolling hour |
+| `RATE_LIMIT_GLOBAL_DAY` | 10000 | `/admit` slots across all IPs per rolling 24 hours |
+| `QUEUE_MAX_WAITING` | 5 | `/solve` requests that may wait (FIFO) behind the running solve; beyond that `503 SOLVER_BUSY` right away. `0` = no queue |
+| `QUEUE_MAX_WAIT_SECS` | 120 | longest wait in line before `503 SOLVER_BUSY` ("queue timed out") |
 
-Status codes: `200` ok, `422` input problems (`INVALID_REQUEST`, `INVALID_BOARD`, `INVALID_RANGE`, `INVALID_BET_SIZES`, `INVALID_STACKS`, `TREE_TOO_LARGE`), `503 SOLVER_BUSY`, `504 TIMEOUT`, `500 INTERNAL`.
+One solve runs at a time; others queue (`src/queue.rs`). Input is validated before queueing. Send `Accept: application/x-ndjson` to get a streamed `200` with `{"type":"queued","position":N}` / `{"type":"solving"}` lines (repeated every 5 s as a heartbeat) and a final `{"type":"result",...}` or `{"type":"error",...}` line; see `../SPEC.md` §7. Without it, the response is one JSON body after the wait and solve. A client that disconnects while waiting gives up its place.
+
+Status codes: `200` ok, `422` input problems (`INVALID_REQUEST`, `INVALID_BOARD`, `INVALID_RANGE`, `INVALID_BET_SIZES`, `INVALID_STACKS`, `TREE_TOO_LARGE`), `503 SOLVER_BUSY`, `504 TIMEOUT`, `500 INTERNAL`, `401 UNAUTHORIZED`, `429 RATE_LIMITED` (`/admit` only; refused requests aren't counted). `/admit` answers `200 {"status":"ok"}` and records one solve.
 
 Notes:
 - Dash ranges may be ascending (`22-JJ`) or descending (`JJ-22`); the crate only accepts descending, so the service flips them.
@@ -90,8 +97,13 @@ curl -s -w ' %{http_code}\n' -X POST localhost:8080/solve -H 'content-type: appl
 SOLVE_TIMEOUT_SECS=1 cargo run --release &
 curl -s -w ' %{http_code} %{time_total}s\n' -X POST localhost:8080/solve -H 'content-type: application/json' -d @flop_small.json
 
-# M2: concurrency -> second request gets 503 SOLVER_BUSY
+# Queue: B waits behind A, streaming its position, then solves
 curl -s -o /dev/null -w 'A %{http_code}\n' -X POST localhost:8080/solve -H 'content-type: application/json' -d @flop_small.json &
 sleep 0.3
-curl -s -w ' B %{http_code}\n' -X POST localhost:8080/solve -H 'content-type: application/json' -d @river.json
+curl -sN -X POST localhost:8080/solve -H 'content-type: application/json' -H 'accept: application/x-ndjson' -d @river.json | cut -c1-80
+# {"type":"queued","position":1}
+# {"type":"solving"}
+# {"type":"result","status":"ok",...
+
+# Queue full: with 1 running + 5 waiting, a 7th request gets 503 SOLVER_BUSY immediately
 ```

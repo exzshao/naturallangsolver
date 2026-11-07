@@ -1,0 +1,6 @@
+target/
+tests/
+*.md
+fly.toml
+Dockerfile
+.dockerignore
