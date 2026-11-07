@@ -1,6 +1,7 @@
 // Defaults (SPEC §5). Pure function: fills everything the user didn't say and
 // records each applied default as a human-readable assumption. All tunable
 // values live in DEFAULTS.
+import { inferHeroIp, inferPotType, potFromHistory } from "./history";
 import {
   handWeightInRange,
   heroPlayer,
@@ -166,8 +167,8 @@ export function applyDefaults(x: Extraction): DefaultsResult {
   const board = boardCards.join("");
   const street = STREET_BY_CARD_COUNT[boardCards.length];
 
-  // Pot type
-  let potType = x.pot_type;
+  // Pot type: stated, else implied by the preflop action, else the default.
+  let potType = x.pot_type ?? inferPotType(x.actions);
   if (!potType) {
     potType = DEFAULTS.potType;
     assumptions.push(`Assumed a ${POT_LABEL[potType]}`);
@@ -181,8 +182,10 @@ export function applyDefaults(x: Extraction): DefaultsResult {
     villain = null;
   }
   if (!hero && !villain) {
-    hero = DEFAULTS.positions.ip;
-    villain = DEFAULTS.positions.oop;
+    // Who acts first after the flop tells us who is out of position.
+    const heroIp = inferHeroIp(x.actions) ?? true;
+    hero = heroIp ? DEFAULTS.positions.ip : DEFAULTS.positions.oop;
+    villain = heroIp ? DEFAULTS.positions.oop : DEFAULTS.positions.ip;
     assumptions.push(
       `Assumed ${DEFAULTS.positions.ip} (IP) vs ${DEFAULTS.positions.oop} (OOP), with hero on the ${hero}`,
     );
@@ -196,26 +199,47 @@ export function applyDefaults(x: Extraction): DefaultsResult {
   const { oop, ip } = orderPositions(hero!, villain!);
   const heroSeat = heroPlayer(hero!, villain!);
 
-  // Pot and stacks
+  // Pot and stacks. Priority: what the user stated, then the action
+  // history, then the standard pot for the pot type ("checked through").
+  // A stated pot also skips the history for the stack (each player put in
+  // half the pot), so the two never disagree.
   const flop = DEFAULTS.flopPotStack[potType];
+  let starting = x.starting_stack_bb;
+  const startingAssumption = starting === null;
+  if (starting === null) starting = DEFAULTS.startingStackBb;
+  const history = potFromHistory(x, {
+    street,
+    heroPosition: hero!,
+    villainPosition: villain!,
+    standardFlop: { potBb: flop.potBb, investedBb: DEFAULTS.startingStackBb - flop.stackBb },
+    potLabel: POT_LABEL[potType],
+  });
+
   let potBb = x.pot_bb;
-  if (potBb === null) {
+  if (potBb === null && history) {
+    potBb = history.potBb;
+    assumptions.push(...history.assumptions);
+    assumptions.push(`Computed a ${fmt(potBb)}bb pot at the start of the ${street} from the betting`);
+  } else if (potBb === null) {
     potBb = flop.potBb;
     assumptions.push(`Assumed a ${fmt(potBb)}bb pot (standard ${POT_LABEL[potType]} at the flop)`);
     if (street !== "flop") assumptions.push("Assumed it checked through previous streets");
   }
   let stackBb = x.effective_stack_bb;
   if (stackBb === null) {
-    let starting = x.starting_stack_bb;
-    if (starting === null) {
-      starting = DEFAULTS.startingStackBb;
-      assumptions.push(`Assumed ${fmt(starting)}bb effective stacks (starting stack)`);
+    if (startingAssumption) assumptions.push(`Assumed ${fmt(starting)}bb effective stacks (starting stack)`);
+    if (history && x.pot_bb === null) {
+      stackBb = starting - history.investedBb;
+      assumptions.push(
+        `Computed a ${fmt(stackBb)}bb effective stack at the start of the ${street} (${fmt(starting)}bb minus ${fmt(history.investedBb)}bb put in)`,
+      );
+    } else {
+      // Without a stated pot, use the standard preflop investment for the pot
+      // type; otherwise assume each player put in half the pot.
+      const invested = x.pot_bb === null ? DEFAULTS.startingStackBb - flop.stackBb : x.pot_bb / 2;
+      stackBb = starting - invested;
+      assumptions.push(`Assumed ${fmt(stackBb)}bb effective stack at the start of the ${street}`);
     }
-    // Without a stated pot, use the standard preflop investment for the pot
-    // type; otherwise assume each player put in half the pot.
-    const invested = x.pot_bb === null ? DEFAULTS.startingStackBb - flop.stackBb : x.pot_bb / 2;
-    stackBb = starting - invested;
-    assumptions.push(`Assumed ${fmt(stackBb)}bb effective stack at the start of the ${street}`);
   }
 
   // Ranges
@@ -269,15 +293,16 @@ export function applyDefaults(x: Extraction): DefaultsResult {
       assumptions.push("Assumed no raises to keep the flop tree small");
     }
   } else {
+    // Only the streets the solver plays from here on.
     const d = DEFAULTS.betSizes;
+    const streets = street === "turn" ? "turn and river" : "river";
+    const bets = street === "turn" ? `${d.bet}, plus all-in on the river` : `${d.bet}, all-in`;
     if (userBet === null && userRaise === null) {
-      assumptions.push(
-        `Assumed bet sizes ${d.bet} and raises of ${d.raise} on every street (plus all-in on the river)`,
-      );
+      assumptions.push(`Bet sizes the solver considers on the ${streets}: ${bets}; raises ${d.raise} (you didn't specify)`);
     } else if (userBet === null) {
-      assumptions.push(`Assumed bet sizes ${d.bet} on every street (plus all-in on the river)`);
+      assumptions.push(`Bet sizes the solver considers on the ${streets}: ${bets} (you didn't specify)`);
     } else if (userRaise === null) {
-      assumptions.push(`Assumed raises of ${d.raise}`);
+      assumptions.push(`Raise size the solver considers on the ${streets}: ${d.raise} (you didn't specify)`);
     }
   }
 

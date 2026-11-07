@@ -78,8 +78,12 @@ All fields are nullable unless marked otherwise. Here, "required" means a spot c
 | `hero_position`, `villain_position` | `"UTG"\|"HJ"\|"CO"\|"BTN"\|"SB"\|"BB"` | Used to decide OOP/IP and to pick default ranges. |
 | `hero_hand` | string | e.g. `"AhKh"`. Optional. Lets us report hero's strategy for that exact hand. |
 | `pot_type` | `"limped"\|"srp"\|"3bet"\|"4bet"` | srp = single raised pot. |
-| `pot_bb` | number | Pot size at the start of `street`. |
+| `pot_bb` | number | Pot size at the start of `street`, in bb. Null when the user's amounts can't be converted (no blind size); the pot then comes from `actions`. |
 | `effective_stack_bb` | number | Effective stack at the start of `street`. |
+| `starting_stack_bb` | number | Stack depth before the hand ("100bb deep"). |
+| `amount_unit` | `"bb"\|"chips"` | Units of the `actions` amounts. `chips` covers chips, currency and bare numbers. |
+| `big_blind_size` | number | Big blind in the same units as `actions` amounts (stakes "$1/$2" → 2). Only if stated. |
+| `actions` | `[{street, actor: "hero"\|"villain", action, amount}]` | The betting line in order, up to and including the current street. `action` is `limp\|open\|raise\|3bet\|4bet\|call\|check\|bet\|fold`. `amount` is in the user's units, unconverted: raise-to total for open/raise/3bet/4bet, bet size for bet, null otherwise. A "raise" into a check is recorded as `bet`; implied calls (a street that continues) are recorded even when unstated. |
 | `oop_range`, `ip_range` | string | PioSOLVER-style range string (see §6). Filled only if the user gave one. |
 | `bet_sizes` | `{bet: string, raise: string}` | Filled only if the user named sizes, e.g. `"33%, 75%"`. |
 | `notes` | string | Anything relevant that didn't fit, such as action already taken on the street. |
@@ -90,14 +94,16 @@ Every default that gets applied adds a readable line to `assumptions[]`, for exa
 
 | Missing | Default |
 |---|---|
-| positions | BTN (IP) vs BB (OOP) |
+| positions | BTN (IP) vs BB (OOP). Hero takes the IP seat unless `actions` show hero acting first after the flop. |
 | one position | The other comes from the pot type: srp → BB defends against the opener; 3bet → the opener calls the 3-bettor |
-| pot_type | srp |
+| pot_type | Inferred from preflop `actions` (open → srp, open + 3bet → 3bet, a 4bet → 4bet, limps only → limped), else srp |
 | starting stack | 100bb |
 | pot_bb / effective_stack_bb (flop) | srp: pot 5.5, stack 97.5. 3bet: pot 20, stack 90. 4bet: pot 45, stack 77.5. limped: pot 2, stack 99 |
-| pot/stack on turn/river with no info | Use the flop values. Add the assumption "checked through previous streets". |
+| pot/stack from `actions` (`app/src/lib/history.ts`) | Used when `pot_bb` is null and some earlier street has action. Amounts → bb: `amount_unit` bb as is; else divide by `big_blind_size`; else infer the big blind from the preflop open as a 3x raise (open 15 → BB 5, with an assumption). Blinds: a blind posted by a player in the hand is inside their raise-to/call amount; blinds of seats not in the hand are dead money (BTN v BB +0.5bb, CO v BTN +1.5bb, SB v BB +0). An unmatched last bet on a finished street is assumed called. A bet/raise with no usable amount is sized half pot / 3x (with an assumption). Preflop with no amounts uses the standard flop pot for the pot type. Effective stack = starting stack − what each player put in. Prior streets with no action at all get "Assumed the flop checked through". A stated `pot_bb` skips the history (stack = start − half the pot). |
+| pot/stack on turn/river with no usable history | Use the flop values. Add the assumption "checked through previous streets". |
+| inconsistent amounts | `INVALID_STACKS`: non-positive amounts or blind size, a raise not bigger than the bet before it, or investments that leave no effective stack. |
 | ranges | A lookup table keyed by `(pot_type, IP position, OOP position)`. Seed it with simple ranges for the common pairs (BTN v BB, CO v BB, SB v BB, BTN v SB 3bet, BB v BTN 3bet), plus a generic fallback per pot type. Rough srp BTN-v-BB seeds: IP `22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o` and OOP `22-JJ,A2s-AJs,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,A2o-AJo,K9o+,Q9o+,J9o+,T9o` |
-| bet sizes, spot starts on the turn or river (both players, all streets) | bet `"33%, 75%"`, raise `"3x"`. On the river, add `"a"` to the bets. |
+| bet sizes, spot starts on the turn or river (both players, all streets) | bet `"33%, 75%"`, raise `"3x"`. On the river, add `"a"` to the bets. The assumption names only the streets the solver plays, e.g. "Bet sizes the solver considers on the turn and river: …". |
 | bet sizes, spot starts on the flop | Simplified tree: flop bet `"50%"`, turn bet `"75%"`, river bet `"75%"`, no raises (raise `""`). Add the assumption "Simplified flop tree (one bet size, no raises) to keep solve time reasonable". The full tree above needs ~20GB on a flop and always returns `TREE_TOO_LARGE`; this one is ~520MB and solves in ~7s. |
 | donk sizes | `null` (the solver's defaults) |
 | thresholds | add_allin 1.5, force_allin 0.15, merging 0.1, rake 0 |
@@ -124,7 +130,7 @@ The app checks first (cheap, before any HTTP call), and the solver re-checks aut
 | `INVALID_BOARD` | app + solver | Board not 3-5 valid cards, duplicate cards, card count doesn't match street, or `hero_hand` overlaps the board |
 | `INVALID_RANGE` | solver | Range fails to parse, or is empty after board blockers ("Valid card assignment does not exist", "OOP/IP range is empty") |
 | `INVALID_BET_SIZES` | solver | `BetSizeOptions::try_from` / `ActionTree::new` rejects the config |
-| `INVALID_STACKS` | app | pot ≤ 0 or stack ≤ 0 |
+| `INVALID_STACKS` | app | pot ≤ 0 or stack ≤ 0, or inconsistent `actions` amounts (§5) |
 | `TREE_TOO_LARGE` | solver | `memory_usage()` is over `MAX_MEMORY_MB` even compressed, or "Too many nodes" |
 | `TIMEOUT` | solver | Wall clock passed `SOLVE_TIMEOUT_SECS` before the target was reached (see §8) |
 | `SOLVER_BUSY` | solver | Another solve is already running (see §8) |

@@ -1,6 +1,7 @@
 // App-side validation (SPEC §6). Pure functions: cheap checks that run before
 // any HTTP call. The solver re-checks authoritatively.
 import type { ResolvedSpot } from "./defaults";
+import { historyProblem } from "./history";
 import { bbToChips, hasDuplicates, parseCards, parseHand, STREET_BY_CARD_COUNT } from "./poker";
 import type { Extraction } from "./schema";
 import type { CantSolveReason, CantSolveResponse } from "./types";
@@ -29,7 +30,7 @@ export function cantSolve(reason: CantSolveReason, message = CANT_SOLVE_MESSAGES
 /**
  * Checks on the raw extraction, before defaults. Returns null when the spot
  * can proceed to applyDefaults(). Order matters: NOT_POKER, PREFLOP,
- * MULTIWAY, INVALID_BOARD, INVALID_STACKS.
+ * MULTIWAY, INVALID_BOARD, INVALID_STACKS (incl. inconsistent action amounts).
  */
 export function validateExtraction(x: Extraction): CantSolveResponse | null {
   if (!x.is_poker_spot) return cantSolve("NOT_POKER");
@@ -53,13 +54,19 @@ export function validateExtraction(x: Extraction): CantSolveResponse | null {
   for (const v of [x.pot_bb, x.effective_stack_bb, x.starting_stack_bb]) {
     if (v !== null && !(v > 0)) return cantSolve("INVALID_STACKS");
   }
+  const problem = historyProblem(x);
+  if (problem) return cantSolve("INVALID_STACKS", `Can't solve this: the bet amounts don't add up (${problem}).`);
   return null;
 }
 
 /** Checks on the fully defaulted spot (e.g. a derived stack that went non-positive). */
 export function validateSpot(spot: ResolvedSpot): CantSolveResponse | null {
-  if (bbToChips(spot.potBb) <= 0 || bbToChips(spot.effectiveStackBb) <= 0) {
-    return cantSolve("INVALID_STACKS");
+  if (bbToChips(spot.potBb) <= 0) return cantSolve("INVALID_STACKS");
+  if (bbToChips(spot.effectiveStackBb) <= 0) {
+    return cantSolve(
+      "INVALID_STACKS",
+      "Can't solve this: the bets add up to more than the stacks, so there's nothing left to play for. Tell me the stack sizes if they were deeper.",
+    );
   }
   return null;
 }

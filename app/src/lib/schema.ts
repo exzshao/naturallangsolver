@@ -12,9 +12,28 @@ export const PositionSchema = z.enum(POSITIONS);
 export const StreetSchema = z.enum(STREETS);
 export const PotTypeSchema = z.enum(POT_TYPES);
 
+export const AMOUNT_UNITS = ["bb", "chips"] as const;
+export const ACTORS = ["hero", "villain"] as const;
+export const ACTION_KINDS = ["limp", "open", "raise", "3bet", "4bet", "call", "check", "bet", "fold"] as const;
+
+export const AmountUnitSchema = z.enum(AMOUNT_UNITS);
+export const ActionSchema = z.object({
+  street: StreetSchema,
+  actor: z.enum(ACTORS),
+  action: z.enum(ACTION_KINDS),
+  amount: z
+    .number()
+    .nullable()
+    .describe(
+      "In the user's units (see amount_unit). open/raise/3bet/4bet: the raise-to total for the street. bet: the bet size. Null for check/call/fold/limp or when not stated.",
+    ),
+});
+
 export type Position = z.infer<typeof PositionSchema>;
 export type Street = z.infer<typeof StreetSchema>;
 export type PotType = z.infer<typeof PotTypeSchema>;
+export type AmountUnit = z.infer<typeof AmountUnitSchema>;
+export type Action = z.infer<typeof ActionSchema>;
 
 export const ExtractionSchema = z.object({
   is_poker_spot: z
@@ -55,6 +74,19 @@ export const ExtractionSchema = z.object({
     .number()
     .nullable()
     .describe('Stack depth before the hand started, e.g. "100bb deep" -> 100.'),
+  amount_unit: AmountUnitSchema.nullable().describe(
+    'Units of the amounts in `actions`: "bb" if the user gave big blinds, "chips" for chips, dollars, or bare numbers. Null if no amounts.',
+  ),
+  big_blind_size: z
+    .number()
+    .nullable()
+    .describe('Big blind in the same units as `actions` amounts, e.g. stakes "$1/$2" -> 2. Null unless stated.'),
+  actions: z
+    .array(ActionSchema)
+    .nullable()
+    .describe(
+      "Betting action in order, all streets up to and including the current one, as the user described it. Null if no action was described.",
+    ),
   oop_range: z
     .string()
     .nullable()

@@ -11,6 +11,8 @@ type Fixture = {
   id: string;
   prompt: string;
   expected: Partial<Record<keyof Extraction, Expected>>;
+  /** Optional checks on the derived spot (pot, stack, ...) when the outcome is "ok". */
+  spot?: Record<string, unknown>;
   /** "ok" or the cant_solve reason prepareSolve() should return. */
   outcome: string;
 };
@@ -53,6 +55,12 @@ describe.skipIf(!RUN)("LLM extraction evals", () => {
           const prepared = prepareSolve(out);
           const outcome = prepared.ok ? "ok" : prepared.error.reason;
           if (outcome !== f.outcome) mismatches.push(`outcome: expected ${f.outcome}, got ${outcome}`);
+          if (prepared.ok && f.spot) {
+            const spot = prepared.spot as unknown as Record<string, unknown>;
+            for (const [k, v] of Object.entries(f.spot)) {
+              if (!matches(spot[k], v)) mismatches.push(`spot.${k}: expected ${JSON.stringify(v)}, got ${JSON.stringify(spot[k])}`);
+            }
+          }
           return { f, out, mismatches, assumptions: prepared.ok ? prepared.assumptions : [] };
         }),
       );

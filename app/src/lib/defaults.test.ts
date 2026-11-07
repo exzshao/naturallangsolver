@@ -191,7 +191,10 @@ describe("§5 bet sizes", () => {
         turn: { bet: "33%, 75%", raise: "3x" },
         river: { bet: "33%, 75%, a", raise: "3x" },
       });
-      expect(assumptions.some((a) => a.startsWith("Assumed bet sizes 33%, 75% and raises of 3x"))).toBe(true);
+      const streets = board.length === 8 ? "turn and river" : "river";
+      expect(assumptions.some((a) => a.startsWith(`Bet sizes the solver considers on the ${streets}: 33%, 75%`))).toBe(true);
+      expect(assumptions.some((a) => a.includes("raises 3x (you didn't specify)"))).toBe(true);
+      expect(assumptions.some((a) => a.startsWith("Bet sizes") && a.includes("flop"))).toBe(false);
       expect(assumptions).not.toContain(FLOP_TREE_ASSUMPTION);
     }
   });
@@ -219,7 +222,7 @@ describe("§5 bet sizes", () => {
   it("user bet only -> default raise (3x on turn/river, none on flop)", () => {
     const turn = run({ board: "Td9d6hQc", bet_sizes: { bet: "50%", raise: null } });
     expect(turn.spot.betSizes.turn).toEqual({ bet: "50%", raise: "3x" });
-    expect(turn.assumptions).toContain("Assumed raises of 3x");
+    expect(turn.assumptions).toContain("Raise size the solver considers on the turn and river: 3x (you didn't specify)");
 
     const flop = run({ bet_sizes: { bet: "50%", raise: null } });
     expect(flop.spot.betSizes.flop).toEqual({ bet: "50%", raise: "" });

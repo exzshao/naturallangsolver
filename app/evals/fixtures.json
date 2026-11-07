@@ -195,5 +195,87 @@
       "bet_sizes": null
     },
     "outcome": "ok"
+  },
+  {
+    "id": "turn-chips-action-history",
+    "prompt": "Wdy here \nboard is Qh2c7h8h\nWe have 2h2s\n\nHeads up against villain.\n\nPre flop we open raise to 15 and he re raises to 60. We flop a set, he checks, we raise 125, he calls. Now the turn gives flushes but he checks. \nWould u check or bet here? We have 10 outs to a full house / quads even if villain has a flush. Betting lets him raise tho. Checking is probably the right play",
+    "expected": {
+      "is_poker_spot": true,
+      "num_players": 2,
+      "street": "turn",
+      "board": "Qh2c7h8h",
+      "hero_hand": {
+        "$oneOf": [
+          "2h2s",
+          "2s2h"
+        ]
+      },
+      "pot_type": {
+        "$oneOf": [
+          "3bet",
+          null
+        ]
+      },
+      "pot_bb": null,
+      "effective_stack_bb": null,
+      "starting_stack_bb": null,
+      "amount_unit": "chips",
+      "big_blind_size": null,
+      "actions": [
+        {
+          "street": "preflop",
+          "actor": "hero",
+          "action": {
+            "$oneOf": [
+              "open",
+              "raise"
+            ]
+          },
+          "amount": 15
+        },
+        {
+          "street": "preflop",
+          "actor": "villain",
+          "action": {
+            "$oneOf": [
+              "3bet",
+              "raise"
+            ]
+          },
+          "amount": 60
+        },
+        {
+          "street": "preflop",
+          "actor": "hero",
+          "action": "call"
+        },
+        {
+          "street": "flop",
+          "actor": "villain",
+          "action": "check"
+        },
+        {
+          "street": "flop",
+          "actor": "hero",
+          "action": "bet",
+          "amount": 125
+        },
+        {
+          "street": "flop",
+          "actor": "villain",
+          "action": "call"
+        }
+      ],
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "spot": {
+      "potBb": 74.5,
+      "effectiveStackBb": 63,
+      "potType": "3bet",
+      "heroPlayer": "ip"
+    },
+    "outcome": "ok"
   }
 ]
