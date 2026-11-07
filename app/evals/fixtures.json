@@ -1,0 +1,199 @@
+[
+  {
+    "id": "spec-example",
+    "prompt": "BTN vs BB single raised pot, 100bb deep, flop Td9d6h, I'm on the button with AhKh, BB checks to me.",
+    "expected": {
+      "is_poker_spot": true,
+      "num_players": 2,
+      "street": "flop",
+      "board": "Td9d6h",
+      "hero_position": "BTN",
+      "villain_position": "BB",
+      "hero_hand": "AhKh",
+      "pot_type": "srp",
+      "pot_bb": null,
+      "effective_stack_bb": null,
+      "starting_stack_bb": 100,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "slang-spoken-board",
+    "prompt": "3-bet pot, I'm in the big blind against the button. Flop comes Ten-nine-six two diamonds. What do I do?",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": { "$oneOf": ["Td9d6h", "Td9d6c", "Td9d6s"] },
+      "hero_position": "BB",
+      "villain_position": "BTN",
+      "hero_hand": null,
+      "pot_type": "3bet",
+      "pot_bb": null,
+      "effective_stack_bb": null,
+      "starting_stack_bb": null,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "missing-info",
+    "prompt": "What's the GTO play on Ks7d2c?",
+    "expected": {
+      "is_poker_spot": true,
+      "board": "Ks7d2c",
+      "hero_position": null,
+      "villain_position": null,
+      "hero_hand": null,
+      "pot_type": null,
+      "pot_bb": null,
+      "effective_stack_bb": null,
+      "starting_stack_bb": null,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "multiway",
+    "prompt": "3-way limped pot, SB, BB and the button all see a flop of As8h3c. SB checks, what should BB do?",
+    "expected": {
+      "is_poker_spot": true,
+      "num_players": 3,
+      "board": "As8h3c",
+      "pot_type": "limped",
+      "oop_range": null,
+      "ip_range": null
+    },
+    "outcome": "MULTIWAY"
+  },
+  {
+    "id": "preflop",
+    "prompt": "I have AKo under the gun at 100bb, should I open or limp?",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "preflop",
+      "board": null,
+      "hero_position": "UTG",
+      "hero_hand": null,
+      "oop_range": null,
+      "ip_range": null
+    },
+    "outcome": "PREFLOP"
+  },
+  {
+    "id": "not-poker",
+    "prompt": "What's the capital of France?",
+    "expected": {
+      "is_poker_spot": false,
+      "board": null,
+      "hero_hand": null
+    },
+    "outcome": "NOT_POKER"
+  },
+  {
+    "id": "turn-dollars",
+    "prompt": "$1/$2 cash game. Cutoff opens, I call on the button with 9h8h. Turn board is Qh Jh 4s 2d and the pot is $25. Cutoff checks.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "turn",
+      "board": "QhJh4s2d",
+      "hero_position": "BTN",
+      "villain_position": "CO",
+      "hero_hand": "9h8h",
+      "pot_type": "srp",
+      "pot_bb": 12.5,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "river-ranges-sizes",
+    "prompt": "River spot on Td9d6hQc2s. Pot is 20bb with 80bb behind. OOP range: QQ+,AK. IP range: JJ-99,AQs. Use bet sizes of 50% and 100% pot, raises 2.5x.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "river",
+      "board": "Td9d6hQc2s",
+      "pot_bb": 20,
+      "effective_stack_bb": 80,
+      "oop_range": "QQ+,AK",
+      "ip_range": "JJ-99,AQs",
+      "bet_sizes": { "bet": "50%,100%", "raise": "2.5x" },
+      "hero_hand": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "4bet-pot",
+    "prompt": "4-bet pot, I'm in the small blind with QsQd versus the button. Flop Ah 7c 2s, I'm first to act.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "Ah7c2s",
+      "hero_position": "SB",
+      "villain_position": "BTN",
+      "hero_hand": "QsQd",
+      "pot_type": "4bet",
+      "pot_bb": null,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "duplicate-board",
+    "prompt": "SRP BTN vs BB, flop Td Td 6h, BB checks to me on the button.",
+    "expected": {
+      "is_poker_spot": true,
+      "board": "TdTd6h",
+      "hero_position": "BTN",
+      "villain_position": "BB",
+      "pot_type": "srp"
+    },
+    "outcome": "INVALID_BOARD"
+  },
+  {
+    "id": "slang-monotone-hero-bb",
+    "prompt": "Single raised pot, button opened and I defended my big blind with 8s7s. Flop is 9s6s2s, I check.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "9s6s2s",
+      "hero_position": "BB",
+      "villain_position": "BTN",
+      "hero_hand": "8s7s",
+      "pot_type": "srp",
+      "pot_bb": null,
+      "effective_stack_bb": null,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "limped-heads-up",
+    "prompt": "Heads up limped pot between the small blind and big blind. Flop 5c4d3h.",
+    "expected": {
+      "is_poker_spot": true,
+      "num_players": 2,
+      "street": "flop",
+      "board": "5c4d3h",
+      "pot_type": "limped",
+      "hero_hand": null,
+      "pot_bb": null,
+      "oop_range": null,
+      "ip_range": null,
+      "bet_sizes": null
+    },
+    "outcome": "ok"
+  }
+]

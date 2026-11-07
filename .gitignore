@@ -1,0 +1,17 @@
+# env / secrets
+.env
+.env*.local
+!.env.example
+
+# node / next
+node_modules/
+.next/
+out/
+next-env.d.ts
+
+# rust
+**/target/
+
+# misc
+.DS_Store
+*.log
