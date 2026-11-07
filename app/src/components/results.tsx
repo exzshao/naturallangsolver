@@ -1,7 +1,7 @@
 import type { SolveOkPayload } from "@/lib/present";
 import type { CantSolveResponse } from "@/lib/types";
 import type { ReactNode } from "react";
-import { CardRow } from "./cards";
+import { CardRow, HandText } from "./cards";
 import { ActionBreakdown, pct } from "./strategy";
 
 const POT_TYPE_LABEL: Record<SolveOkPayload["spot"]["potType"], string> = {
@@ -136,8 +136,12 @@ function HeroHand({ h }: { h: NonNullable<SolveOkPayload["heroHand"]> }) {
         <div className="flex items-center gap-3">
           <CardRow cards={h.hand} size="sm" />
           <div>
-            <h2 className="text-sm font-semibold">Your hand</h2>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">{h.nodeTitle}</p>
+            <h2 className="text-sm font-semibold">
+              Your exact hand (<HandText hand={h.hand} />)
+            </h2>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              How the solver plays this specific hand {h.situation}
+            </p>
           </div>
         </div>
         <div className="flex gap-4 text-sm">
@@ -201,11 +205,14 @@ export function SolveResult({ r }: { r: SolveOkPayload }) {
       {r.heroHand && <HeroHand h={r.heroHand} />}
       {r.nodes.map((n, i) => (
         <Panel key={i}>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">{n.title}</h2>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              {n.isHero ? "your strategy" : "villain strategy"} · whole range
-            </span>
+          <div className="mb-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h2 className="text-sm font-semibold">{n.isHero ? "Your whole range" : "Villain's whole range"}</h2>
+              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{n.title}</span>
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              Average over every hand {n.position} could hold here
+            </p>
           </div>
           <ActionBreakdown actions={n.actions} />
         </Panel>

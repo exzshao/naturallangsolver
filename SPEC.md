@@ -178,7 +178,9 @@ Success `200`:
   "nodes": [                          // root (OOP to act) + IP facing a check
     { "line": [], "player": "oop",
       "actions": [ { "action": "Check", "amount": 0, "frequency": 0.71,
-                     "top_hands": ["QhJh","8h7h"] }, ... ] },
+                     "top_hands": ["KQo","A5s"],               // class names of top_classes
+                     "top_classes": [ { "hand": "KQo", "frequency": 0.72 },
+                                      { "hand": "A5s", "frequency": 1.0 } ] }, ... ] },
     { "line": ["Check"], "player": "ip", "actions": [ ... ] }
   ],
   "hero_hand": { "hand": "AhKh", "node": 1, "equity": 0.61, "ev": 410.2,
@@ -186,7 +188,9 @@ Success `200`:
 }
 ```
 
-Errors return `422` (input problems), `503` (`SOLVER_BUSY`), or `504` (`TIMEOUT`), using the §6 body shape. Keep the payload small: 2 nodes, at most 5 `top_hands` per action, and no per-hand arrays.
+Errors return `422` (input problems), `503` (`SOLVER_BUSY`), or `504` (`TIMEOUT`), using the §6 body shape. Keep the payload small: 2 nodes, at most 6 `top_classes` per action, and no per-hand arrays.
+
+`top_classes` groups the acting player's combos into hand classes (`KK` pair, `KQs` suited, `KQo` offsuit), skipping zero-weight combos (board-blocked or out of range). Classes are ordered by frequency (compared at 1% resolution), ties broken by the range weight they send into the action (sum of weight × frequency over their combos). Each class's `frequency` is the weight-averaged probability that its live combos take the action. `top_hands` lists the same class names as plain strings, for older clients.
 
 ## 8. Rust implementation notes (real `postflop-solver` API)
 
@@ -235,7 +239,7 @@ If the deadline passed and `e > target * 3`, return `TIMEOUT`. Otherwise return 
 - For each player p: `equity(p)` and `expected_values(p)` are per-hand `Vec<f32>`. Average them with `compute_average(&v, game.normalized_weights(p))`.
 - `available_actions()` returns `Vec<Action>` (`Fold`, `Check`, `Call`, `Bet(i32)`, `Raise(i32)`, `AllIn(i32)`).
 - `strategy()` is laid out as `[action_idx * n_hands + hand_idx]`, where `n_hands = game.private_cards(current_player).len()`.
-- The overall action frequency is the strategy weighted by `normalized_weights(player)`. For `top_hands`, sort hands by `weight * freq`. Hand strings come from `holes_to_strings(game.private_cards(p))`.
+- The overall action frequency is the strategy weighted by `normalized_weights(player)`. For `top_classes`, group `private_cards(p)` into classes by rank and suitedness (card id = 4*rank + suit), sum `weight * freq` and `weight` per class, sort by the ratio (rounded to 1%) then by the first sum, and report the ratio as the class frequency. The hero's hand string comes from `holes_to_strings(game.private_cards(p))`.
 - Move through the tree with `play(action_idx)` and `back_to_root()`. To read the node where IP faces a check, play the index of `Action::Check` at the root. Look up hero's hand index in `private_cards(hero)` by string.
 
 ## 9. UI (single page, `app/src/app/page.tsx`)
@@ -243,7 +247,7 @@ If the deadline passed and `e > target * 3`, return `TIMEOUT`. Otherwise return 
 - A textarea with a submit button and 2-3 clickable example prompts. Show a loading state with a hint like "solving can take up to ~90s".
 - **Spot card:** board (rendered cards), positions, pot and stack in bb, ranges (collapsed), and bet sizes.
 - **Assumptions:** a bulleted list, highlighted so users see what was guessed.
-- **Results:** a stacked bar of action frequencies for each node, labeled in bb and % of pot, top hands per action, equity and EV per player, the hero-hand callout if present, and exploitability plus solve time in small text.
+- **Results:** a stacked bar of action frequencies for each node, labeled in bb and % of pot, the top hand classes per action with how often each takes it (e.g. "KK 100%"), equity and EV per player, the hero-hand callout if present, and exploitability plus solve time in small text.
 - **Can't-solve state:** a neutral panel showing `message` and the original input, with no strategy shown.
 - No auth, history, or persistence.
 

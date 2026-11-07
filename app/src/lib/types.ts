@@ -38,9 +38,18 @@ export type HeroAction = {
   frequency: number;
 };
 
+/** A hand class ("KK", "KQs", "KQo") and how often its live combos take the action. */
+export type HandClass = {
+  hand: string;
+  /** Weighted average over the class's combos, in [0, 1]. */
+  frequency: number;
+};
+
 export type SolverAction = HeroAction & {
-  /** Up to 5 hands; may be empty. */
+  /** Class names of `top_classes`, same order (kept for older clients). */
   top_hands: string[];
+  /** Up to 6 classes, ordered by how often they take this action (ties: range weight sent in); may be empty. */
+  top_classes: HandClass[];
 };
 
 export type SolverNode = {

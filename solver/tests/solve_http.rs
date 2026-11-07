@@ -60,7 +60,8 @@ fn assert_frequencies_sum_to_one(v: &Value) {
         let sum: f64 = node["actions"].as_array().unwrap().iter().map(|a| a["frequency"].as_f64().unwrap()).sum();
         assert!((sum - 1.0).abs() < 1e-3, "node {:?} sums to {sum}", node["line"]);
         for a in node["actions"].as_array().unwrap() {
-            assert!(a["top_hands"].as_array().unwrap().len() <= 5);
+            assert!(a["top_hands"].as_array().unwrap().len() <= 6);
+            assert_eq!(a["top_classes"].as_array().unwrap().len(), a["top_hands"].as_array().unwrap().len());
         }
     }
 }

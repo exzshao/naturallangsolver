@@ -1,5 +1,4 @@
 import type { DisplayAction } from "@/lib/present";
-import { HandText } from "./cards";
 
 // Check/call green, bets warm and darker as they get bigger, all-in deepest.
 const BET_COLORS = ["bg-amber-400", "bg-orange-500", "bg-red-500", "bg-rose-600"];
@@ -15,6 +14,9 @@ export function actionColors(actions: DisplayAction[]): string[] {
 }
 
 export const pct = (f: number) => `${Math.round(f * 100)}%`;
+
+/** Like pct, but never rounds a nonzero frequency down to "0%". */
+const classPct = (f: number) => (f > 0 && f < 0.005 ? "<1%" : pct(f));
 
 function sizeNote(a: DisplayAction): string | null {
   return a.potPct === null ? null : `${a.potPct}% pot`;
@@ -43,7 +45,7 @@ export function StackedBar({ actions, colors }: { actions: DisplayAction[]; colo
   );
 }
 
-/** Bar plus one row per action: label, size as % of pot, frequency, top hands. */
+/** Bar plus one row per action: label, size as % of pot, frequency, top hand classes. */
 export function ActionBreakdown({ actions, showHands = true }: { actions: DisplayAction[]; showHands?: boolean }) {
   const colors = actionColors(actions);
   return (
@@ -60,10 +62,16 @@ export function ActionBreakdown({ actions, showHands = true }: { actions: Displa
                 {sizeNote(a) && <span className="text-zinc-500 dark:text-zinc-400">{sizeNote(a)}</span>}
                 <span className="ml-auto font-semibold tabular-nums">{pct(a.frequency)}</span>
               </div>
-              {showHands && a.topHands.length > 0 && !muted && (
-                <div className="mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5 pl-[18px] text-xs">
-                  {a.topHands.map((h) => (
-                    <HandText key={h} hand={h} />
+              {showHands && a.topClasses.length > 0 && !muted && (
+                <div
+                  className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 pl-[18px] text-xs"
+                  aria-label={`Hands that ${a.label.toLowerCase()} most`}
+                >
+                  {a.topClasses.map((h) => (
+                    <span key={h.hand} className="whitespace-nowrap">
+                      <span className="font-mono font-medium text-zinc-800 dark:text-zinc-200">{h.hand}</span>{" "}
+                      <span className="tabular-nums text-zinc-500 dark:text-zinc-400">{classPct(h.frequency)}</span>
+                    </span>
                   ))}
                 </div>
               )}

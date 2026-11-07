@@ -110,7 +110,19 @@ pub struct ActionSummary {
     /// Chips; 0 for Fold/Check/Call.
     pub amount: i32,
     pub frequency: f64,
+    /// Hand-class names ("KK", "KQs", "A5o") of `top_classes`, same order. Kept as a
+    /// plain string list for older clients.
     pub top_hands: Vec<String>,
+    /// Up to 6 hand classes that put the most range weight into this action, largest first.
+    pub top_classes: Vec<HandClass>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HandClass {
+    /// "KK" (pair), "KQs" (suited) or "KQo" (offsuit).
+    pub hand: String,
+    /// How often this class takes the action: weighted average over its live combos, in [0, 1].
+    pub frequency: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

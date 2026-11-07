@@ -3,13 +3,62 @@
 use postflop_solver::{Action, PostFlopGame, compute_average, holes_to_strings};
 
 use crate::api::{
-    ActionSummary, HeroAction, HeroHandSummary, NodeSummary, PlayerSide, PlayerStats, Players,
+    ActionSummary, HandClass, HeroAction, HeroHandSummary, NodeSummary, PlayerSide, PlayerStats, Players,
 };
 use crate::config::HeroSpec;
 use crate::error::{Reason, SolveError};
 use crate::solve::round;
 
-const TOP_HANDS: usize = 5;
+const TOP_CLASSES: usize = 6;
+
+const RANKS: &[u8; 13] = b"23456789TJQKA";
+
+/// Hand-class name for a hole-card pair (card id = 4 * rank + suit): "KK", "KQs", "KQo".
+pub fn class_name(cards: (u8, u8)) -> String {
+    let (r1, r2) = (cards.0 / 4, cards.1 / 4);
+    let (hi, lo) = if r1 >= r2 { (r1, r2) } else { (r2, r1) };
+    let mut s = String::with_capacity(3);
+    s.push(RANKS[hi as usize] as char);
+    s.push(RANKS[lo as usize] as char);
+    if hi != lo {
+        s.push(if cards.0 % 4 == cards.1 % 4 { 's' } else { 'o' });
+    }
+    s
+}
+
+/// Groups combos into hand classes for one action. `weights` are the player's range
+/// weights at the node and `row` the per-combo probability of taking the action.
+/// Returns up to `limit` classes ordered by how often they take the action
+/// (weighted-average frequency over live combos, compared at 1% resolution), ties
+/// broken by weight sent into the action (sum of weight * freq).
+/// Zero-weight combos (blocked or not in range) are ignored.
+pub fn top_classes(hands: &[(u8, u8)], weights: &[f32], row: &[f32], limit: usize) -> Vec<HandClass> {
+    // class -> (sum of weight * freq, sum of weight)
+    let mut acc: Vec<(String, f64, f64)> = Vec::new();
+    for ((&cards, &w), &s) in hands.iter().zip(weights).zip(row) {
+        if w <= 0.0 {
+            continue;
+        }
+        let name = class_name(cards);
+        let (w, s) = (w as f64, s as f64);
+        match acc.iter_mut().find(|c| c.0 == name) {
+            Some(c) => {
+                c.1 += w * s;
+                c.2 += w;
+            }
+            None => acc.push((name, w * s, w)),
+        }
+    }
+    acc.retain(|c| c.1 > 0.0);
+    let pct = |c: &(String, f64, f64)| (c.1 / c.2 * 100.0).round();
+    acc.sort_by(|a, b| {
+        pct(b).total_cmp(&pct(a)).then_with(|| b.1.total_cmp(&a.1)).then_with(|| a.0.cmp(&b.0))
+    });
+    acc.into_iter()
+        .take(limit)
+        .map(|(hand, mass, w)| HandClass { hand, frequency: round(mass / w, 4) })
+        .collect()
+}
 
 pub fn action_parts(a: &Action) -> (String, i32) {
     match *a {
@@ -42,23 +91,13 @@ fn read_node(
     let mut out = Vec::with_capacity(actions.len());
     for (a, action) in actions.iter().enumerate() {
         let row = &strategy[a * n..(a + 1) * n];
-        let mut mass: Vec<(f64, usize)> = row
-            .iter()
-            .zip(weights)
-            .enumerate()
-            .map(|(h, (&s, &w))| (s as f64 * w as f64, h))
-            .collect();
-        let freq = if total > 0.0 { mass.iter().map(|m| m.0).sum::<f64>() / total } else { 0.0 };
-        let freq = round(freq, 4);
-        mass.sort_by(|x, y| y.0.total_cmp(&x.0));
-        let top_hands = mass
-            .iter()
-            .take_while(|m| m.0 > 0.0 && freq > 0.0)
-            .take(TOP_HANDS)
-            .map(|m| names[m.1].clone())
-            .collect();
+        let mass: f64 = row.iter().zip(weights).map(|(&s, &w)| s as f64 * w as f64).sum();
+        let freq = if total > 0.0 { round(mass / total, 4) } else { 0.0 };
+        let top_classes =
+            if freq > 0.0 { top_classes(hands, weights, row, TOP_CLASSES) } else { Vec::new() };
+        let top_hands = top_classes.iter().map(|c| c.hand.clone()).collect();
         let (name, amount) = action_parts(action);
-        out.push(ActionSummary { action: name, amount, frequency: freq, top_hands });
+        out.push(ActionSummary { action: name, amount, frequency: freq, top_hands, top_classes });
     }
 
     let hero_summary = match hero {
@@ -128,4 +167,48 @@ pub fn extract(
     }
 
     Ok((players, nodes, hero_summary))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // card id = 4 * rank + suit; rank 2=0 .. A=12, suits c,d,h,s = 0..3
+    fn c(rank: char, suit: char) -> u8 {
+        let r = RANKS.iter().position(|&x| x as char == rank).unwrap() as u8;
+        let s = "cdhs".find(suit).unwrap() as u8;
+        4 * r + s
+    }
+
+    #[test]
+    fn names_pairs_suited_offsuit() {
+        assert_eq!(class_name((c('K', 's'), c('K', 'h'))), "KK");
+        assert_eq!(class_name((c('Q', 'h'), c('K', 'h'))), "KQs");
+        assert_eq!(class_name((c('K', 'd'), c('Q', 'c'))), "KQo");
+        assert_eq!(class_name((c('5', 's'), c('A', 's'))), "A5s");
+        assert_eq!(class_name((c('T', 'c'), c('2', 'd'))), "T2o");
+    }
+
+    #[test]
+    fn groups_and_weights_frequencies() {
+        let hands = [
+            (c('K', 's'), c('K', 'h')), // KK
+            (c('K', 'd'), c('K', 'c')), // KK
+            (c('K', 'h'), c('Q', 'h')), // KQs
+            (c('K', 's'), c('Q', 's')), // KQs
+            (c('K', 'd'), c('Q', 'c')), // KQo
+            (c('A', 'h'), c('5', 'h')), // A5s, zero weight (blocked)
+            (c('7', 'c'), c('2', 'd')), // 72o, never takes the action
+        ];
+        let weights = [1.0, 1.0, 1.0, 0.5, 1.0, 0.0, 1.0];
+        let row = [1.0, 1.0, 1.0, 0.25, 0.5, 1.0, 0.0];
+        let out = top_classes(&hands, &weights, &row, 6);
+        // contributions: KK 2.0, KQs 1.125, KQo 0.5; A5s blocked, 72o contributes 0
+        let names: Vec<_> = out.iter().map(|h| h.hand.as_str()).collect();
+        assert_eq!(names, ["KK", "KQs", "KQo"]);
+        assert_eq!(out[0].frequency, 1.0);
+        assert_eq!(out[1].frequency, 0.75); // (1*1 + 0.5*0.25) / 1.5
+        assert_eq!(out[2].frequency, 0.5);
+        assert_eq!(top_classes(&hands, &weights, &row, 2).len(), 2);
+    }
 }

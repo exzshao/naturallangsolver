@@ -30,16 +30,25 @@ const SOLVER_OK: SolverOkResponse = {
       line: [],
       player: "oop",
       actions: [
-        { action: "Check", amount: 0, frequency: 0.71, top_hands: ["QhJh"] },
-        { action: "Bet", amount: 275, frequency: 0.29, top_hands: ["8h7h"] },
+        {
+          action: "Check",
+          amount: 0,
+          frequency: 0.71,
+          top_hands: ["QJs", "88"],
+          top_classes: [
+            { hand: "QJs", frequency: 0.72 },
+            { hand: "88", frequency: 1 },
+          ],
+        },
+        { action: "Bet", amount: 275, frequency: 0.29, top_hands: ["87s"], top_classes: [{ hand: "87s", frequency: 0.9 }] },
       ],
     },
     {
       line: ["Check"],
       player: "ip",
       actions: [
-        { action: "Check", amount: 0, frequency: 0.4, top_hands: [] },
-        { action: "Bet", amount: 275, frequency: 0.6, top_hands: ["AhKh"] },
+        { action: "Check", amount: 0, frequency: 0.4, top_hands: [], top_classes: [] },
+        { action: "Bet", amount: 275, frequency: 0.6, top_hands: ["AKs"], top_classes: [{ hand: "AKs", frequency: 0.64 }] },
       ],
     },
   ],
@@ -118,7 +127,18 @@ describe("POST /api/solve", () => {
     expect(ok.nodes[1].title).toBe("BTN after BB checks");
     expect(ok.nodes[1].actions[1]).toMatchObject({ label: "Bet 2.75bb", amountBb: 2.75, potPct: 50, frequency: 0.6 });
     expect(ok.players.ip).toEqual({ position: "BTN", equity: 0.53, evBb: 2.98 });
-    expect(ok.heroHand).toMatchObject({ hand: "AhKh", nodeTitle: "BTN after BB checks", evBb: 4.1 });
+    expect(ok.heroHand).toMatchObject({
+      hand: "AhKh",
+      nodeTitle: "BTN after BB checks",
+      situation: "when BB checks",
+      evBb: 4.1,
+    });
+    expect(ok.nodes[0].actions[0].topClasses).toEqual([
+      { hand: "QJs", frequency: 0.72 },
+      { hand: "88", frequency: 1 },
+    ]);
+    expect(ok.nodes[1].actions[0].topClasses).toEqual([]);
+    expect(ok.heroHand?.actions[0].topClasses).toEqual([]);
     expect(ok.stats.exploitabilityPct).toBe(0.42);
 
     // The solver got the defaulted request in chips.

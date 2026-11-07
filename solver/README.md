@@ -51,19 +51,27 @@ Response (`200`, ~25 ms in release):
  "players":{"oop":{"equity":0.4936,"ev":254.2},"ip":{"equity":0.5064,"ev":295.8}},
  "nodes":[
   {"line":[],"player":"oop","actions":[
-    {"action":"Check","amount":0,"frequency":0.6473,"top_hands":["3d3c","3h3c","3s3c","3h3d","3s3d"]},
-    {"action":"Bet","amount":182,"frequency":0.3155,"top_hands":["Kh7h","Kc4c","Kd4d","Kc7c","Ks4s"]},
-    {"action":"Bet","amount":413,"frequency":0.0372,"top_hands":["8d7d","8h7h","8s7s","8c7c","Jh7h"]},
-    {"action":"AllIn","amount":9750,"frequency":0.0,"top_hands":[]}]},
+    {"action":"Check","amount":0,"frequency":0.6473,"top_hands":["A3o","A4o","A5o","A7o","A8o","AJo"],
+     "top_classes":[{"hand":"A3o","frequency":1.0},{"hand":"A4o","frequency":1.0},{"hand":"A5o","frequency":1.0},
+                    {"hand":"A7o","frequency":1.0},{"hand":"A8o","frequency":1.0},{"hand":"AJo","frequency":1.0}]},
+    {"action":"Bet","amount":182,"frequency":0.3155,"top_hands":["KTo","JTo","K9o","ATo","A9o","J9o"],
+     "top_classes":[{"hand":"KTo","frequency":0.7447},{"hand":"JTo","frequency":0.6514},{"hand":"K9o","frequency":0.6324},
+                    {"hand":"ATo","frequency":0.6054},{"hand":"A9o","frequency":0.5895},{"hand":"J9o","frequency":0.4956}]},
+    {"action":"Bet","amount":413,"frequency":0.0372,"top_hands":["KQo","87s","J7s","K8s","TT","KQs"],"top_classes":[...]},
+    {"action":"AllIn","amount":9750,"frequency":0.0,"top_hands":[],"top_classes":[]}]},
   {"line":["Check"],"player":"ip","actions":[
-    {"action":"Check","amount":0,"frequency":0.443,"top_hands":["Kh2h","Kd2d","Kc2c","3s3d","3s3h"]},
-    {"action":"Bet","amount":182,"frequency":0.2086,"top_hands":["JhTc","JhTh","JhTs","JsTc","JsTh"]},
-    {"action":"Bet","amount":413,"frequency":0.3484,"top_hands":["KsKh","KhKd","KhKc","KsKd","KsKc"]},
-    {"action":"AllIn","amount":9750,"frequency":0.0,"top_hands":[]}]}],
+    {"action":"Check","amount":0,"frequency":0.443,"top_hands":["AKo","A8o","A7o","AJo","J9o","A2o"],"top_classes":[...]},
+    {"action":"Bet","amount":182,"frequency":0.2086,"top_hands":["JTo","KTo","ATo","K9o","JTs","QTo"],"top_classes":[...]},
+    {"action":"Bet","amount":413,"frequency":0.3484,"top_hands":["KJo","K8o","KQo","QJo","AQo","KK"],
+     "top_classes":[{"hand":"KJo","frequency":0.8443},{"hand":"K8o","frequency":0.7847},{"hand":"KQo","frequency":0.8346},
+                    {"hand":"QJo","frequency":0.7776},{"hand":"AQo","frequency":0.7441},{"hand":"KK","frequency":0.9992}]},
+    {"action":"AllIn","amount":9750,"frequency":0.0,"top_hands":[],"top_classes":[]}]}],
  "hero_hand":{"hand":"AhKh","node":1,"equity":0.3651,"ev":200.82,"actions":[
     {"action":"Check","amount":0,"frequency":1.0},{"action":"Bet","amount":182,"frequency":0.0},
     {"action":"Bet","amount":413,"frequency":0.0},{"action":"AllIn","amount":9750,"frequency":0.0}]}}
 ```
+
+`top_classes` groups the acting player's combos into hand classes (`KK`, `KQs`, `KQo`) and lists up to 6, ordered by how often each takes the action (compared at 1% resolution), ties broken by the range weight it sends into the action (sum of weight × frequency). Each class's `frequency` is how often it takes the action: the weight-averaged strategy over its live combos (board-blocked and zero-weight combos are skipped). `top_hands` repeats the class names as plain strings for older clients. Grouping happens in `src/summary.rs` (`top_classes`).
 
 ## Acceptance checks (M1/M2)
 

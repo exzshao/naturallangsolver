@@ -2,7 +2,7 @@
 // (big blinds, % of pot, position labels). Pure; the UI does no unit math.
 import type { ResolvedSpot } from "./defaults";
 import { chipsToBb } from "./poker";
-import type { CantSolveResponse, HeroAction, Player, SolverOkResponse } from "./types";
+import type { CantSolveResponse, HandClass, HeroAction, Player, SolverOkResponse } from "./types";
 
 export type DisplayAction = {
   action: HeroAction["action"];
@@ -12,7 +12,8 @@ export type DisplayAction = {
   /** Size as % of the pot at the node; null for Check/Call/Fold/All-in. */
   potPct: number | null;
   frequency: number;
-  topHands: string[];
+  /** Hand classes that take this action most, largest share first. Empty for hero actions. */
+  topClasses: HandClass[];
 };
 
 export type DisplayNode = {
@@ -52,6 +53,8 @@ export type SolveOkPayload = {
     nodeTitle: string;
     equity: number;
     evBb: number;
+    /** e.g. "when BB checks" or "when you act first". */
+    situation: string;
     actions: DisplayAction[];
   } | null;
   stats: {
@@ -72,7 +75,7 @@ function fmtBb(bb: number): string {
   return `${round(bb)}bb`;
 }
 
-export function presentAction(a: HeroAction & { top_hands?: string[] }, potChips: number): DisplayAction {
+export function presentAction(a: HeroAction & { top_classes?: HandClass[] }, potChips: number): DisplayAction {
   const amountBb = chipsToBb(a.amount);
   const sized = a.action === "Bet" || a.action === "Raise" || a.action === "AllIn";
   const name = a.action === "AllIn" ? "All-in" : a.action;
@@ -82,7 +85,7 @@ export function presentAction(a: HeroAction & { top_hands?: string[] }, potChips
     amountBb,
     potPct: sized && a.action !== "AllIn" && potChips > 0 ? round((a.amount / potChips) * 100, 0) : null,
     frequency: a.frequency,
-    topHands: a.top_hands ?? [],
+    topClasses: a.top_classes ?? [],
   };
 }
 
@@ -92,6 +95,14 @@ function nodeTitle(line: string[], player: Player, spot: ResolvedSpot): string {
   const other = player === "oop" ? spot.ipPosition : spot.oopPosition;
   const prev = line[line.length - 1].toLowerCase();
   return `${pos} after ${other} ${prev === "check" ? "checks" : prev}`;
+}
+
+/** Hero-card phrasing of the node where hero acts: "when BB checks" / "when you act first". */
+function heroSituation(line: string[], player: Player, spot: ResolvedSpot): string {
+  if (line.length === 0) return "when you act first";
+  const other = player === "oop" ? spot.ipPosition : spot.oopPosition;
+  const prev = line[line.length - 1].toLowerCase();
+  return `when ${other} ${prev === "check" ? "checks" : prev}`;
 }
 
 export function presentResult(
@@ -139,6 +150,9 @@ export function presentResult(
       ? {
           hand: hh.hand,
           nodeTitle: nodes[hh.node]?.title ?? "",
+          situation: result.nodes[hh.node]
+            ? heroSituation(result.nodes[hh.node].line, result.nodes[hh.node].player, spot)
+            : "",
           equity: hh.equity,
           evBb: round(chipsToBb(hh.ev)),
           actions: hh.actions.map((a) => presentAction(a, startingPotChips)),
