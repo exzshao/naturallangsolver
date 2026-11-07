@@ -1,26 +1,175 @@
 @import "tailwindcss";
 
+/*
+ * Black and white, one mono font, one size. Two palettes: light (white paper)
+ * and dark (black paper). `.inv` swaps to the other palette for a block, so
+ * inverted sections, hovers and nested fills all follow the same tokens.
+ * Suit colors are the only hues.
+ */
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  --l-paper: #ffffff;
+  --l-ink: #111111;
+  --l-mute: #666666;
+  --l-faint: #d4d4d4;
+  --l-suit-h: #c81e1e;
+  --l-suit-d: #1d4ed8;
+  --l-suit-c: #15803d;
+
+  --d-paper: #000000;
+  --d-ink: #ededed;
+  --d-mute: #9a9a9a;
+  --d-faint: #3a3a3a;
+  --d-suit-h: #ff6b6b;
+  --d-suit-d: #6ea8ff;
+  --d-suit-c: #4ade80;
+}
+
+:root {
+  --paper: var(--l-paper);
+  --ink: var(--l-ink);
+  --mute: var(--l-mute);
+  --faint: var(--l-faint);
+  --suit-h: var(--l-suit-h);
+  --suit-d: var(--l-suit-d);
+  --suit-c: var(--l-suit-c);
+}
+
+.inv {
+  --paper: var(--d-paper);
+  --ink: var(--d-ink);
+  --mute: var(--d-mute);
+  --faint: var(--d-faint);
+  --suit-h: var(--d-suit-h);
+  --suit-d: var(--d-suit-d);
+  --suit-c: var(--d-suit-c);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Light by default; `data-theme="dark"` on <html> switches to the dark palette. */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: var(--d-paper);
+  --ink: var(--d-ink);
+  --mute: var(--d-mute);
+  --faint: var(--d-faint);
+  --suit-h: var(--d-suit-h);
+  --suit-d: var(--d-suit-d);
+  --suit-c: var(--d-suit-c);
+}
+
+[data-theme="dark"] .inv {
+  --paper: var(--l-paper);
+  --ink: var(--l-ink);
+  --mute: var(--l-mute);
+  --faint: var(--l-faint);
+  --suit-h: var(--l-suit-h);
+  --suit-d: var(--l-suit-d);
+  --suit-c: var(--l-suit-c);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-faint: var(--faint);
+  --color-suit-h: var(--suit-h);
+  --color-suit-d: var(--suit-d);
+  --color-suit-c: var(--suit-c);
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-sans: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #f4f4f5;
-  }
+html {
+  font-size: 14px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* One size, one weight, everywhere. */
+*,
+*::before,
+*::after {
+  font-size: inherit;
+  font-weight: inherit !important;
+  font-style: normal;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Bracketed text buttons and links: no fill, hover/focus inverts. */
+.btn {
+  cursor: pointer;
+  text-align: left;
+}
+.btn:hover:not(:disabled),
+.btn:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+  outline: none;
+}
+.btn:disabled {
+  color: var(--mute);
+  cursor: not-allowed;
+}
+
+/* Strategy fills, all grayscale. Hatches are 1px lines. */
+.fill-ink {
+  background: var(--ink);
+  color: var(--paper);
+}
+.fill-mute {
+  background: var(--mute);
+  color: var(--paper);
+}
+.fill-faint {
+  background: var(--faint);
+  color: var(--ink);
+}
+.fill-hatch {
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 5px);
+  color: var(--ink);
+}
+.fill-cross {
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 5px);
+  color: var(--ink);
+}
+.fill-outline {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink) !important;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.cursor-blink {
+  animation: blink 1s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink {
+    animation: none;
+  }
 }

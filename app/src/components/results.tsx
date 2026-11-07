@@ -1,8 +1,8 @@
 import type { SolveOkPayload } from "@/lib/present";
 import type { CantSolveResponse } from "@/lib/types";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { CardRow, HandText } from "./cards";
-import { ActionBreakdown, pct } from "./strategy";
+import { ActionBreakdown, pct, upper } from "./strategy";
 
 const POT_TYPE_LABEL: Record<SolveOkPayload["spot"]["potType"], string> = {
   srp: "Single raised pot",
@@ -15,14 +15,19 @@ const STREET_ORDER = ["flop", "turn", "river"] as const;
 
 const fmtBb = (n: number) => `${Math.round(n * 100) / 100}bb`;
 
-export function Panel({ title, children, className = "" }: { title?: string; children: ReactNode; className?: string }) {
+/** A line of dashes, clipped to the column. */
+export function Divider() {
   return (
-    <section
-      className={`rounded-xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900 ${className}`}
-    >
-      {title && (
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{title}</h2>
-      )}
+    <div aria-hidden className="my-[1.2em] overflow-hidden whitespace-nowrap text-mute select-none">
+      {"-".repeat(120)}
+    </div>
+  );
+}
+
+export function Section({ title, children }: { title?: string; children: ReactNode }) {
+  return (
+    <section>
+      {title && <h2 className="mb-[1.6em] uppercase">{title}</h2>}
       {children}
     </section>
   );
@@ -30,10 +35,10 @@ export function Panel({ title, children, className = "" }: { title?: string; chi
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div>
-      <dt className="text-xs text-zinc-500 dark:text-zinc-400">{label}</dt>
-      <dd className="mt-0.5 font-medium">{children}</dd>
-    </div>
+    <>
+      <dt className="text-mute uppercase">{label}</dt>
+      <dd className="min-w-0">{children}</dd>
+    </>
   );
 }
 
@@ -42,119 +47,103 @@ function SpotCard({ r }: { r: SolveOkPayload }) {
   const seat = (p: string) => (p === s.oopPosition ? "OOP" : "IP");
   const sizes = STREET_ORDER.slice(STREET_ORDER.indexOf(s.street));
   return (
-    <Panel title="Spot">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="mb-1.5 text-xs text-zinc-500 capitalize dark:text-zinc-400">{s.street}</div>
+    <Section title="Spot">
+      <dl className="grid grid-cols-[11ch_1fr] gap-x-[1ch]">
+        <Fact label={s.street}>
           <CardRow cards={s.board} />
-        </div>
+        </Fact>
         {s.heroHand && (
-          <div>
-            <div className="mb-1.5 text-xs text-zinc-500 dark:text-zinc-400">Your hand</div>
+          <Fact label="Your hand">
             <CardRow cards={s.heroHand} />
-          </div>
+          </Fact>
         )}
-      </div>
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
         <Fact label="Hero">
-          {s.heroPosition} <span className="text-zinc-500 dark:text-zinc-400">({seat(s.heroPosition)})</span>
+          {s.heroPosition} <span className="text-mute">{seat(s.heroPosition)}</span>
         </Fact>
         <Fact label="Villain">
-          {s.villainPosition} <span className="text-zinc-500 dark:text-zinc-400">({seat(s.villainPosition)})</span>
+          {s.villainPosition} <span className="text-mute">{seat(s.villainPosition)}</span>
         </Fact>
         <Fact label="Pot">{fmtBb(s.potBb)}</Fact>
-        <Fact label="Effective stack">{fmtBb(s.effectiveStackBb)}</Fact>
-        <Fact label="Pot type">{POT_TYPE_LABEL[s.potType]}</Fact>
-        <Fact label="Bet sizes">
-          <span className="block space-y-0.5 text-xs font-normal">
-            {sizes.map((st) => (
-              <span key={st} className="block">
-                <span className="capitalize text-zinc-500 dark:text-zinc-400">{st}:</span> {s.betSizes[st].bet || "none"}
-                {s.betSizes[st].raise ? `; raise ${s.betSizes[st].raise}` : "; no raises"}
-              </span>
-            ))}
-          </span>
+        <Fact label="Stack">{fmtBb(s.effectiveStackBb)}</Fact>
+        <Fact label="Pot type">
+          <span className="uppercase">{POT_TYPE_LABEL[s.potType]}</span>
+        </Fact>
+        <Fact label="Sizes">
+          {sizes.map((st) => (
+            <span key={st} className="block">
+              <span className="text-mute uppercase">{st}</span> {s.betSizes[st].bet || "NONE"}
+              {s.betSizes[st].raise ? `; RAISE ${s.betSizes[st].raise}` : "; NO RAISE"}
+            </span>
+          ))}
         </Fact>
       </dl>
-      <details className="group mt-4 text-sm">
-        <summary className="cursor-pointer select-none text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-          Ranges
+      <details className="group mt-[1.6em]">
+        <summary className="btn inline-block list-none uppercase [&::-webkit-details-marker]:hidden">
+          <span className="group-open:hidden">[+] Ranges</span>
+          <span className="hidden group-open:inline">[-] Ranges</span>
         </summary>
-        <div className="mt-2 space-y-2">
+        <div className="mt-[0.8em]">
           {(
             [
-              [`OOP (${s.oopPosition})`, s.oopRange],
-              [`IP (${s.ipPosition})`, s.ipRange],
+              [`OOP ${s.oopPosition}`, s.oopRange],
+              [`IP ${s.ipPosition}`, s.ipRange],
             ] as const
           ).map(([label, range]) => (
-            <div key={label}>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
-              <code className="mt-0.5 block break-words rounded bg-zinc-50 p-2 font-mono text-xs dark:bg-zinc-800/60">
-                {range}
-              </code>
+            <div key={label} className="mt-[0.8em]">
+              <div className="text-mute">{label}</div>
+              <code className="block break-all">{range}</code>
             </div>
           ))}
         </div>
       </details>
-    </Panel>
+    </Section>
   );
 }
 
 function Assumptions({ items, notes }: { items: string[]; notes: string | null }) {
   if (items.length === 0 && !notes) return null;
   return (
-    <section className="rounded-xl border border-amber-300 bg-amber-50 p-4 sm:p-5 dark:border-amber-500/40 dark:bg-amber-950/30">
+    <Section title={items.length > 0 ? `Assumptions (${items.length})` : "Noted"}>
       {items.length > 0 && (
         <>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
-            Assumptions ({items.length})
-          </h2>
-          <p className="mb-2 text-sm text-amber-900/80 dark:text-amber-200/80">
-            You didn&apos;t say these, so the solver used defaults:
-          </p>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-amber-950 marker:text-amber-500 dark:text-amber-100">
+          <p className="mb-[0.8em] text-mute uppercase">Not stated. Defaults used:</p>
+          <ul>
             {items.map((a) => (
-              <li key={a}>{a}</li>
+              <li key={a} className="flex gap-[1ch]">
+                <span aria-hidden className="text-mute">
+                  -
+                </span>
+                <span>{a}</span>
+              </li>
             ))}
           </ul>
         </>
       )}
       {notes && (
-        <p className={`text-sm text-amber-950 dark:text-amber-100 ${items.length > 0 ? "mt-3 border-t border-amber-200 pt-3 dark:border-amber-500/30" : ""}`}>
-          <span className="font-semibold">Also noted: </span>
-          {notes} <span className="text-amber-900/70 dark:text-amber-200/70">The strategy below starts from the beginning of the street.</span>
+        <p className={items.length > 0 ? "mt-[1.6em]" : ""}>
+          {items.length > 0 && <span className="uppercase">Noted: </span>}
+          {notes} <span className="text-mute uppercase">Strategy starts at the beginning of the street.</span>
         </p>
       )}
-    </section>
+    </Section>
   );
 }
 
 function HeroHand({ h }: { h: NonNullable<SolveOkPayload["heroHand"]> }) {
   return (
-    <section className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 sm:p-5 dark:border-indigo-500/30 dark:bg-indigo-950/30">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <CardRow cards={h.hand} size="sm" />
-          <div>
-            <h2 className="text-sm font-semibold">
-              Your exact hand (<HandText hand={h.hand} />)
-            </h2>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              How the solver plays this specific hand {h.situation}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-4 text-sm">
-          <span>
-            <span className="text-zinc-500 dark:text-zinc-400">Equity </span>
-            <span className="font-semibold tabular-nums">{pct(h.equity)}</span>
-          </span>
-          <span>
-            <span className="text-zinc-500 dark:text-zinc-400">EV </span>
-            <span className="font-semibold tabular-nums">{fmtBb(h.evBb)}</span>
-          </span>
-        </div>
-      </div>
+    <section className="inv -mx-3 px-3 py-[1.6em]">
+      <h2 className="uppercase">
+        Your hand <HandText hand={h.hand} />
+      </h2>
+      <p className="text-mute">{upper(`Played ${h.situation}`)}</p>
+      <p className="mt-[0.8em] mb-[1.6em] flex flex-wrap gap-x-[3ch]">
+        <span>
+          <span className="text-mute">EQUITY</span> <span className="tabular-nums">{pct(h.equity)}</span>
+        </span>
+        <span>
+          <span className="text-mute">EV</span> <span className="tabular-nums">{fmtBb(h.evBb)}</span>
+        </span>
+      </p>
       <ActionBreakdown actions={h.actions} showHands={false} />
     </section>
   );
@@ -162,97 +151,99 @@ function HeroHand({ h }: { h: NonNullable<SolveOkPayload["heroHand"]> }) {
 
 function Players({ r }: { r: SolveOkPayload }) {
   return (
-    <Panel title="Range equity and EV">
-      <div className="grid grid-cols-2 gap-3">
+    <Section title="Range equity / EV">
+      <div className="grid grid-cols-[auto_auto_1fr] gap-x-[2ch]">
         {(["oop", "ip"] as const).map((p) => {
           const pl = r.players[p];
           const hero = r.spot.heroPlayer === p;
           return (
-            <div key={p} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/60">
-              <div className="text-sm font-semibold">
-                {pl.position} <span className="font-normal text-zinc-500 dark:text-zinc-400">{p.toUpperCase()}</span>
-                {hero && (
-                  <span className="ml-1.5 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
-                    you
-                  </span>
-                )}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Fragment key={p}>
+              <span className="whitespace-nowrap">
+                {pl.position} <span className="text-mute">{p.toUpperCase()}</span>
+              </span>
+              <span>{hero ? <span className="inv px-[0.5ch]">YOU</span> : null}</span>
+              <span className="flex flex-wrap justify-end gap-x-[2ch] tabular-nums">
                 <span>
-                  <span className="text-zinc-500 dark:text-zinc-400">Equity </span>
-                  <span className="font-semibold tabular-nums">{pct(pl.equity)}</span>
+                  <span className="text-mute">EQ</span> {pct(pl.equity)}
                 </span>
                 <span>
-                  <span className="text-zinc-500 dark:text-zinc-400">EV </span>
-                  <span className="font-semibold tabular-nums">{fmtBb(pl.evBb)}</span>
+                  <span className="text-mute">EV</span> {fmtBb(pl.evBb)}
                 </span>
-              </div>
-            </div>
+              </span>
+            </Fragment>
           );
         })}
       </div>
-    </Panel>
+    </Section>
   );
 }
 
 export function SolveResult({ r }: { r: SolveOkPayload }) {
   const st = r.stats;
   const aboveTarget = st.exploitabilityPct > st.targetExploitabilityPct;
+  const hasAssumptions = r.assumptions.length > 0 || !!r.notes;
   return (
-    <div className="space-y-4">
+    <div>
       <SpotCard r={r} />
-      <Assumptions items={r.assumptions} notes={r.notes} />
-      {r.heroHand && <HeroHand h={r.heroHand} />}
+      {hasAssumptions && (
+        <>
+          <Divider />
+          <Assumptions items={r.assumptions} notes={r.notes} />
+        </>
+      )}
+      {r.heroHand && (
+        <>
+          <Divider />
+          <HeroHand h={r.heroHand} />
+        </>
+      )}
       {r.nodes.map((n, i) => (
-        <Panel key={i}>
-          <div className="mb-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h2 className="text-sm font-semibold">{n.isHero ? "Your whole range" : "Villain's whole range"}</h2>
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{n.title}</span>
-            </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              Average over every hand {n.position} could hold here
-            </p>
-          </div>
-          <ActionBreakdown actions={n.actions} />
-        </Panel>
+        <Fragment key={i}>
+          <Divider />
+          <Section>
+            <h2 className="uppercase">{n.isHero ? "Your range" : "Villain range"}</h2>
+            <p className="text-mute">{upper(n.title)}</p>
+            <p className="mb-[1.6em] text-mute uppercase">Average of every hand {n.position} can hold here.</p>
+            <ActionBreakdown actions={n.actions} />
+          </Section>
+        </Fragment>
       ))}
+      <Divider />
       <Players r={r} />
-      <p className="px-1 text-xs text-zinc-500 dark:text-zinc-400">
-        <span className={aboveTarget ? "font-medium text-amber-700 dark:text-amber-400" : ""}>
-          Exploitability {st.exploitabilityPct.toFixed(2)}% of pot
-          {aboveTarget ? ` (above the ${st.targetExploitabilityPct}% target)` : ""}
+      <Divider />
+      <p className="text-mute">
+        <span className={aboveTarget ? "text-ink" : ""}>
+          EXPLOITABILITY {st.exploitabilityPct.toFixed(2)}% OF POT
+          {aboveTarget ? ` (ABOVE ${st.targetExploitabilityPct}% TARGET)` : ""}
         </span>
         {" · "}
-        {st.iterations} iterations · {st.solveMs < 1000 ? `${st.solveMs} ms` : `${(st.solveMs / 1000).toFixed(1)}s`} ·{" "}
-        {st.memoryMb < 1 ? "<1" : Math.round(st.memoryMb)} MB
-        {st.compressed ? " (compressed)" : ""}
+        {st.iterations} ITERATIONS · {st.solveMs < 1000 ? `${st.solveMs}ms` : `${(st.solveMs / 1000).toFixed(1)}s`} ·{" "}
+        {st.memoryMb < 1 ? "<1" : Math.round(st.memoryMb)}MB
+        {st.compressed ? " (COMPRESSED)" : ""}
       </p>
     </div>
   );
 }
 
 export function CantSolve({ r, input }: { r: CantSolveResponse; input: string }) {
+  const stripped = r.message.replace(/^Can't solve this:\s*/i, "");
+  const reason = stripped.charAt(0).toUpperCase() + stripped.slice(1);
   return (
-    <Panel>
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
-        >
-          !
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">{r.message}</p>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{r.reason}</p>
-        </div>
-      </div>
-      <figure className="mt-4">
-        <figcaption className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">You wrote</figcaption>
-        <blockquote className="break-words border-l-2 border-zinc-300 pl-3 text-sm whitespace-pre-wrap text-zinc-700 dark:border-zinc-600 dark:text-zinc-300">
-          {input}
+    <section>
+      <h2>
+        <span className="inv px-[1ch]">CAN&apos;T SOLVE THIS</span>
+      </h2>
+      <p className="mt-[1.6em]">{reason}</p>
+      <p className="text-mute">REASON: {r.reason}</p>
+      <figure className="mt-[1.6em]">
+        <figcaption className="text-mute uppercase">You wrote</figcaption>
+        <blockquote className="flex gap-[1ch] break-words whitespace-pre-wrap">
+          <span aria-hidden className="text-mute">
+            &gt;
+          </span>
+          <span className="min-w-0">{input}</span>
         </blockquote>
       </figure>
-    </Panel>
+    </section>
   );
 }
