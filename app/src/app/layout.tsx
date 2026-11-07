@@ -11,7 +11,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "NLP Solver",
-  description: "Describe a heads-up postflop poker spot in plain English and get a GTO strategy.",
+  description: "Poker solver that accepts natural language.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
