@@ -15,14 +15,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { DisplayAction, SolveApiResponse, SolveOkPayload } from "../src/lib/present";
 
-type VerdictKind = "close" | "slight" | "clear";
 type Check = {
   type:
     | "heroFreq"
     | "heroBestIn"
     | "heroBestNot"
-    | "verdict"
-    | "verdictNot"
+    | "evEdge"
+    | "evEdgeNot"
     | "rangeFreq"
     | "equityVsHand"
     | "allInCallEv"
@@ -30,15 +29,19 @@ type Check = {
     | "streetMatched"
     | "villainHand";
   why?: string;
-  /** The check also passes when the hero verdict is one of these kinds. */
-  orVerdict?: VerdictKind[];
+  /**
+   * The check also passes when hero's two best EVs are within this share of the pot at the
+   * node (or EV_TIE_BB): the solver says the choice barely matters.
+   */
+  orEvClose?: number;
   actions?: string[];
   min?: number;
   max?: number;
   player?: "oop" | "ip";
-  kinds?: VerdictKind[];
-  kind?: VerdictKind;
   best?: string[];
+  /** evEdge/evEdgeNot: minimum EV(best) − EV(second best), as a share of the node pot and in bb. */
+  minPot?: number;
+  minBb?: number;
   villain?: string;
   tol?: number;
   tolBb?: number;
@@ -176,6 +179,22 @@ const freqOf = (actions: DisplayAction[], acts: string[]) => {
 };
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+/** EVs closer than this are a tie (EV_TIE_BB in present.ts). */
+const EV_TIE_BB = 0.1;
+
+/** Hero's best action (by `best`), the next-best EV and the gap in bb; null without 2+ EVs. */
+function evGap(hh: SolveOkPayload["heroHand"] | undefined) {
+  const best = hh?.actions.find((a) => a.best);
+  if (!hh || !best || best.evBb === null) return null;
+  const second = hh.actions.filter((a) => a !== best && a.evBb !== null).sort((x, y) => y.evBb! - x.evBb!)[0];
+  if (!second) return null;
+  // `best` may be the more frequent of two tied actions, so the raw gap can be slightly negative.
+  const gapBb = Math.max(0, best.evBb - second.evBb!);
+  const potBb = hh.potBb;
+  const text = `${best.label} +${gapBb.toFixed(2)}bb over ${second.label} (${(potBb > 0 ? (gapBb / potBb) * 100 : 0).toFixed(1)}% of ${potBb}bb pot)`;
+  return { best, second, gapBb, potBb, text };
+}
+
 /** Range frequency at the first node where `player` acts. */
 function rangeFreq(r: SolveOkPayload, player: "oop" | "ip", acts: string[]): number | null {
   const node = r.nodes.find((n) => n.player === player);
@@ -184,7 +203,7 @@ function rangeFreq(r: SolveOkPayload, player: "oop" | "ip", acts: string[]): num
 
 function runCheck(c: Check, r: SolveOkPayload): Outcome {
   const hh = r.heroHand;
-  const v = hh?.verdict ?? null;
+  const g = evGap(hh);
   const best = hh?.actions.find((a) => a.best) ?? null;
   const range = (min?: number, max?: number) => `${min !== undefined ? `>=${pct(min)}` : ""}${max !== undefined ? `<=${pct(max)}` : ""}`;
   const inRange = (x: number, min?: number, max?: number) => (min === undefined || x >= min - 1e-9) && (max === undefined || x <= max + 1e-9);
@@ -209,17 +228,15 @@ function runCheck(c: Check, r: SolveOkPayload): Outcome {
       detail = best.label;
       break;
     }
-    case "verdict": {
-      label = `verdict ${c.kinds!.join("/")}${c.best ? ` ${c.best.join("/")}` : ""}`;
-      pass = !!v && c.kinds!.includes(v.kind) && (!c.best || (!!best && expand(c.best).has(best.action)));
-      detail = v?.text ?? "no verdict";
-      break;
-    }
-    case "verdictNot": {
-      label = `not ${c.kind!.toUpperCase()}${c.best ? ` ${c.best.join("/")}` : ""}`;
-      const hit = !!v && v.kind === c.kind && (!c.best || (!!best && expand(c.best).has(best.action)));
-      pass = !!v && !hit;
-      detail = v?.text ?? "no verdict";
+    case "evEdge":
+    case "evEdgeNot": {
+      const edge = `${c.best ? `${c.best.join("/")} ` : ""}best by >=${pct(c.minPot ?? 0)} pot & >=${c.minBb ?? 0}bb`;
+      label = c.type === "evEdge" ? edge : `not ${edge}`;
+      if (!g) { detail = "fewer than two EVs"; break; }
+      const hit =
+        (!c.best || expand(c.best).has(g.best.action)) && g.gapBb >= Math.max(c.minBb ?? 0, (c.minPot ?? 0) * g.potBb);
+      pass = c.type === "evEdge" ? hit : !hit;
+      detail = g.text;
       break;
     }
     case "rangeFreq": {
@@ -270,9 +287,9 @@ function runCheck(c: Check, r: SolveOkPayload): Outcome {
       detail = String(r.villainHand);
       break;
   }
-  if (!pass && c.orVerdict && v && c.orVerdict.includes(v.kind)) {
+  if (!pass && c.orEvClose !== undefined && g && g.gapBb <= Math.max(EV_TIE_BB, c.orEvClose * g.potBb)) {
     pass = true;
-    detail += ` (ok: ${v.kind.toUpperCase()})`;
+    detail += ` (ok: EVs within ${g.gapBb.toFixed(2)}bb)`;
   }
   return { label, pass, detail };
 }
@@ -303,7 +320,7 @@ function summarize(r: SolveOkPayload) {
     spot: `${r.spot.street} ${r.spot.potType} ${r.spot.heroPosition}(${r.spot.heroPlayer}) v ${r.spot.villainPosition} ${r.spot.board} ${r.spot.heroHand ?? "-"} pot ${r.spot.potBb} stack ${r.spot.effectiveStackBb}`,
     hero: hh ? hh.actions.map((a) => `${a.label} ${pct(a.frequency)} ev ${a.evBb}`).join(" | ") : null,
     heroEquity: hh?.equity ?? null,
-    verdict: hh?.verdict?.text ?? null,
+    evGap: evGap(hh)?.text ?? null,
     oopNode: node("oop") ? `${node("oop")!.title}: ${freqs(node("oop")!.actions)}` : null,
     ipNode: node("ip") ? `${node("ip")!.title}: ${freqs(node("ip")!.actions)}` : null,
     narrowing: r.narrowing
@@ -379,7 +396,7 @@ function printRow(r: SpotResult) {
         .join(", ")
     : "-";
   console.log(
-    `${r.pass ? "PASS" : "FAIL"}  ${pad(r.id, 30)} ${pad(hero, 40)} ${pad(hh?.verdict?.text ?? "-", 52)} ${pad(range, 26)} ${r.seconds.toFixed(1).padStart(5)}s`,
+    `${r.pass ? "PASS" : "FAIL"}  ${pad(r.id, 30)} ${pad(hero, 40)} ${pad(evGap(hh)?.text ?? "-", 52)} ${pad(range, 26)} ${r.seconds.toFixed(1).padStart(5)}s`,
   );
   for (const o of r.outcomes.filter((o) => !o.pass)) console.log(`        x ${o.label}: ${o.detail}`);
 }
@@ -395,7 +412,7 @@ async function main() {
   const only = onlyArg > 0 ? new Set(process.argv[onlyArg + 1].split(",")) : null;
   const spots = bench.spots.filter((s) => !only || only.has(s.id));
   console.log(`Benchmark: ${spots.length} spots against ${BASE}\n`);
-  console.log(`      ${pad("spot", 30)} ${pad("hero action%(EV bb)", 40)} ${pad("verdict", 52)} ${pad("range aggression", 26)}  time`);
+  console.log(`      ${pad("spot", 30)} ${pad("hero action%(EV bb)", 40)} ${pad("best EV gap", 52)} ${pad("range aggression", 26)}  time`);
   const t0 = Date.now();
   const results = new Map<string, SpotResult>();
   for (const spot of spots) {

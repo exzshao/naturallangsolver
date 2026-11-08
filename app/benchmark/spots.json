@@ -1,5 +1,5 @@
 {
-  "about": "Qualitative solver benchmark (npm run benchmark). Each spot lists checks a competent heads-up postflop solve must satisfy: well-established principles, not exact numbers. 'orVerdict' passes a check when the hero verdict is one of those kinds (the solver says the choice barely matters). Action groups: Fold, Check, Call, Bet, Raise, AllIn; 'aggro' = Bet + Raise + AllIn.",
+  "about": "Qualitative solver benchmark (npm run benchmark). Each spot lists checks a competent heads-up postflop solve must satisfy: well-established principles, not exact numbers. 'orEvClose' (a share of the pot at hero's decision) also passes a check when hero's two best EVs are within it or 0.1bb (the solver says the choice barely matters). 'evEdge' requires hero's best-EV action to be in 'best' and beat the next-best EV by at least 'minPot' of that pot and 'minBb'; 'evEdgeNot' requires the opposite. Action groups: Fold, Check, Call, Bet, Raise, AllIn; 'aggro' = Bet + Raise + AllIn.",
   "defaults": { "maxSeconds": 60 },
   "spots": [
     {
@@ -8,7 +8,7 @@
       "text": "BTN vs BB single raised pot, 100bb deep. Flop Ks7d2c. I'm on the button with AhAd and BB checks to me.",
       "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7d2c", "heroHand": "AhAd", "potBb": 5.5 },
       "checks": [
-        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "Overpair on a dry K-high board checked to: bets most of the time, or betting and checking are close." },
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orEvClose": 0.01, "why": "Overpair on a dry K-high board checked to: bets most of the time, or betting and checking are close." },
         { "type": "rangeFreq", "player": "ip", "actions": ["aggro"], "min": 0.5, "why": "BTN c-bets K72r at a high frequency vs BB (range and nut advantage, dry board)." }
       ]
     },
@@ -18,7 +18,7 @@
       "text": "BTN vs BB single raised pot, 100bb. Flop 9h8h7c. I'm on the button with 9s9d, BB checks to me.",
       "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "9h8h7c", "heroHand": "9s9d" },
       "checks": [
-        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "Top set on a wet board bets for value and protection." }
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orEvClose": 0.01, "why": "Top set on a wet board bets for value and protection." }
       ]
     },
     {
@@ -38,8 +38,8 @@
       "text": "BTN opens, I defend the big blind with Ts9c. Flop As Kd 2c. I check and BTN bets 4bb into 5.5bb. Fold, call or raise?",
       "spot": { "street": "flop", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "AsKd2c", "heroHand": "Ts9c" },
       "checks": [
-        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orVerdict": ["close"], "why": "T9o with no pair and only a backdoor straight folds to a big c-bet on AK2." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"], "why": "Never a clear continue." }
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orEvClose": 0.01, "why": "T9o with no pair and only a backdoor straight folds to a big c-bet on AK2." },
+        { "type": "evEdgeNot", "best": ["Call", "Raise", "AllIn"], "minPot": 0.05, "minBb": 1, "why": "Never a clear continue." }
       ]
     },
     {
@@ -59,8 +59,8 @@
       "text": "BTN vs BB single raised pot. I have 6d5d on the button. Flop Ah Kc Qs. BB checks, I c-bet 1.8bb and BB check-raises to 6bb.",
       "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "AhKcQs", "heroHand": "6d5d" },
       "checks": [
-        { "type": "heroFreq", "actions": ["Fold"], "min": 0.6, "orVerdict": ["close"], "why": "No pair, no draw on AKQ facing a check-raise: fold." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"] }
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.6, "orEvClose": 0.01, "why": "No pair, no draw on AKQ facing a check-raise: fold." },
+        { "type": "evEdgeNot", "best": ["Call", "Raise", "AllIn"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -82,7 +82,7 @@
       "checks": [
         { "type": "streetMatched" },
         { "type": "rangeFreq", "player": "ip", "actions": ["aggro"], "min": 0.5, "why": "CO c-bets AK4 rainbow often vs BB (big range advantage on A-K high boards)." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Raise", "AllIn"], "why": "Small pocket pair on AK4 is never a clear raise." }
+        { "type": "evEdgeNot", "best": ["Raise", "AllIn"], "minPot": 0.05, "minBb": 1, "why": "Small pocket pair on AK4 is never a clear raise." }
       ]
     },
     {
@@ -93,7 +93,7 @@
       "checks": [
         { "type": "rangeFreq", "player": "oop", "actions": ["aggro"], "min": 0.5, "why": "The 3-bettor c-bets a dry ace-high board at a high frequency." },
         { "type": "heroFreq", "actions": ["Fold"], "max": 0, "why": "No fold when nobody bet." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Check"], "orVerdict": ["close", "slight"], "why": "TPTK is never a clear check-only hand here." }
+        { "type": "evEdgeNot", "best": ["Check"], "minPot": 0.05, "minBb": 1, "why": "TPTK is never a clear check-only hand here." }
       ]
     },
     {
@@ -113,7 +113,7 @@
       "checks": [
         { "type": "streetMatched" },
         { "type": "heroFreq", "actions": ["Fold"], "max": 0.2, "why": "Second pair JJ continues vs a 33% c-bet (needs ~20% equity)." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+        { "type": "evEdgeNot", "best": ["Fold"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -134,7 +134,7 @@
       "spot": { "street": "turn", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7d2c5h", "heroHand": "7c7h" },
       "checks": [
         { "type": "narrowed", "why": "Turn spot with flop action: ranges narrowed by the flop solve." },
-        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "A set keeps betting for value on a blank turn." }
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orEvClose": 0.01, "why": "A set keeps betting for value on a blank turn." }
       ]
     },
     {
@@ -145,7 +145,7 @@
       "checks": [
         { "type": "narrowed" },
         { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Nut flush draw + wheel gutshot + overcard (~15 outs) continues vs a turn barrel." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+        { "type": "evEdgeNot", "best": ["Fold"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -157,7 +157,7 @@
         { "type": "villainHand", "value": "77" },
         { "type": "equityVsHand", "villain": "77", "tol": 0.02, "why": "Hero equity at the node must match an exact enumeration vs 77 (7 clean flush outs + three 3s for the wheel)." },
         { "type": "allInCallEv", "villain": "77", "tolBb": 2, "why": "EV(call) = equity x final pot - call." },
-        { "type": "verdict", "kinds": ["clear"], "best": ["Fold"], "why": "~23% equity where a call needs ~48% (95.5 to win 200.5): clear fold." }
+        { "type": "evEdge", "best": ["Fold"], "minPot": 0.05, "minBb": 1, "why": "~23% equity where a call needs ~48% (95.5 to win 200.5): clear fold." }
       ]
     },
     {
@@ -169,7 +169,7 @@
         { "type": "villainHand", "value": "72o" },
         { "type": "equityVsHand", "villain": "72o", "tol": 0.02 },
         { "type": "allInCallEv", "villain": "72o", "tolBb": 2, "why": "~+32bb by hand calculation." },
-        { "type": "verdict", "kinds": ["clear"], "best": ["Call"] }
+        { "type": "evEdge", "best": ["Call"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -180,7 +180,7 @@
       "checks": [
         { "type": "narrowed" },
         { "type": "heroFreq", "actions": ["Check"], "max": 0.5, "why": "The stone-cold nuts checked to on the river bets." },
-        { "type": "heroBestIn", "actions": ["aggro"], "orVerdict": ["close"] }
+        { "type": "heroBestIn", "actions": ["aggro"], "orEvClose": 0.01 }
       ]
     },
     {
@@ -189,8 +189,8 @@
       "text": "I defended the big blind against a button open with 7h6h. Flop KhTh4c: I check, BTN bets 1.8bb, I call. Turn 2s: check, check. River 3d: I check and BTN bets pot. What do I do?",
       "spot": { "street": "river", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "KhTh4c2s3d", "heroHand": "7h6h" },
       "checks": [
-        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orVerdict": ["close"], "why": "7-high busted flush draw (blocks villain's busted hearts) facing a pot bet: fold." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"] }
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orEvClose": 0.01, "why": "7-high busted flush draw (blocks villain's busted hearts) facing a pot bet: fold." },
+        { "type": "evEdgeNot", "best": ["Call", "Raise", "AllIn"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -200,7 +200,7 @@
       "spot": { "street": "river", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "Ks7d2c5h3s", "heroHand": "KcJc" },
       "checks": [
         { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Top pair good kicker vs a range that checked back the turn is a clear bluff-catcher." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+        { "type": "evEdgeNot", "best": ["Fold"], "minPot": 0.05, "minBb": 1 }
       ]
     },
     {
@@ -211,7 +211,7 @@
       "checks": [
         { "type": "narrowed", "rarePlayer": "oop", "why": "A BB flop donk-lead is rare at equilibrium: BB's range should be flagged blended / low line probability." },
         { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Top pair good kicker keeps going vs a donk-lead line." },
-        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+        { "type": "evEdgeNot", "best": ["Fold"], "minPot": 0.05, "minBb": 1 }
       ]
     }
   ],

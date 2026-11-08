@@ -216,19 +216,8 @@ function HeroHand({ h }: { h: NonNullable<SolveOkPayload["heroHand"]> }) {
           <span className="text-mute">EV</span> <span className="tabular-nums">{fmtBb(h.evBb)}</span>
         </span>
       </p>
-      {h.verdict && <VerdictLine text={h.verdict.text} />}
       <ActionBreakdown actions={h.actions} showHands={false} />
     </section>
-  );
-}
-
-/** "CLOSE: EITHER ... IS FINE": the head inverted, the rest plain. */
-function VerdictLine({ text }: { text: string }) {
-  const i = text.indexOf(": ");
-  return (
-    <p className="mb-[1.6em]">
-      <span className="bg-ink px-[0.5ch] text-paper">{text.slice(0, i)}</span> {text.slice(i + 2)}
-    </p>
   );
 }
 

@@ -323,8 +323,8 @@ describe("presenting hero's decision", () => {
     expect(p.heroHand?.decision).toBe("after BB checks");
     expect(p.heroHand?.streetAction).toBeNull();
     expect(p.heroHand?.actions.map((a) => a.best)).toEqual([false, true]);
-    // 0.29bb in the 5.5bb pot at the node is 5.3% of pot.
-    expect(p.heroHand?.verdict?.text).toBe("SLIGHT EDGE: BET 2.75bb (+0.29bb OVER CHECK)");
+    expect(p.heroHand?.actions.map((a) => a.evBb)).toEqual([3.8, 4.09]);
+    expect(p.heroHand?.potBb).toBe(5.5);
     expect(p.nodes[1].actions[0]).toMatchObject({ label: "Bet 2.75bb", potPct: 50, evBb: null });
     expect(p.streetLine).toBeNull();
   });

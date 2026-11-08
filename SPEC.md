@@ -335,11 +335,7 @@ If the deadline passed and `e > target * 3`, return `TIMEOUT`. Otherwise return 
 - **Spot card:** board (rendered cards), positions, pot and stack in bb, ranges (collapsed), and bet sizes.
 - **Assumptions:** a bulleted list, highlighted so users see what was guessed.
 - **Results:** a stacked bar of action frequencies for each node, labeled in bb and % of pot, the top hand classes per action with how often each takes it (e.g. "KK 100%"), equity and EV per player, the hero-hand callout if present, and exploitability plus solve time in small text.
-- **Hero-hand callout:** titled by the decision ("YOUR HAND A♥K♥ — FACING BB ALL-IN 97.5bb", "— AFTER BB CHECKS", "— ACTING FIRST"), with the street action below it. Each action row shows frequency and, right-aligned, the hand's EV ("CALL 97.5bb 100% +32.32bb"); the best-EV action is inverted (EVs within 0.1bb are a tie, won by the more frequent action). Above the rows, a **verdict** line judges the EV gap between the best and second-best action (frequencies ignored), as a share of the pot at the node:
-  - gap ≤ max(1% of pot, 0.1bb): `CLOSE: EITHER BET 37bb OR CHECK IS FINE (0.29bb APART)` (3+ actions in that band: `CLOSE: A, B OR C ARE ALL FINE (WITHIN 0.3bb)`). The solver stops near 0.5% of pot exploitability, so gaps this small are close to its noise, and a 90% frequency there is not a strong preference.
-  - 1% to 5% of pot: `SLIGHT EDGE: BET 10bb (+1bb OVER CHECK)`.
-  - ≥ 5% of pot and ≥ 1bb: `CLEAR: CALL 97.5bb (+32.32bb OVER FOLD)`. A ≥ 5% gap under 1bb (small pots) stays SLIGHT EDGE.
-  - No verdict with fewer than two EVs (single legal action, older solvers). Thresholds: `VERDICT_CLOSE_POT` / `VERDICT_CLEAR_POT` / `VERDICT_CLEAR_MIN_BB` in `present.ts`.
+- **Hero-hand callout:** titled by the decision ("YOUR HAND A♥K♥ — FACING BB ALL-IN 97.5bb", "— AFTER BB CHECKS", "— ACTING FIRST"), with the street action below it. Each action row shows frequency and, right-aligned, the hand's EV ("CALL 97.5bb 100% +32.32bb"); the best-EV action is inverted (EVs within 0.1bb are a tie, won by the more frequent action).
 
   With current-street action, a "Villain range at your decision" section lists villain's classes there, and a known villain hand appears in the spot card.
 - **Can't-solve state:** a neutral panel showing `message` and the original input, with no strategy shown.

@@ -112,8 +112,8 @@ export type SolveOkPayload = {
     /** The street action before it, when it was played: "BB checked, you bet 3bb, BB raised to 10bb". */
     streetAction: string | null;
     actions: DisplayAction[];
-    /** EV-gap advice ("CLOSE: ...", "SLIGHT EDGE: ...", "CLEAR: ..."); null without 2+ EVs. */
-    verdict: Verdict | null;
+    /** Pot at hero's decision, bb. */
+    potBb: number;
   } | null;
   narrowing: DisplayNarrowing | null;
   /** Present when the spot had action on the current street. */
@@ -182,58 +182,6 @@ export function markBest(actions: DisplayAction[]): DisplayAction[] {
     a.evBb! > b.evBb! + EV_TIE_BB || (Math.abs(a.evBb! - b.evBb!) <= EV_TIE_BB && a.frequency > b.frequency) ? a : b,
   );
   return actions.map((a) => ({ ...a, best: a === top }));
-}
-
-/**
- * Verdict thresholds, as the EV gap between the best and second-best action over the pot
- * at the node (SPEC §9). Below CLOSE (or within EV_TIE_BB) the choice barely matters:
- * the solver stops at ~0.5% of pot exploitability, so gaps under 1% are near its noise.
- * From SLIGHT up to CLEAR one action is better but a mix is a small leak; above, it is a real mistake.
- */
-export const VERDICT_CLOSE_POT = 0.01;
-export const VERDICT_CLEAR_POT = 0.05;
-/** CLEAR also needs at least this many bb, so tiny edges in small pots read as SLIGHT. */
-export const VERDICT_CLEAR_MIN_BB = 1;
-
-export type Verdict = {
-  kind: "close" | "slight" | "clear";
-  /** e.g. "CLOSE: EITHER BET 2.75bb OR CHECK IS FINE (0.29bb APART)", "CLEAR: CALL 97.5bb (+32.32bb OVER FOLD)". */
-  text: string;
-  /** EV(best) − EV(second best), bb. */
-  gapBb: number;
-  /** gapBb as a share of the pot at the node. */
-  gapPot: number;
-};
-
-const upperLabel = (a: DisplayAction) => a.label.replace(/[A-Za-z-]+/g, (w) => (w === "bb" ? w : w.toUpperCase()));
-
-/**
- * High-level advice for hero's hand from the EV gap between the two best actions,
- * independent of frequencies. Null without 2+ EVs or a pot.
- */
-export function verdict(actions: DisplayAction[], potBb: number): Verdict | null {
-  const marked = markBest(actions);
-  const best = marked.find((a) => a.best);
-  if (!best || !(potBb > 0)) return null;
-  const rest = marked.filter((a) => a !== best && a.evBb !== null).sort((x, y) => y.evBb! - x.evBb!);
-  const second = rest[0];
-  // markBest may pick the more frequent of two tied actions, so the gap can be slightly negative.
-  const gapBb = round(Math.max(0, best.evBb! - second.evBb!));
-  const gapPot = gapBb / potBb;
-  const closeBb = Math.max(EV_TIE_BB, VERDICT_CLOSE_POT * potBb);
-  if (gapBb <= closeBb) {
-    const close = [best, ...rest.filter((a) => best.evBb! - a.evBb! <= closeBb)];
-    const spread = round(Math.max(...close.map((a) => Math.abs(best.evBb! - a.evBb!))));
-    const names = close.map(upperLabel);
-    const text =
-      close.length === 2
-        ? `CLOSE: EITHER ${names[0]} OR ${names[1]} IS FINE (${spread}bb APART)`
-        : `CLOSE: ${names.slice(0, -1).join(", ")} OR ${names.at(-1)} ARE ALL FINE (WITHIN ${spread}bb)`;
-    return { kind: "close", text, gapBb, gapPot };
-  }
-  const kind = gapPot < VERDICT_CLEAR_POT || gapBb < VERDICT_CLEAR_MIN_BB ? "slight" : "clear";
-  const head = kind === "slight" ? "SLIGHT EDGE" : "CLEAR";
-  return { kind, text: `${head}: ${upperLabel(best)} (+${gapBb}bb OVER ${upperLabel(second)})`, gapBb, gapPot };
 }
 
 /**
@@ -448,7 +396,7 @@ export function presentResult(
           equity: hh.equity,
           evBb: round(chipsToBb(hh.ev)),
           actions: heroActions,
-          verdict: verdict(heroActions, chipsToBb(nodePot(heroNode, startingPotChips))),
+          potBb: round(chipsToBb(nodePot(heroNode, startingPotChips))),
         }
       : null,
     narrowing,
