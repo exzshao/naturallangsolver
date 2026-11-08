@@ -1,13 +1,16 @@
 //! Turn a finalized `PostFlopGame` into the compact §7 summary.
 
-use postflop_solver::{Action, PostFlopGame, compute_average, holes_to_strings};
+use postflop_solver::{Action, PostFlopGame, Range, compute_average, holes_to_strings};
 
 use crate::api::{
-    ActionSummary, HandClass, HeroAction, HeroHandSummary, NodeSummary, PlayerSide, PlayerStats, Players,
+    ActionSummary, HandClass, HeroAction, HeroHandSummary, LineSize, NodeSummary, PlayerSide, PlayerStats, Players,
+    RangeSummary,
 };
 use crate::config::HeroSpec;
 use crate::error::{Reason, SolveError};
+use crate::line;
 use crate::solve::round;
+use crate::street::{self, StreetPlan};
 
 const TOP_CLASSES: usize = 6;
 
@@ -105,6 +108,8 @@ fn read_node(
             hands.iter().position(|&hc| hc == h.cards).map(|i| {
                 let equity = game.equity(player)[i] as f64;
                 let ev = game.expected_values(player)[i] as f64;
+                // Per action, [a * n + i]; fold is 0.
+                let detail = game.expected_values_detail(player);
                 HeroHandSummary {
                     hand: names[i].clone(),
                     node: node_index,
@@ -119,6 +124,7 @@ fn read_node(
                                 action: name,
                                 amount,
                                 frequency: round(strategy[a * n + i] as f64, 4),
+                                ev: round(detail[a * n + i] as f64, 2),
                             }
                         })
                         .collect(),
@@ -128,10 +134,99 @@ fn read_node(
         _ => None,
     };
 
+    let bets = game.total_bet_amount();
+    let pot = game.tree_config().starting_pot + bets[0] + bets[1];
+    let to_call = (bets[player ^ 1] - bets[player]).max(0);
     Ok((
-        NodeSummary { line, player: PlayerSide::from_index(player), actions: out },
+        NodeSummary { line, player: PlayerSide::from_index(player), actions: out, pot, to_call },
         hero_summary,
     ))
+}
+
+fn player_stats(game: &PostFlopGame) -> Players {
+    let stats = |p: usize| {
+        let w = game.normalized_weights(p);
+        PlayerStats {
+            equity: round(compute_average(&game.equity(p), w) as f64, 4),
+            ev: round(compute_average(&game.expected_values(p), w) as f64, 2),
+        }
+    };
+    Players { oop: stats(0), ip: stats(1) }
+}
+
+/// Sum of `player`'s range weights at the current node over combos not blocked by the
+/// board (weighted combos still taking the line).
+pub fn live_weight(game: &PostFlopGame, player: usize) -> f64 {
+    let board = game.current_board().iter().fold(0u64, |m, &c| m | (1u64 << c));
+    game.private_cards(player)
+        .iter()
+        .zip(game.weights(player))
+        .filter(|&(&(a, b), _)| board & ((1u64 << a) | (1u64 << b)) == 0)
+        .map(|(_, &w)| w as f64)
+        .sum()
+}
+
+/// `player`'s range at the current node as a class summary; `initial` is the range at
+/// the start of the street.
+fn range_here(game: &PostFlopGame, player: usize, initial: &Range) -> RangeSummary {
+    let board = game.current_board().iter().fold(0u64, |m, &c| m | (1u64 << c));
+    let (hands, weights) = (game.private_cards(player), game.weights(player));
+    let scale = hands
+        .iter()
+        .zip(weights)
+        .filter(|&(&(a, b), _)| board & ((1u64 << a) | (1u64 << b)) == 0)
+        .map(|(_, &w)| w)
+        .fold(0.0f32, f32::max);
+    let relative: Vec<f32> = weights.iter().map(|&w| if scale > 0.0 { w / scale } else { 0.0 }).collect();
+    let r = line::weights_to_range(hands, &relative, board);
+    line::summarize(initial, &r, scale, board)
+}
+
+pub struct StreetExtract {
+    pub players: Players,
+    pub nodes: Vec<NodeSummary>,
+    pub hero_hand: Option<HeroHandSummary>,
+    pub villain_range: RangeSummary,
+    /// Villain's live range weight at hero's node (combos still taking the line).
+    pub villain_weight: f64,
+}
+
+/// Walks the street actions on a finalized game and reads hero's decision: villain's
+/// last decision (unless `skip_villain_node`, e.g. villain locked) and hero's node, with
+/// `players` and villain's range at hero's node. `initial` = ranges at the street start.
+pub fn extract_street(
+    game: &mut PostFlopGame,
+    hero: Option<&HeroSpec>,
+    plan: &StreetPlan,
+    sizes: &mut [LineSize],
+    initial: &[Range; 2],
+    skip_villain_node: bool,
+) -> Result<StreetExtract, String> {
+    let labels = street::labels(&plan.steps);
+    let last = plan.steps.len() - 1;
+    let mut nodes = Vec::with_capacity(2);
+    game.back_to_root();
+    street::play_steps(game, &plan.steps[..last], sizes, |_, _, _| {})?;
+    if !skip_villain_node {
+        game.cache_normalized_weights();
+        let (node, _) = read_node(game, labels[..last].to_vec(), None, 0).map_err(|e| e.detail)?;
+        nodes.push(node);
+    }
+    street::play_steps(game, &plan.steps[last..], sizes, |_, _, _| {})?;
+    if game.is_terminal_node() || game.is_chance_node() || game.current_player() != plan.hero {
+        return Err(street::MISMATCH.into());
+    }
+    game.cache_normalized_weights();
+    let (node, hero_hand) = read_node(game, labels, hero, nodes.len()).map_err(|e| e.detail)?;
+    nodes.push(node);
+    let villain = plan.hero ^ 1;
+    Ok(StreetExtract {
+        players: player_stats(game),
+        nodes,
+        hero_hand,
+        villain_range: range_here(game, villain, &initial[villain]),
+        villain_weight: live_weight(game, villain),
+    })
 }
 
 /// Root stats for both players, plus the root node (OOP) and the node where IP faces a check.
@@ -142,14 +237,7 @@ pub fn extract(
     game.back_to_root();
     game.cache_normalized_weights();
 
-    let stats = |game: &PostFlopGame, p: usize| {
-        let w = game.normalized_weights(p);
-        PlayerStats {
-            equity: round(compute_average(&game.equity(p), w) as f64, 4),
-            ev: round(compute_average(&game.expected_values(p), w) as f64, 2),
-        }
-    };
-    let players = Players { oop: stats(game, 0), ip: stats(game, 1) };
+    let players = player_stats(game);
 
     let mut nodes = Vec::with_capacity(2);
     let (root, mut hero_summary) = read_node(game, vec![], hero, 0)?;

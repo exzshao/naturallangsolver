@@ -1,0 +1,41 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>wasm solver spike</title>
+<pre id="log"></pre>
+<script type="module">
+// ?pkg=pkg|pkg-alloc  &filter=substring  &threads=N  &spots=../sizes.json
+const q = new URLSearchParams(location.search);
+const pkg = q.get("pkg") || "pkg";
+const filter = q.get("filter") || "";
+const threads = +(q.get("threads") || navigator.hardwareConcurrency);
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+
+window.__done = false;
+window.__results = [];
+log(`crossOriginIsolated=${self.crossOriginIsolated} hw=${navigator.hardwareConcurrency} threads=${threads} pkg=${pkg}`);
+
+const worker = new Worker("./worker.js", { type: "module" });
+const ask = (msg) => new Promise((resolve, reject) => {
+  worker.onmessage = ({ data }) => {
+    if (data.type === "progress") log(`  ${data.name}: it ${data.iter} expl ${data.expl.toFixed(3)}% ${data.ms.toFixed(0)}ms`);
+    else if (data.type === "error") reject(new Error(data.message));
+    else resolve(data);
+  };
+  worker.postMessage(msg);
+});
+
+try {
+  const ready = await ask({ type: "init", pkg, threads });
+  log(`init ${ready.init_ms.toFixed(0)}ms, pool ${ready.pool_ms.toFixed(0)}ms`);
+  const list = q.get("spots") ? await (await fetch(q.get("spots"))).json() : ready.spots;
+  for (const spot of list.filter((s) => s.name.includes(filter))) {
+    const { report } = await ask({ type: "solve", spot });
+    log(JSON.stringify(report));
+    window.__results.push(report);
+  }
+} catch (e) {
+  log("ERROR " + e.message);
+  window.__error = e.message;
+}
+window.__done = true;
+</script>

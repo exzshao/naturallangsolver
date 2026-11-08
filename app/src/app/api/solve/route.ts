@@ -84,7 +84,11 @@ async function solveText(
   const result = await callSolver(prepared.request, { onStatus, signal });
   if (result.status !== "ok") return result satisfies CantSolveResponse;
 
-  return presentResult(result, prepared.spot, prepared.assumptions, extraction.notes, prepared.request.starting_pot);
+  // presentResult also rewrites the tree assumptions for the tree the solver picked.
+  return presentResult(result, prepared.spot, prepared.assumptions, extraction.notes, prepared.request.starting_pot, {
+    street: prepared.street,
+    villainHand: prepared.villainHand,
+  });
 }
 
 function streamSolve(text: string, req: Request): Response {

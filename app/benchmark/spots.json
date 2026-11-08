@@ -1,0 +1,234 @@
+{
+  "about": "Qualitative solver benchmark (npm run benchmark). Each spot lists checks a competent heads-up postflop solve must satisfy: well-established principles, not exact numbers. 'orVerdict' passes a check when the hero verdict is one of those kinds (the solver says the choice barely matters). Action groups: Fold, Check, Call, Bet, Raise, AllIn; 'aggro' = Bet + Raise + AllIn.",
+  "defaults": { "maxSeconds": 60 },
+  "spots": [
+    {
+      "id": "srp-btn-k72r-aa",
+      "tags": ["flop", "srp", "ip", "dry", "cbet", "nut"],
+      "text": "BTN vs BB single raised pot, 100bb deep. Flop Ks7d2c. I'm on the button with AhAd and BB checks to me.",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7d2c", "heroHand": "AhAd", "potBb": 5.5 },
+      "checks": [
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "Overpair on a dry K-high board checked to: bets most of the time, or betting and checking are close." },
+        { "type": "rangeFreq", "player": "ip", "actions": ["aggro"], "min": 0.5, "why": "BTN c-bets K72r at a high frequency vs BB (range and nut advantage, dry board)." }
+      ]
+    },
+    {
+      "id": "srp-btn-987tt-top-set",
+      "tags": ["flop", "srp", "ip", "wet", "cbet", "nut"],
+      "text": "BTN vs BB single raised pot, 100bb. Flop 9h8h7c. I'm on the button with 9s9d, BB checks to me.",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "9h8h7c", "heroHand": "9s9d" },
+      "checks": [
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "Top set on a wet board bets for value and protection." }
+      ]
+    },
+    {
+      "id": "srp-bb-set-vs-small-cbet",
+      "tags": ["flop", "srp", "oop", "facing-bet", "nut"],
+      "text": "Single raised pot, BTN opened and I called in the BB with 7s7h. Flop Ks7d2c. I check, BTN bets 1.8bb. What do I do?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "Ks7d2c", "heroHand": "7s7h" },
+      "checks": [
+        { "type": "streetMatched", "why": "The check / bet line is walked to hero's decision." },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.02, "why": "A set never folds to a small c-bet." },
+        { "type": "heroBestNot", "actions": ["Fold"] }
+      ]
+    },
+    {
+      "id": "srp-bb-air-vs-big-cbet",
+      "tags": ["flop", "srp", "oop", "facing-bet", "air"],
+      "text": "BTN opens, I defend the big blind with Ts9c. Flop As Kd 2c. I check and BTN bets 4bb into 5.5bb. Fold, call or raise?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "AsKd2c", "heroHand": "Ts9c" },
+      "checks": [
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orVerdict": ["close"], "why": "T9o with no pair and only a backdoor straight folds to a big c-bet on AK2." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"], "why": "Never a clear continue." }
+      ]
+    },
+    {
+      "id": "srp-btn-nfd-vs-checkraise",
+      "tags": ["flop", "srp", "ip", "facing-raise", "draw"],
+      "text": "BTN vs BB SRP. I'm on the button with Ah5h. Flop Jh8h3c. BB checks, I bet 1.8bb, BB check-raises to 5.5bb. What now?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Jh8h3c", "heroHand": "Ah5h" },
+      "checks": [
+        { "type": "streetMatched" },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.1, "why": "The nut flush draw doesn't fold to a flop check-raise." },
+        { "type": "heroBestNot", "actions": ["Fold"] }
+      ]
+    },
+    {
+      "id": "srp-btn-air-vs-checkraise",
+      "tags": ["flop", "srp", "ip", "facing-raise", "air"],
+      "text": "BTN vs BB single raised pot. I have 6d5d on the button. Flop Ah Kc Qs. BB checks, I c-bet 1.8bb and BB check-raises to 6bb.",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "AhKcQs", "heroHand": "6d5d" },
+      "checks": [
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.6, "orVerdict": ["close"], "why": "No pair, no draw on AKQ facing a check-raise: fold." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"] }
+      ]
+    },
+    {
+      "id": "usd-co-set-vs-raise",
+      "tags": ["flop", "srp", "oop", "facing-raise", "nut", "dollars", "extraction"],
+      "text": "$1/$2, $200 effective. I open to $6 from the cutoff, the button calls, blinds fold. Flop Qs 8h 5c. I bet $5 and the button raises to $18. I have QcQd. What should I do?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "CO", "villainPosition": "BTN", "board": "Qs8h5c", "heroHand": "QcQd", "potBb": 7.5 },
+      "checks": [
+        { "type": "streetMatched", "why": "$5 bet and $18 raise convert to 2.5bb / 9bb and are walked." },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.02, "why": "Top set never folds to a raise." },
+        { "type": "heroBestNot", "actions": ["Fold"] }
+      ]
+    },
+    {
+      "id": "extraction-slang-bb-vs-co",
+      "tags": ["flop", "srp", "oop", "facing-bet", "extraction"],
+      "text": "Cutoff raises, I call in the big blind with 5h5c. Flop comes ace, king, four rainbow. I check and the cutoff c-bets a third of the pot. What do I do?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BB", "villainPosition": "CO", "boardRanks": "AK4", "heroHand": "5h5c", "potBb": 5.5 },
+      "checks": [
+        { "type": "streetMatched" },
+        { "type": "rangeFreq", "player": "ip", "actions": ["aggro"], "min": 0.5, "why": "CO c-bets AK4 rainbow often vs BB (big range advantage on A-K high boards)." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Raise", "AllIn"], "why": "Small pocket pair on AK4 is never a clear raise." }
+      ]
+    },
+    {
+      "id": "3bet-bb-a72r-aks",
+      "tags": ["flop", "3bet", "oop", "dry", "cbet"],
+      "text": "I 3-bet from the big blind against a button open and he calls. Flop Ad7s2h. I have AcKc. I'm first to act.",
+      "spot": { "street": "flop", "potType": "3bet", "heroPosition": "BB", "villainPosition": "BTN", "board": "Ad7s2h", "heroHand": "AcKc" },
+      "checks": [
+        { "type": "rangeFreq", "player": "oop", "actions": ["aggro"], "min": 0.5, "why": "The 3-bettor c-bets a dry ace-high board at a high frequency." },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0, "why": "No fold when nobody bet." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Check"], "orVerdict": ["close", "slight"], "why": "TPTK is never a clear check-only hand here." }
+      ]
+    },
+    {
+      "id": "3bet-bb-765tt-range",
+      "tags": ["flop", "3bet", "oop", "wet", "cbet", "range"],
+      "text": "I 3-bet from the big blind against a button open and he calls. Flop 7h6h5d. What's my strategy as the first to act?",
+      "spot": { "street": "flop", "potType": "3bet", "heroPosition": "BB", "villainPosition": "BTN", "board": "7h6h5d", "heroHand": null },
+      "checks": [
+        { "type": "rangeFreq", "player": "oop", "actions": ["Check"], "min": 0.3, "why": "On a low connected two-tone board the 3-bettor's range advantage shrinks, so it checks a lot." }
+      ]
+    },
+    {
+      "id": "3bet-btn-jj-vs-small-cbet",
+      "tags": ["flop", "3bet", "ip", "facing-bet"],
+      "text": "BB 3-bets my button open and I call. 3-bet pot, I have JsJd. Flop Kd8s3h. BB c-bets a third of the pot. Call, fold or raise?",
+      "spot": { "street": "flop", "potType": "3bet", "heroPosition": "BTN", "villainPosition": "BB", "board": "Kd8s3h", "heroHand": "JsJd" },
+      "checks": [
+        { "type": "streetMatched" },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.2, "why": "Second pair JJ continues vs a 33% c-bet (needs ~20% equity)." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+      ]
+    },
+    {
+      "id": "4bet-btn-qq-vs-checkshove",
+      "tags": ["flop", "4bet", "ip", "facing-allin", "low-spr"],
+      "text": "I open the button, BB 3-bets, I 4-bet and BB calls. 4-bet pot, 100bb deep. Flop Jh7c2d. BB checks, I bet 10bb, BB shoves all in. I have QsQd. Call or fold?",
+      "spot": { "street": "flop", "potType": "4bet", "heroPosition": "BTN", "villainPosition": "BB", "board": "Jh7c2d", "heroHand": "QsQd" },
+      "checks": [
+        { "type": "streetMatched" },
+        { "type": "heroBestIn", "actions": ["Call"], "why": "Overpair at SPR ~1.3 getting a great price calls a check-shove." },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.1 }
+      ]
+    },
+    {
+      "id": "turn-btn-set-barrel",
+      "tags": ["turn", "srp", "ip", "nut", "narrowed"],
+      "text": "BTN vs BB SRP, I'm on the button with 7c7h. Flop Ks7d2c: BB checks, I bet 1.8bb, BB calls. Turn 5h, BB checks to me.",
+      "spot": { "street": "turn", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7d2c5h", "heroHand": "7c7h" },
+      "checks": [
+        { "type": "narrowed", "why": "Turn spot with flop action: ranges narrowed by the flop solve." },
+        { "type": "heroFreq", "actions": ["aggro"], "min": 0.5, "orVerdict": ["close"], "why": "A set keeps betting for value on a blank turn." }
+      ]
+    },
+    {
+      "id": "turn-bb-nfd-vs-barrel",
+      "tags": ["turn", "srp", "oop", "facing-bet", "draw", "narrowed"],
+      "text": "I'm in the BB vs a BTN open with Ah5h. Flop Jh8h3c: I check, BTN bets 1.8bb, I call. Turn 2s: I check, BTN bets 7bb. What do I do?",
+      "spot": { "street": "turn", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "Jh8h3c2s", "heroHand": "Ah5h" },
+      "checks": [
+        { "type": "narrowed" },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Nut flush draw + wheel gutshot + overcard (~15 outs) continues vs a turn barrel." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+      ]
+    },
+    {
+      "id": "turn-revealed-77-shove",
+      "tags": ["turn", "srp", "ip", "facing-allin", "revealed", "draw", "equity"],
+      "text": "BTN vs BB single raised pot. I'm on the button with Ah5h. Flop Ks7h2c: BB checks, I bet 2bb, BB calls. Turn 4h: BB accidentally flashes 77 and then shoves all in. Call or fold?",
+      "spot": { "street": "turn", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7h2c4h", "heroHand": "Ah5h", "potBb": 9.5 },
+      "checks": [
+        { "type": "villainHand", "value": "77" },
+        { "type": "equityVsHand", "villain": "77", "tol": 0.02, "why": "Hero equity at the node must match an exact enumeration vs 77 (7 clean flush outs + three 3s for the wheel)." },
+        { "type": "allInCallEv", "villain": "77", "tolBb": 2, "why": "EV(call) = equity x final pot - call." },
+        { "type": "verdict", "kinds": ["clear"], "best": ["Fold"], "why": "~23% equity where a call needs ~48% (95.5 to win 200.5): clear fold." }
+      ]
+    },
+    {
+      "id": "flop-revealed-72o-shove",
+      "tags": ["flop", "srp", "ip", "facing-allin", "revealed", "equity"],
+      "text": "BTN vs BB single raised pot, 100bb deep. Flop Td9d6h, I'm on the button with AhKh. BB shows me 72 offsuit and shoves all in. Call or fold?",
+      "spot": { "street": "flop", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Td9d6h", "heroHand": "AhKh", "potBb": 5.5 },
+      "checks": [
+        { "type": "villainHand", "value": "72o" },
+        { "type": "equityVsHand", "villain": "72o", "tol": 0.02 },
+        { "type": "allInCallEv", "villain": "72o", "tolBb": 2, "why": "~+32bb by hand calculation." },
+        { "type": "verdict", "kinds": ["clear"], "best": ["Call"] }
+      ]
+    },
+    {
+      "id": "river-btn-nut-flush-checked-to",
+      "tags": ["river", "srp", "ip", "nut", "value", "narrowed"],
+      "text": "BTN vs BB SRP. I have Ah5h on the button. Flop Kh9h4c: BB checks, I bet 1.8bb, BB calls. Turn 2s: both check. River 7h: BB checks to me.",
+      "spot": { "street": "river", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Kh9h4c2s7h", "heroHand": "Ah5h" },
+      "checks": [
+        { "type": "narrowed" },
+        { "type": "heroFreq", "actions": ["Check"], "max": 0.5, "why": "The stone-cold nuts checked to on the river bets." },
+        { "type": "heroBestIn", "actions": ["aggro"], "orVerdict": ["close"] }
+      ]
+    },
+    {
+      "id": "river-bb-busted-draw-vs-pot",
+      "tags": ["river", "srp", "oop", "facing-bet", "air", "give-up", "narrowed"],
+      "text": "I defended the big blind against a button open with 7h6h. Flop KhTh4c: I check, BTN bets 1.8bb, I call. Turn 2s: check, check. River 3d: I check and BTN bets pot. What do I do?",
+      "spot": { "street": "river", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "KhTh4c2s3d", "heroHand": "7h6h" },
+      "checks": [
+        { "type": "heroFreq", "actions": ["Fold"], "min": 0.5, "orVerdict": ["close"], "why": "7-high busted flush draw (blocks villain's busted hearts) facing a pot bet: fold." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Call", "Raise", "AllIn"] }
+      ]
+    },
+    {
+      "id": "river-bb-tpgk-vs-75",
+      "tags": ["river", "srp", "oop", "facing-bet", "bluff-catch", "narrowed"],
+      "text": "Big blind vs button single raised pot, I have KcJc in the BB. Flop Ks7d2c: I check, BTN bets 1.8bb, I call. Turn 5h checks through. River 3s: I check, BTN bets 75% pot. Call or fold?",
+      "spot": { "street": "river", "potType": "srp", "heroPosition": "BB", "villainPosition": "BTN", "board": "Ks7d2c5h3s", "heroHand": "KcJc" },
+      "checks": [
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Top pair good kicker vs a range that checked back the turn is a clear bluff-catcher." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+      ]
+    },
+    {
+      "id": "rare-line-bb-donk-turn",
+      "tags": ["turn", "srp", "ip", "facing-bet", "rare-line", "narrowed"],
+      "text": "BTN vs BB SRP. I'm on the button with KhQh. Flop Ks7d2c: BB leads 4bb into 5.5bb, I call. Turn 9h: BB bets 9bb. What do I do?",
+      "spot": { "street": "turn", "potType": "srp", "heroPosition": "BTN", "villainPosition": "BB", "board": "Ks7d2c9h", "heroHand": "KhQh" },
+      "checks": [
+        { "type": "narrowed", "rarePlayer": "oop", "why": "A BB flop donk-lead is rare at equilibrium: BB's range should be flagged blended / low line probability." },
+        { "type": "heroFreq", "actions": ["Fold"], "max": 0.3, "why": "Top pair good kicker keeps going vs a donk-lead line." },
+        { "type": "verdictNot", "kind": "clear", "best": ["Fold"] }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "btn-cbet-dry-vs-wet",
+      "why": "BTN c-bets K72r more often than 987 two-tone.",
+      "a": { "spot": "srp-btn-k72r-aa", "player": "ip", "actions": ["aggro"] },
+      "op": ">",
+      "b": { "spot": "srp-btn-987tt-top-set", "player": "ip", "actions": ["aggro"] }
+    },
+    {
+      "id": "3bettor-checks-more-low-wet",
+      "why": "The 3-bettor checks more on 765 two-tone than on A72 rainbow.",
+      "a": { "spot": "3bet-bb-765tt-range", "player": "oop", "actions": ["Check"] },
+      "op": ">",
+      "b": { "spot": "3bet-bb-a72r-aks", "player": "oop", "actions": ["Check"] }
+    }
+  ]
+}

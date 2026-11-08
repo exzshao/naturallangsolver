@@ -16,3 +16,12 @@ next-env.d.ts
 .DS_Store
 *.log
 .vercel
+
+# local research notes
+docs/preflop-ranges-research.md
+
+# wasm spike build outputs
+wasm-spike/target/
+wasm-spike/pkg*/
+wasm-spike/node_modules/
+wasm-spike/**/*.wasm

@@ -14,7 +14,7 @@ export const PotTypeSchema = z.enum(POT_TYPES);
 
 export const AMOUNT_UNITS = ["bb", "chips"] as const;
 export const ACTORS = ["hero", "villain"] as const;
-export const ACTION_KINDS = ["limp", "open", "raise", "3bet", "4bet", "call", "check", "bet", "fold"] as const;
+export const ACTION_KINDS = ["limp", "open", "raise", "3bet", "4bet", "call", "check", "bet", "fold", "allin"] as const;
 
 export const AmountUnitSchema = z.enum(AMOUNT_UNITS);
 export const ActionSchema = z.object({
@@ -25,7 +25,13 @@ export const ActionSchema = z.object({
     .number()
     .nullable()
     .describe(
-      "In the user's units (see amount_unit). open/raise/3bet/4bet: the raise-to total for the street. bet: the bet size. Null for check/call/fold/limp or when not stated.",
+      "In the user's units (see amount_unit). open/raise/3bet/4bet: the raise-to total for the street. bet: the bet size. allin: the all-in total if stated. Null for check/call/fold/limp, when not stated, or when the size is given as a share of the pot (use pot_pct).",
+    ),
+  pot_pct: z
+    .number()
+    .nullable()
+    .describe(
+      'Bet or raise size as a percent of the pot when the user gives it that way ("75% pot" -> 75, "half pot" -> 50, "pot" -> 100). Null otherwise.',
     ),
 });
 
@@ -33,7 +39,8 @@ export type Position = z.infer<typeof PositionSchema>;
 export type Street = z.infer<typeof StreetSchema>;
 export type PotType = z.infer<typeof PotTypeSchema>;
 export type AmountUnit = z.infer<typeof AmountUnitSchema>;
-export type Action = z.infer<typeof ActionSchema>;
+/** `pot_pct` is required in the LLM schema (strict structured outputs) but optional in code. */
+export type Action = Omit<z.infer<typeof ActionSchema>, "pot_pct"> & { pot_pct?: number | null };
 
 export const ExtractionSchema = z.object({
   is_poker_spot: z
@@ -57,6 +64,12 @@ export const ExtractionSchema = z.object({
     .string()
     .nullable()
     .describe('Hero\'s exact hole cards, e.g. "AhKh". Null unless both suits are known.'),
+  villain_hand: z
+    .string()
+    .nullable()
+    .describe(
+      'Villain\'s hole cards if the user says villain showed or revealed them: exact cards like "7c2d" when both suits are known, else a hand class: "72o" (offsuit), "72s" (suited), "77" (pair), "72" (suitedness unknown). Null otherwise.',
+    ),
   pot_type: PotTypeSchema.nullable().describe(
     "srp = single raised pot, 3bet = 3-bet pot, 4bet = 4-bet pot.",
   ),
@@ -85,7 +98,7 @@ export const ExtractionSchema = z.object({
     .array(ActionSchema)
     .nullable()
     .describe(
-      "Betting action in order, all streets up to and including the current one, as the user described it. Null if no action was described.",
+      "Betting action in order, all streets up to and including the current one, as the user described it, ending just before the decision hero asks about (never record that decision itself). Null if no action was described.",
     ),
   oop_range: z
     .string()
@@ -108,4 +121,8 @@ export const ExtractionSchema = z.object({
     .describe("Anything relevant that did not fit elsewhere, e.g. action already taken on the street."),
 });
 
-export type Extraction = z.infer<typeof ExtractionSchema>;
+/** Like the LLM schema, with the newer fields (`villain_hand`, `actions[].pot_pct`) optional in code. */
+export type Extraction = Omit<z.infer<typeof ExtractionSchema>, "actions" | "villain_hand"> & {
+  actions: Action[] | null;
+  villain_hand?: string | null;
+};

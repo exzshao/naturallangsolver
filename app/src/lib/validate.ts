@@ -5,6 +5,7 @@ import { historyProblem } from "./history";
 import { bbToChips, hasDuplicates, parseCards, parseHand, STREET_BY_CARD_COUNT } from "./poker";
 import type { Extraction } from "./schema";
 import type { CantSolveReason, CantSolveResponse } from "./types";
+import { readVillainHand } from "./villain";
 
 export const CANT_SOLVE_MESSAGES: Record<CantSolveReason, string> = {
   NOT_POKER: "Can't solve this: that doesn't look like a poker spot.",
@@ -50,6 +51,15 @@ export function validateExtraction(x: Extraction): CantSolveResponse | null {
   const hand = x.hero_hand ? parseHand(x.hero_hand) : null;
   if (hand && parseCards(hand)!.some((c) => board.includes(c))) {
     return cantSolve("INVALID_BOARD");
+  }
+
+  // A readable villain hand must leave a combo after the board and hero's cards.
+  const villain = x.villain_hand ? readVillainHand(x.villain_hand, [...board, ...(hand ? parseCards(hand)! : [])]) : null;
+  if (villain && villain.combos === 0) {
+    return cantSolve(
+      "INVALID_BOARD",
+      `Can't solve this: villain's ${villain.label} overlaps the board or your hand.`,
+    );
   }
 
   for (const v of [x.pot_bb, x.effective_stack_bb, x.starting_stack_bb]) {

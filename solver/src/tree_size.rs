@@ -50,7 +50,7 @@ pub struct Estimate {
 /// reports, which is usually 100x larger than the arena and is still checked after
 /// the game is built.
 ///
-/// Returns `None` for configs with donk sizes, which the mirror doesn't model.
+/// Always `Some` (kept as an `Option` for callers written when donk sizes weren't modeled).
 pub fn estimate(config: &TreeConfig, budget: u64) -> Option<Estimate> {
     estimate_with(config, budget, |_, _| {})
 }
@@ -62,9 +62,6 @@ fn estimate_with(
     budget: u64,
     on_decision: impl FnMut(usize, &[Action]),
 ) -> Option<Estimate> {
-    if config.turn_donk_sizes.is_some() || config.river_donk_sizes.is_some() {
-        return None;
-    }
     // Runouts per action node on each street, given the starting street.
     let runouts: [u64; 3] = match config.initial_state {
         BoardState::Flop => [1, 49, 49 * 48],
@@ -89,13 +86,22 @@ struct Info {
     prev_action: Action,
     num_bets: i32,
     allin_flag: bool,
+    /// OOP called the last bet (so OOP's first action on the next street is a donk).
+    oop_call_flag: bool,
     stack: [i32; 2],
     prev_amount: i32,
 }
 
 impl Info {
     fn new(stack: i32) -> Self {
-        Self { prev_action: Action::None, num_bets: 0, allin_flag: false, stack: [stack, stack], prev_amount: 0 }
+        Self {
+            prev_action: Action::None,
+            num_bets: 0,
+            allin_flag: false,
+            oop_call_flag: false,
+            stack: [stack, stack],
+            prev_amount: 0,
+        }
     }
 
     fn next(&self, player: u8, action: Action) -> Self {
@@ -103,8 +109,10 @@ impl Info {
         n.prev_action = action;
         let p = player as usize;
         match action {
+            Action::Check => n.oop_call_flag = false,
             Action::Call => {
                 n.num_bets = 0;
+                n.oop_call_flag = player == PLAYER_OOP;
                 n.stack[p] = n.stack[p ^ 1];
                 n.prev_amount = 0;
             }
@@ -179,7 +187,7 @@ impl<F: FnMut(usize, &[Action])> Walker<'_, F> {
         true
     }
 
-    /// Mirror of `ActionTree::push_actions` (non-donk branch).
+    /// Mirror of `ActionTree::push_actions`.
     fn actions(&self, player: u8, state: BoardState, node_amount: i32, info: &Info) -> Vec<Action> {
         let cfg = self.cfg;
         let player_stack = info.stack[player as usize];
@@ -197,14 +205,31 @@ impl<F: FnMut(usize, &[Action])> Walker<'_, F> {
             (pot as f64 * ratio.min(max_ratio)).round() as i32
         };
 
-        let (options, remaining_streets) = match state {
-            BoardState::Flop => (&cfg.flop_bet_sizes[player as usize], 3),
-            BoardState::Turn => (&cfg.turn_bet_sizes[player as usize], 2),
-            BoardState::River => (&cfg.river_bet_sizes[player as usize], 1),
+        let (options, donk, remaining_streets) = match state {
+            BoardState::Flop => (&cfg.flop_bet_sizes[player as usize], None, 3),
+            BoardState::Turn => (&cfg.turn_bet_sizes[player as usize], cfg.turn_donk_sizes.as_ref(), 2),
+            BoardState::River => (&cfg.river_bet_sizes[player as usize], cfg.river_donk_sizes.as_ref(), 1),
         };
 
         let mut actions = Vec::new();
-        if matches!(info.prev_action, Action::None | Action::Check | Action::Chance(_)) {
+        if let Some(donk) = donk.filter(|_| matches!(info.prev_action, Action::Chance(_)) && info.oop_call_flag) {
+            actions.push(Action::Check);
+            for &size in &donk.donk {
+                match size {
+                    BetSize::PotRelative(r) => actions.push(Action::Bet((pot as f64 * r).round() as i32)),
+                    BetSize::PrevBetRelative(_) => {}
+                    BetSize::Additive(adder, _) => actions.push(Action::Bet(adder)),
+                    BetSize::Geometric(n, max_ratio) => {
+                        let n = if n == 0 { remaining_streets } else { n };
+                        actions.push(Action::Bet(geometric(n, max_ratio)));
+                    }
+                    BetSize::AllIn => actions.push(Action::AllIn(max_amount)),
+                }
+            }
+            if max_amount <= (pot as f64 * cfg.add_allin_threshold).round() as i32 {
+                actions.push(Action::AllIn(max_amount));
+            }
+        } else if matches!(info.prev_action, Action::None | Action::Check | Action::Chance(_)) {
             actions.push(Action::Check);
             for &size in &options.bet {
                 match size {
@@ -373,6 +398,35 @@ mod tests {
             assert_eq!(mine.len(), real.len(), "{state:?} {stack} {sizes:?}");
             assert!(mine == real, "{state:?} {stack} {sizes:?}: action lists differ");
         }
+    }
+
+    #[test]
+    fn mirrors_donk_options() {
+        use postflop_solver::DonkSizeOptions;
+        let donk = |d: &str| Some(DonkSizeOptions::try_from(d).unwrap());
+        let flop = |sizes: Sizes| config(BoardState::Flop, 9750, sizes);
+        let mut cases = Vec::new();
+        for (turn, river) in [(donk(""), donk("")), (donk("50%"), None), (None, donk("33%, a"))] {
+            let mut c = flop([("33%", "3x"), ("75%", ""), ("75%", "")]);
+            (c.turn_donk_sizes, c.river_donk_sizes) = (turn, river);
+            cases.push(c);
+        }
+        let mut c = config(BoardState::Turn, 9750, [("", ""), ("33%, 75%", "3x"), ("33%, 75%, a", "3x")]);
+        c.river_donk_sizes = donk("");
+        cases.push(c);
+        for cfg in cases {
+            let mut mine = Vec::new();
+            let est = estimate_with(&cfg, u64::MAX, |d, a| mine.push((d, a.to_vec()))).unwrap();
+            assert!(!est.exceeded);
+            let mut real = Vec::new();
+            real_decisions(&mut ActionTree::new(cfg.clone()).unwrap(), 0, &mut real);
+            assert!(mine == real, "{:?} {:?}: action lists differ", cfg.turn_donk_sizes, cfg.river_donk_sizes);
+        }
+        // No donks prune the tree.
+        let with = estimate(&flop([("33%", "3x"), ("75%", ""), ("75%", "")]), u64::MAX).unwrap();
+        let mut c = flop([("33%", "3x"), ("75%", ""), ("75%", "")]);
+        (c.turn_donk_sizes, c.river_donk_sizes) = (donk(""), donk(""));
+        assert!(estimate(&c, u64::MAX).unwrap().action_nodes[2] < with.action_nodes[2]);
     }
 
     #[test]

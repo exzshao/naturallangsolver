@@ -154,17 +154,18 @@ describe("history in big blinds", () => {
         actions: [act("flop", "villain", "check"), act("flop", "hero", "bet", 7), act("flop", "villain", "call")],
       }),
     );
-    expect(spot.potBb).toBe(34);
-    expect(spot.effectiveStackBb).toBe(83);
-    expect(assumptions).toContain("Assumed a 20bb pot (standard 3-bet pot at the flop)");
+    // BTN vs BB 3-bet pot: 13 + 13 + 0.5 dead, then 7 each on the flop.
+    expect(spot.potBb).toBe(40.5);
+    expect(spot.effectiveStackBb).toBe(80);
+    expect(assumptions).toContain("Assumed a 26.5bb pot (standard 3-bet pot at the flop)");
   });
 });
 
 describe("missing history falls back to the pot-type defaults", () => {
   it("no actions -> standard pot, checked through", () => {
     const { spot, assumptions } = applyDefaults(extraction({ board: "Td9d6hQc", pot_type: "3bet" }));
-    expect(spot.potBb).toBe(20);
-    expect(spot.effectiveStackBb).toBe(90);
+    expect(spot.potBb).toBe(26.5);
+    expect(spot.effectiveStackBb).toBe(87);
     expect(assumptions).toContain("Assumed it checked through previous streets");
   });
 
@@ -172,7 +173,7 @@ describe("missing history falls back to the pot-type defaults", () => {
     const { spot, assumptions } = applyDefaults(
       extraction({ board: "Td9d6hQc", pot_type: "3bet", actions: [act("turn", "villain", "check")] }),
     );
-    expect(spot.potBb).toBe(20);
+    expect(spot.potBb).toBe(26.5);
     expect(spot.heroPlayer).toBe("ip");
     expect(assumptions).toContain("Assumed it checked through previous streets");
   });

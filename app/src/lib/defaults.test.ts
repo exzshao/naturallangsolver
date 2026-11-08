@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { applyDefaults, DEFAULTS, FLOP_TREE_ASSUMPTION } from "./defaults";
+import {
+  applyDefaults,
+  DEFAULTS,
+  flopTreeAssumption,
+  flopTrees,
+  preflopAggressor,
+  treeChoiceAssumptions,
+} from "./defaults";
 import { handWeightInRange } from "./poker";
 import { extraction } from "./test-helpers";
 
@@ -96,18 +103,81 @@ describe("§5 starting stack", () => {
   });
 });
 
-describe("§5 pot/stack on the flop by pot type", () => {
+describe("§5 pot/stack on the flop by pot type and seats", () => {
   it.each([
-    ["srp", 5.5, 97.5],
-    ["3bet", 20, 90],
-    ["4bet", 45, 77.5],
-    ["limped", 2, 99],
-  ] as const)("%s -> pot %s, stack %s", (potType, pot, stack) => {
-    const { spot, assumptions } = run({ pot_type: potType });
+    // BTN vs BB: the SB's 0.5bb is dead.
+    ["srp", "BTN", "BB", 5.5, 97.5, "BTN opens 2.5bb, BB calls, SB folds"],
+    ["3bet", "BTN", "BB", 26.5, 87, "BTN opens 2.5bb, BB 3-bets to 13bb, BTN calls, SB folds"],
+    ["4bet", "BTN", "BB", 55.5, 72.5, "BTN opens 2.5bb, BB 3-bets to 13bb, BTN 4-bets to 27.5bb, BB calls, SB folds"],
+    // Neither blind in the hand: 1.5bb dead.
+    ["srp", "CO", "BTN", 6.5, 97.5, "CO opens 2.5bb, BTN calls, blinds fold"],
+    ["3bet", "CO", "BTN", 17.5, 92, "CO opens 2.5bb, BTN 3-bets to 8bb, CO calls, blinds fold"],
+    ["4bet", "UTG", "HJ", 46.5, 77.5, "UTG opens 2.5bb, HJ 3-bets to 9bb, UTG 4-bets to 22.5bb, HJ calls, blinds fold"],
+    // SB in the hand: the BB's 1bb is dead.
+    ["srp", "UTG", "SB", 6, 97.5, "UTG opens 2.5bb, SB calls, BB folds"],
+    ["3bet", "BTN", "SB", 24, 88.5, "BTN opens 2.5bb, SB 3-bets to 11.5bb, BTN calls, BB folds"],
+    ["4bet", "HJ", "SB", 51, 75, "HJ opens 2.5bb, SB 3-bets to 12bb, HJ 4-bets to 25bb, SB calls, BB folds"],
+    // SB vs BB: no dead money.
+    ["srp", "SB", "BB", 7, 96.5, "SB opens 3.5bb, BB calls"],
+    ["3bet", "BB", "SB", 21, 89.5, "SB opens 3.5bb, BB 3-bets to 10.5bb, SB calls"],
+    ["4bet", "SB", "BB", 44, 78, "SB opens 3.5bb, BB 3-bets to 10.5bb, SB 4-bets to 22bb, BB calls"],
+    ["limped", "SB", "BB", 2, 99, "SB limps, BB checks"],
+    ["limped", "BTN", "BB", 2.5, 99, "BTN limps, BB checks, SB folds"],
+  ] as const)("%s %s vs %s -> pot %s, stack %s", (potType, hero, villain, pot, stack, line) => {
+    const { spot, assumptions } = run({ pot_type: potType, hero_position: hero, villain_position: villain });
     expect(spot.potBb).toBe(pot);
     expect(spot.effectiveStackBb).toBe(stack);
-    expect(assumptions.some((a) => a.startsWith(`Assumed a ${pot}bb pot`))).toBe(true);
+    expect(assumptions).toContain(`Assumed a ${pot}bb pot: ${line}`);
+    expect(assumptions).toContain(`Assumed ${stack}bb effective stack at the start of the flop`);
     expect(assumptions).not.toContain("Assumed it checked through previous streets");
+  });
+
+  it("no positions -> BTN vs BB sizes", () => {
+    const { spot, assumptions } = run({ pot_type: "3bet" });
+    expect(spot.potBb).toBe(26.5);
+    expect(spot.effectiveStackBb).toBe(87);
+    expect(assumptions).toContain("Assumed a 26.5bb pot: BTN opens 2.5bb, BB 3-bets to 13bb, BTN calls, SB folds");
+  });
+
+  it("stated starting stack minus the seat pair's investment", () => {
+    const { spot } = run({ pot_type: "3bet", hero_position: "CO", villain_position: "BTN", starting_stack_bb: 200 });
+    expect(spot.effectiveStackBb).toBe(192);
+  });
+
+  it("a stated pot wins over the size table", () => {
+    const { spot, assumptions } = run({ pot_type: "3bet", hero_position: "CO", villain_position: "BTN", pot_bb: 20 });
+    expect(spot.potBb).toBe(20);
+    expect(spot.effectiveStackBb).toBe(90);
+    expect(assumptions.some((a) => a.startsWith("Assumed a 17.5bb pot"))).toBe(false);
+  });
+
+  it("history-derived pots win over the size table", () => {
+    const { spot, assumptions } = run({
+      pot_type: "srp",
+      hero_position: "CO",
+      villain_position: "BTN",
+      amount_unit: "bb",
+      actions: [
+        { street: "preflop", actor: "hero", action: "open", amount: 3 },
+        { street: "preflop", actor: "villain", action: "call", amount: null },
+      ],
+      board: "Td9d6hQc",
+    });
+    expect(spot.potBb).toBe(7.5);
+    expect(assumptions.some((a) => a.startsWith("Assumed a 6.5bb pot"))).toBe(false);
+  });
+
+  it("falls back to the generic pot for a seat pair missing from the size table", () => {
+    const saved = DEFAULTS.preflopSizes;
+    DEFAULTS.preflopSizes = {};
+    try {
+      const { spot, assumptions } = run({ pot_type: "3bet", hero_position: "CO", villain_position: "BTN" });
+      expect(spot.potBb).toBe(20);
+      expect(spot.effectiveStackBb).toBe(90);
+      expect(assumptions).toContain("Assumed a 20bb pot (standard 3-bet pot at the flop)");
+    } finally {
+      DEFAULTS.preflopSizes = saved;
+    }
   });
 });
 
@@ -118,8 +188,8 @@ describe("§5 pot/stack on turn/river with no info", () => {
   ] as const)("%s uses flop values and assumes checked through", (street, board) => {
     const { spot, assumptions } = run({ board, pot_type: "3bet" });
     expect(spot.street).toBe(street);
-    expect(spot.potBb).toBe(20);
-    expect(spot.effectiveStackBb).toBe(90);
+    expect(spot.potBb).toBe(26.5);
+    expect(spot.effectiveStackBb).toBe(87);
     expect(assumptions).toContain("Assumed it checked through previous streets");
   });
 
@@ -131,41 +201,41 @@ describe("§5 pot/stack on turn/river with no info", () => {
 
 describe("§5 ranges", () => {
   it.each([
-    ["srp", "BTN", "BB", "srp:BTNvBB"],
-    ["srp", "CO", "BB", "srp:COvBB"],
-    ["srp", "SB", "BB", "srp:BBvSB"],
-    ["3bet", "BTN", "SB", "3bet:BTNvSB"],
-    ["3bet", "BB", "BTN", "3bet:BTNvBB"],
-  ] as const)("%s %s vs %s uses the seeded table entry %s", (potType, hero, villain, key) => {
+    ["srp", "BTN", "BB", "srp:BTNvBB", "BTN open vs BB call"],
+    ["srp", "CO", "BB", "srp:COvBB", "CO open vs BB call"],
+    ["srp", "SB", "BB", "srp:BBvSB", "SB open vs BB call"],
+    ["srp", "BTN", "CO", "srp:BTNvCO", "CO open vs BTN call"],
+    ["3bet", "BTN", "SB", "3bet:BTNvSB", "BTN open, SB 3-bet, BTN call"],
+    ["3bet", "BB", "BTN", "3bet:BTNvBB", "BTN open, BB 3-bet, BTN call"],
+    ["4bet", "UTG", "HJ", "4bet:HJvUTG", "UTG open, HJ 3-bet, UTG 4-bet, HJ call"],
+    ["limped", "SB", "BB", "limped:BBvSB", "SB limp vs BB check"],
+  ] as const)("%s %s vs %s uses table entry %s", (potType, hero, villain, key, line) => {
     const { spot, assumptions } = run({ pot_type: potType, hero_position: hero, villain_position: villain });
-    const seed = DEFAULTS.ranges[key]!;
-    expect(spot.ipRange).toBe(seed.ip);
-    expect(spot.oopRange).toBe(seed.oop);
-    expect(assumptions.some((a) => a.startsWith(`Assumed default ${potType} ranges`))).toBe(true);
+    const entry = DEFAULTS.ranges[key]!;
+    expect(spot.ipRange).toBe(entry.ip);
+    expect(spot.oopRange).toBe(entry.oop);
+    expect(assumptions).toContain(`Assumed standard 100bb ranges: ${line}`);
   });
 
-  it("matches the spec's srp BTN-v-BB seeds (dash ranges written descending, as the crate requires)", () => {
-    const { spot } = run();
-    expect(spot.ipRange).toBe(
-      "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
-    );
-    expect(spot.oopRange).toBe(
-      "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
-    );
-  });
-
-  it.each(["srp", "3bet", "4bet", "limped"] as const)("%s falls back to generic ranges for unseeded pairs", (potType) => {
-    const { spot, assumptions } = run({ pot_type: potType, hero_position: "UTG", villain_position: "HJ" });
-    expect(spot.oopRange).toBe(DEFAULTS.fallbackRanges[potType].oop);
-    expect(spot.ipRange).toBe(DEFAULTS.fallbackRanges[potType].ip);
-    expect(assumptions.some((a) => a.startsWith(`Assumed generic ${potType} ranges`))).toBe(true);
+  it("limped pots outside SB vs BB fall back to the generic limped ranges", () => {
+    const { spot, assumptions } = run({ pot_type: "limped", hero_position: "BTN", villain_position: "CO" });
+    expect(spot.oopRange).toBe(DEFAULTS.fallbackRanges.limped.oop);
+    expect(spot.ipRange).toBe(DEFAULTS.fallbackRanges.limped.ip);
+    expect(assumptions).toContain("Assumed generic limped ranges (no standard 100bb ranges for BTN vs CO)");
   });
 
   it("keeps user ranges and only defaults the missing side", () => {
     const { spot, assumptions } = run({ oop_range: "QQ+,AK" });
     expect(spot.oopRange).toBe("QQ+,AK");
     expect(spot.ipRange).toBe(DEFAULTS.ranges["srp:BTNvBB"]!.ip);
-    expect(assumptions.some((a) => a.startsWith("Assumed IP (BTN) range"))).toBe(true);
+    expect(assumptions).toContain("Assumed IP (BTN) range from standard 100bb ranges: BTN open vs BB call");
+  });
+
+  it("defaults the OOP side when only the IP range is given", () => {
+    const { spot, assumptions } = run({ ip_range: "AA" });
+    expect(spot.ipRange).toBe("AA");
+    expect(spot.oopRange).toBe(DEFAULTS.ranges["srp:BTNvBB"]!.oop);
+    expect(assumptions).toContain("Assumed OOP (BB) range from standard 100bb ranges: BTN open vs BB call");
   });
 
   it("no range assumption when both are given", () => {
@@ -173,7 +243,7 @@ describe("§5 ranges", () => {
     expect(assumptions.some((a) => a.includes("range"))).toBe(false);
   });
 
-  it("all seeded and fallback ranges parse", () => {
+  it("all table and fallback ranges parse", () => {
     const all = [...Object.values(DEFAULTS.ranges), ...Object.values(DEFAULTS.fallbackRanges)];
     for (const pair of all) {
       expect(handWeightInRange(pair!.ip, "2c2d")).not.toBeNull();
@@ -195,18 +265,126 @@ describe("§5 bet sizes", () => {
       expect(assumptions.some((a) => a.startsWith(`Bet sizes the solver considers on the ${streets}: 33%, 75%`))).toBe(true);
       expect(assumptions.some((a) => a.includes("raises 3x (you didn't specify)"))).toBe(true);
       expect(assumptions.some((a) => a.startsWith("Bet sizes") && a.includes("flop"))).toBe(false);
-      expect(assumptions).not.toContain(FLOP_TREE_ASSUMPTION);
+      expect(assumptions.some((a) => a.startsWith("Flop tree"))).toBe(false);
+      expect(spot.betSizeFallbacks).toEqual([]);
     }
   });
 
-  it("flop spots: simplified tree (50% / 75% / 75%, no raises)", () => {
+  it("flop spots: tree built around the preflop raiser, with a simpler fallback", () => {
     const { spot, assumptions } = run();
+    const later = { bet: "75%", raise: "", donk: "" };
+    expect(spot.preflopAggressor).toBe("ip");
     expect(spot.betSizes).toEqual({
-      flop: { bet: "50%", raise: "" },
-      turn: { bet: "75%", raise: "" },
-      river: { bet: "75%", raise: "" },
+      flop: { bet: "33%, 75%", raise: "", oop: { bet: "", raise: "3x" } },
+      turn: later,
+      river: later,
     });
-    expect(assumptions).toContain(FLOP_TREE_ASSUMPTION);
+    expect(spot.betSizeFallbacks).toEqual([
+      { flop: { bet: "33%", raise: "", oop: { bet: "", raise: "3x" } }, turn: later, river: later },
+    ]);
+    expect(assumptions).toContain(
+      "Flop tree: BTN (preflop raiser) bets 33% or 75%, BB can check-raise 3x and doesn't lead; turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+  });
+
+  it("flop spots: OOP raiser c-bets, IP caller can raise or stab; limped pots have no raiser", () => {
+    const bb3bet = run({ pot_type: "3bet", hero_position: "BTN", villain_position: "BB" });
+    expect(bb3bet.spot.preflopAggressor).toBe("oop");
+    expect(bb3bet.spot.betSizes.flop).toEqual({ bet: "33%, 75%", raise: "", ip: { bet: "33%", raise: "3x" } });
+    expect(bb3bet.assumptions).toContain(
+      "Flop tree: BB (preflop raiser) bets 33% or 75%, BTN can raise 3x or bet 33% when checked to; turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+    const limped = run({ pot_type: "limped", hero_position: "BB", villain_position: "SB" });
+    expect(limped.spot.preflopAggressor).toBeNull();
+    expect(limped.spot.betSizes.flop).toEqual({ bet: "33%, 75%", raise: "", oop: { raise: "3x" } });
+    expect(limped.assumptions.some((a) => a.startsWith("Flop tree: both players bet 33% or 75%, SB can check-raise 3x"))).toBe(true);
+  });
+
+  it("preflop raiser by pot type and seats", () => {
+    expect(preflopAggressor("srp", "BTN", "BB")).toBe("ip");
+    expect(preflopAggressor("srp", "BB", "SB")).toBe("oop"); // SB opens, BB calls
+    expect(preflopAggressor("3bet", "CO", "BTN")).toBe("ip"); // BTN 3-bets the CO
+    expect(preflopAggressor("3bet", "BB", "BTN")).toBe("oop");
+    expect(preflopAggressor("4bet", "BTN", "CO")).toBe("oop"); // CO opens and 4-bets
+    expect(preflopAggressor("limped", "SB", "BB")).toBeNull();
+  });
+
+  it("tree choice: a fallback or auto-simplified tree replaces the flop tree text", () => {
+    const { spot, assumptions } = run();
+    const seats = spot.flopTreeSeats!;
+    const rich = flopTreeAssumption(seats, "33%, 75%");
+    const choice = (index: number, auto?: "no_raises" | "one_size") => ({
+      index,
+      given: 2,
+      auto,
+      bet_sizes: auto ? { ...flopTrees("ip")[1], flop: { bet: "33%", raise: "", oop: { bet: "", raise: "" } } } : spot.betSizes,
+      estimated_secs: 25,
+      raw_mb: 640,
+      over_budget: false,
+    });
+    expect(treeChoiceAssumptions(spot, assumptions, undefined)).toBe(assumptions);
+    expect(treeChoiceAssumptions(spot, assumptions, choice(0))).toBe(assumptions);
+    const fallback = treeChoiceAssumptions(spot, assumptions, choice(1));
+    expect(fallback).not.toContain(rich);
+    expect(fallback).toContain(
+      "Flop tree: BTN (preflop raiser) bets 33%, BB can check-raise 3x and doesn't lead; turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+    expect(fallback).toHaveLength(assumptions.length);
+    const auto = treeChoiceAssumptions(spot, assumptions, choice(2, "no_raises"));
+    expect(auto).toContain(
+      "Flop tree: BTN (preflop raiser) bets 33%, BB doesn't lead, no raises; turn and river: 75% bets, no raises or leads into the last bettor (simplified to keep the solve fast)",
+    );
+    // Turn spot (no default flop tree): a note is appended.
+    const turn = run({ board: "Td9d6hQc" });
+    const t = treeChoiceAssumptions(turn.spot, turn.assumptions, { ...choice(1, "one_size"), given: 1 });
+    expect(t.at(-1)).toBe("Tree simplified to keep the solve fast: raises dropped and one bet size per street");
+  });
+
+  it("tree texts name sizes added from the described action instead of contradicting them", () => {
+    const { spot, assumptions } = run();
+    const seats = spot.flopTreeSeats!;
+    const lead = { street: "flop", player: "oop", kind: "bet", allin: false, amountBb: 4, described: true } as const;
+    const bet = { ...lead, player: "ip", amountBb: 1.8 } as const;
+    const raise = { ...lead, kind: "raise", amountBb: 5.5 } as const;
+    const heroRaise = { ...lead, player: "ip", kind: "raise", amountBb: 16.5, described: false } as const;
+    // BB's lead: "doesn't lead" goes; the lead is listed.
+    const withLead = treeChoiceAssumptions(spot, assumptions, undefined, [lead]);
+    expect(withLead).not.toContain(flopTreeAssumption(seats, "33%, 75%"));
+    expect(withLead).toContain(
+      "Flop tree: BTN (preflop raiser) bets 33% or 75%, BB can check-raise 3x; added: BB's 4bb lead (from your description); turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+    // Simplified tree without raises plus a check-raise: "no other raises".
+    const auto = {
+      index: 2,
+      given: 2,
+      auto: "no_raises" as const,
+      bet_sizes: { ...flopTrees("ip")[1], flop: { bet: "33%", raise: "", oop: { bet: "", raise: "" } } },
+      estimated_secs: 25,
+      raw_mb: 640,
+      over_budget: false,
+    };
+    expect(treeChoiceAssumptions(spot, assumptions, auto, [bet, raise, heroRaise])).toContain(
+      "Flop tree: BTN (preflop raiser) bets 33%, BB doesn't lead, no other raises; added: BTN's 1.8bb bet and BB's raise to 5.5bb (from your description), BTN's raise to 16.5bb (at your decision); turn and river: 75% bets, no raises or leads into the last bettor (simplified to keep the solve fast)",
+    );
+    // OOP preflop raiser and limped pots.
+    expect(flopTreeAssumption({ ...seats, aggressor: "oop" }, "33%", false, [{ ...raise, player: "ip" }])).toBe(
+      "Flop tree: BB (preflop raiser) bets 33%, BTN can bet 33% when checked to, no other raises; added: BTN's raise to 5.5bb (from your description); turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+    expect(flopTreeAssumption({ ...seats, aggressor: null }, "33%", true, [{ ...lead, allin: true, amountBb: 97.5 }])).toBe(
+      "Flop tree: both players bet 33%, BB can check-raise 3x; added: BB's 97.5bb all-in (from your description); turn and river: 75% bets, no raises or leads into the last bettor",
+    );
+    // User-sized flop trees and auto-simplified turn trees keep the added sizes.
+    const noRaise = run({ bet_sizes: { bet: "50%", raise: null } });
+    expect(treeChoiceAssumptions(noRaise.spot, noRaise.assumptions, undefined, [raise])).toContain(
+      "Assumed no raises to keep the flop tree small (except the added sizes below)",
+    );
+    const oneSize = run({ bet_sizes: { bet: null, raise: "3x" } });
+    expect(treeChoiceAssumptions(oneSize.spot, oneSize.assumptions, undefined, [lead])).toContain(
+      "Assumed one bet size per street (33% flop, 75% turn and river) to keep the flop tree small (except the added sizes below)",
+    );
+    const turn = run({ board: "Td9d6hQc" });
+    const t = treeChoiceAssumptions(turn.spot, turn.assumptions, { ...auto, index: 1, given: 1 }, [{ ...raise, street: "turn" }]);
+    expect(t.at(-1)).toBe("Tree simplified to keep the solve fast: raises dropped (except the added sizes below)");
   });
 
   it("user sizes apply to every street", () => {
@@ -234,7 +412,8 @@ describe("§5 bet sizes", () => {
     expect(river.spot.betSizes.river).toEqual({ bet: "33%, 75%, a", raise: "4x" });
 
     const flop = run({ bet_sizes: { bet: null, raise: "4x" } });
-    expect(flop.spot.betSizes.flop).toEqual({ bet: "50%", raise: "4x" });
+    expect(flop.spot.betSizes.flop).toEqual({ bet: "33%", raise: "4x" });
+    expect(flop.spot.betSizeFallbacks).toEqual([]);
     expect(flop.spot.betSizes.river).toEqual({ bet: "75%", raise: "4x" });
   });
 });

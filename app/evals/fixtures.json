@@ -277,5 +277,209 @@
       "heroPlayer": "ip"
     },
     "outcome": "ok"
+  },
+  {
+    "id": "current-street-lead-75",
+    "prompt": "BTN vs BB single raised pot, flop Ks7d2c, I'm on the button with QhQd, BB leads 75% pot, should I call?",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "Ks7d2c",
+      "hero_position": "BTN",
+      "villain_position": "BB",
+      "hero_hand": "QhQd",
+      "villain_hand": null,
+      "actions": {
+        "$oneOf": [
+          [
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "bet",
+              "amount": null,
+              "pot_pct": 75
+            }
+          ],
+          [
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "bet",
+              "amount": null,
+              "pot_pct": 75
+            }
+          ]
+        ]
+      }
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "current-street-shove",
+    "prompt": "100bb deep, BTN vs BB SRP. Flop Jh8h3c. I have AsAd on the button. BB checks, I bet 2bb, he shoves. Call?",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "Jh8h3c",
+      "hero_hand": "AsAd",
+      "villain_hand": null,
+      "amount_unit": "bb",
+      "actions": {
+        "$oneOf": [
+          [
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "check"
+            },
+            {
+              "street": "flop",
+              "actor": "hero",
+              "action": "bet",
+              "amount": 2
+            },
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "allin"
+            }
+          ],
+          [
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "check"
+            },
+            {
+              "street": "flop",
+              "actor": "hero",
+              "action": "bet",
+              "amount": 2
+            },
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "allin"
+            }
+          ]
+        ]
+      }
+    },
+    "spot": {
+      "potBb": 5.5
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "current-street-raise-to",
+    "prompt": "Single raised pot, I'm on the button vs the big blind with Ah5h on Ad9c4s. He checks, I bet 2.5bb, he raises to 9bb, now what?",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "Ad9c4s",
+      "hero_position": "BTN",
+      "villain_position": "BB",
+      "hero_hand": "Ah5h",
+      "amount_unit": "bb",
+      "actions": [
+        {
+          "street": "flop",
+          "actor": "villain",
+          "action": "check"
+        },
+        {
+          "street": "flop",
+          "actor": "hero",
+          "action": "bet",
+          "amount": 2.5
+        },
+        {
+          "street": "flop",
+          "actor": "villain",
+          "action": "raise",
+          "amount": 9
+        }
+      ]
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "villain-reveals-hand",
+    "prompt": "BTN vs BB single raised pot, 100bb deep, flop Td9d6h, I'm on the button with AhKh, BB accidentally reveals his cards (72 off), goes all in, now its me.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "flop",
+      "board": "Td9d6h",
+      "hero_position": "BTN",
+      "villain_position": "BB",
+      "hero_hand": "AhKh",
+      "villain_hand": {
+        "$oneOf": [
+          "72o",
+          "7o2",
+          "27o"
+        ]
+      },
+      "actions": {
+        "$oneOf": [
+          [
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "allin"
+            }
+          ],
+          [
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "preflop"
+            },
+            {
+              "street": "flop",
+              "actor": "villain",
+              "action": "allin"
+            }
+          ]
+        ]
+      }
+    },
+    "outcome": "ok"
+  },
+  {
+    "id": "earlier-street-pot",
+    "prompt": "CO vs BB single raised pot. I'm on the cutoff with AhJh. Flop Js8d4c: BB donks 3bb into a 5.5bb pot and I call. Turn 2h: BB checks to me.",
+    "expected": {
+      "is_poker_spot": true,
+      "street": "turn",
+      "board": "Js8d4c2h",
+      "hero_position": "CO",
+      "villain_position": "BB",
+      "hero_hand": "AhJh",
+      "pot_type": "srp",
+      "pot_bb": {
+        "$oneOf": [
+          null,
+          5.5
+        ]
+      }
+    },
+    "spot": {
+      "potBb": 11.5
+    },
+    "outcome": "ok"
   }
 ]

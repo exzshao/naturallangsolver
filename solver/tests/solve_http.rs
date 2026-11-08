@@ -114,6 +114,86 @@ async fn tiny_river_spot_solves() {
     assert!((hsum - 1.0).abs() < 1e-3);
 }
 
+/// Tree budget (SPEC §7): the richest tree within `TREE_BUDGET_SECS` is solved, then the
+/// request's fallbacks, then auto-simplified trees (raises dropped, then one bet size).
+#[tokio::test]
+async fn tree_budget_picks_fallbacks_then_auto_simplified_trees() {
+    let mut body = tiny_river();
+    body["bet_sizes"]["river"] = json!({"bet": "10%, 25%, 33%, 50%, 75%, 100%, 150%, 200%, a", "raise": "2x, 3x, 4x"});
+    let fallback = json!({
+        "flop": {"bet": "", "raise": ""},
+        "turn": {"bet": "", "raise": ""},
+        "river": {"bet": "75%, 33%", "raise": "3x", "ip": {"bet": "50%"}}
+    });
+    body["bet_size_fallbacks"] = json!([fallback]);
+    let tree = |v: &Value| v["tree"].clone();
+
+    // Generous budget: the request's own tree.
+    let (status, v) = post(AppState::new(settings()), body.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let t = tree(&v);
+    assert_eq!((t["index"].as_u64(), t["given"].as_u64(), t["over_budget"].as_bool()), (Some(0), Some(2), Some(false)));
+    assert!(t.get("auto").is_none());
+    assert_eq!(t["bet_sizes"]["river"]["raise"], "2x, 3x, 4x");
+    let rich_mb = t["raw_mb"].as_f64().unwrap();
+    assert!(rich_mb > 0.0);
+
+    // Budget just under the first tree's estimate: the fallback, whose IP override
+    // (one 50% bet) shows at IP's node.
+    let ms_per_mb = 1000.0;
+    let s = Settings { tree_ms_per_mb: ms_per_mb, tree_budget_secs: rich_mb * ms_per_mb / 1000.0 * 0.9, ..settings() };
+    let (status, v) = post(AppState::new(s), body.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let t = tree(&v);
+    assert_eq!((t["index"].as_u64(), t["over_budget"].as_bool()), (Some(1), Some(false)), "{t}");
+    assert_eq!(t["bet_sizes"]["river"]["ip"]["bet"], "50%");
+    let ip_bets: Vec<i64> = v["nodes"][1]["actions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|a| a["action"] == "Bet")
+        .map(|a| a["amount"].as_i64().unwrap())
+        .collect();
+    assert_eq!(ip_bets, vec![275]);
+
+    // Nothing fits the budget: the cheapest tree, the auto-simplified one-size tree.
+    let s = Settings { tree_budget_secs: 1e-9, ..settings() };
+    let (status, v) = post(AppState::new(s), body.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let t = tree(&v);
+    assert_eq!((t["index"].as_u64(), t["auto"].as_str(), t["over_budget"].as_bool()), (Some(3), Some("one_size"), Some(true)), "{t}");
+    // One size = the first listed; IP's override stays.
+    assert_eq!(t["bet_sizes"]["river"], json!({"bet": "75%", "raise": "", "ip": {"bet": "50%"}}));
+    assert!(t["raw_mb"].as_f64().unwrap() < rich_mb);
+}
+
+/// A tree over the memory cap is skipped for the next one instead of failing.
+#[tokio::test]
+async fn tree_over_memory_falls_back_to_a_simpler_tree() {
+    let rich = json!({"bet": "25%, 33%, 50%, 75%, 100%, 150%, a", "raise": "2x, 3x"});
+    let plain = json!({"bet": "25%, 33%, 50%, 75%, 100%, 150%, a", "raise": ""});
+    let turn = |street: &Value| {
+        let mut b = tiny_river();
+        b["board"] = json!("Td9d6hQc");
+        b["max_iterations"] = json!(20);
+        b["bet_sizes"] = json!({"flop": street, "turn": street, "river": street});
+        b
+    };
+    let mb = |v: &Value| v["tree"]["raw_mb"].as_f64().unwrap();
+    let (_, v) = post(AppState::new(settings()), turn(&rich)).await;
+    let rich_mb = mb(&v);
+    let (_, v) = post(AppState::new(settings()), turn(&plain)).await;
+    let plain_mb = mb(&v);
+    // Under half the rich tree (compressed storage is ~half of raw), above the plain one.
+    let limit = (rich_mb * 0.45).floor();
+    assert!(limit >= plain_mb.ceil(), "rich {rich_mb} MB, plain {plain_mb} MB");
+    let s = Settings { max_memory_mb: limit as u64, ..settings() };
+    let (status, v) = post(AppState::new(s), turn(&rich)).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["tree"]["auto"], "no_raises", "{}", v["tree"]);
+    assert_eq!(v["tree"]["index"], 1);
+}
+
 #[tokio::test]
 async fn duplicate_board_is_invalid_board() {
     let mut body = tiny_river();
@@ -166,7 +246,8 @@ async fn memory_limit_gives_tree_too_large() {
 
 /// Regression: 7 bet / 3 raise sizes on a 200bb flop used to build the whole tree and
 /// node arena (tens of GB) before the memory check, so the process was OOM-killed. The
-/// pre-check must reject it from the config alone, in well under a second.
+/// pre-check must reject it from the config alone, in well under a second. (At 1 GB the
+/// auto-simplified one-size tree would fit and be solved; 64 MB rejects that too.)
 #[tokio::test]
 async fn huge_flop_tree_rejected_before_allocating() {
     let street = json!({"bet": "25%, 33%, 50%, 75%, 100%, 125%, 150%", "raise": "2x, 3x, 4x"});
@@ -177,7 +258,7 @@ async fn huge_flop_tree_rejected_before_allocating() {
     body["starting_pot"] = json!(550);
     body["effective_stack"] = json!(19750);
     body["bet_sizes"] = json!({"flop": street, "turn": street, "river": street});
-    let s = Settings { max_memory_mb: 1024, ..settings() };
+    let s = Settings { max_memory_mb: 64, ..settings() };
     let start = std::time::Instant::now();
     let (status, v) = post(AppState::new(s), body).await;
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{v}");
@@ -516,4 +597,283 @@ async fn srp_flop_spot() {
     let (status, v) = post(AppState::new(s), body).await;
     assert_eq!(status, StatusCode::OK, "{v}");
     assert_frequencies_sum_to_one(&v);
+}
+
+// ---------- line (two-stage) solves ----------
+
+/// Debug builds run stage 1 slowly when tests run in parallel; leave room so its
+/// time share (half the timeout) isn't what's being tested.
+fn line_settings() -> Settings {
+    Settings { solve_timeout: Duration::from_secs(300), ..settings() }
+}
+
+fn step(street: &str, player: &str, action: &str, amount: Option<i32>) -> Value {
+    json!({"street": street, "player": player, "action": action, "amount_chips": amount})
+}
+
+/// Tiny river spot reached by a line: flop checks through, turn OOP checks, IP bets 550
+/// into 550 (pot, apart from the 33%/75% defaults), OOP calls. River pot 1650, stack 9200.
+fn tiny_river_with_line() -> Value {
+    let mut body = tiny_river();
+    body["starting_pot"] = json!(1650);
+    body["effective_stack"] = json!(9200);
+    body["flop_pot"] = json!(550);
+    body["flop_stack"] = json!(9750);
+    // Few iterations: stage 1 is a flop solve with 33%/75% on the line streets, slow in debug builds.
+    body["max_iterations"] = json!(20);
+    body["line"] = json!([
+        step("flop", "oop", "check", None),
+        step("flop", "ip", "check", None),
+        step("turn", "oop", "check", None),
+        step("turn", "ip", "bet", Some(550)),
+        step("turn", "oop", "call", None),
+    ]);
+    body
+}
+
+#[tokio::test]
+async fn river_spot_with_turn_line_is_narrowed() {
+    let (status, v) = post(AppState::new(line_settings()), tiny_river_with_line()).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_frequencies_sum_to_one(&v);
+    let n = &v["narrowing"];
+    assert_eq!(n["narrowed"], true, "{n}");
+    assert_eq!(n["reason"], Value::Null);
+    assert_eq!(n["sizes"], json!([{"street": "turn", "player": "ip", "action": "bet", "requested": 550, "used": 550, "size": "100%", "added": true}]));
+    for p in ["oop", "ip"] {
+        let r = &n["ranges"][p];
+        let (before, after) = (r["combos_before"].as_f64().unwrap(), r["combos_after"].as_f64().unwrap());
+        // Absolute combos can round to 0 for a rare line; the listed classes are relative.
+        assert!(after >= 0.0 && after <= before + 1e-6, "{p}: {r}");
+        assert!(!r["classes"].as_array().unwrap().is_empty());
+        // The reported range string is valid input for a new request.
+        let text = n[format!("{p}_range")].as_str().unwrap();
+        let mut again = tiny_river();
+        again[format!("{p}_range")] = json!(text);
+        again["starting_pot"] = json!(1650);
+        again["effective_stack"] = json!(9200);
+        let (status, v2) = post(AppState::new(line_settings()), again).await;
+        assert_eq!(status, StatusCode::OK, "{p} range {text:?}: {v2}");
+    }
+    assert!(n["solve_ms"].as_u64().unwrap() <= v["solve_ms"].as_u64().unwrap());
+    assert!(v["hero_hand"].is_object());
+}
+
+#[tokio::test]
+async fn bad_lines_fall_back_to_full_ranges() {
+    let cases = [
+        (json!([step("flop", "oop", "check", None), step("flop", "ip", "bet", Some(200)), step("flop", "oop", "fold", None)]), "fold"),
+        (json!([step("flop", "oop", "check", None), step("flop", "ip", "check", None)]), "no turn action"),
+        (json!([{"street": "flop", "who": "villain"}]), "couldn't be read"),
+    ];
+    for (line, want) in cases {
+        let mut body = tiny_river_with_line();
+        body["line"] = line;
+        let (status, v) = post(AppState::new(line_settings()), body).await;
+        assert_eq!(status, StatusCode::OK, "{want}: {v}");
+        assert_eq!(v["narrowing"]["narrowed"], false);
+        let reason = v["narrowing"]["reason"].as_str().unwrap();
+        assert!(reason.contains(want), "{want:?} not in {reason:?}");
+        assert_frequencies_sum_to_one(&v);
+    }
+
+    // Stage 1 over the memory cap: skipped, stage 2 still solves.
+    let s = Settings { max_memory_mb: 1, ..line_settings() };
+    let (status, v) = post(AppState::new(s), tiny_river_with_line()).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["narrowing"]["narrowed"], false);
+    assert!(v["narrowing"]["reason"].as_str().unwrap().contains("memory"), "{v}");
+
+    // No line: no narrowing field at all.
+    let (_, v) = post(AppState::new(line_settings()), tiny_river()).await;
+    assert!(v.get("narrowing").is_none());
+}
+
+#[tokio::test]
+async fn ndjson_line_solve_reports_narrowing_then_solving() {
+    let state = AppState::new(line_settings());
+    let resp = router(state.clone()).oneshot(solve_request(&tiny_river_with_line(), true)).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let events = Lines::new(resp).rest().await;
+    assert_eq!(timeline(&events), ["narrowing", "solving", "result"]);
+    assert_eq!(events.last().unwrap()["narrowing"]["narrowed"], true);
+
+    // A line that's skipped up front goes straight to solving.
+    let mut body = tiny_river_with_line();
+    body["line"] = json!([step("flop", "oop", "fold", None)]);
+    let resp = router(state).oneshot(solve_request(&body, true)).await.unwrap();
+    let events = Lines::new(resp).rest().await;
+    assert_eq!(timeline(&events), ["solving", "result"]);
+}
+
+/// The user's 3-bet pot turn spot from a flop line (~release only).
+#[tokio::test]
+#[ignore]
+async fn threebet_turn_spot_with_flop_line() {
+    let body = json!({
+        "board": "Qh2c7h8h",
+        "oop_range": "TT+,A9s+,KTs+,QTs+,JTs,A5s-A2s,AJo+,KQo",
+        "ip_range": "QQ-22,AQs-A2s,K9s+,Q9s+,J9s+,T8s+,97s+,87s,76s,65s,AQo-ATo,KJo+",
+        "starting_pot": 7450,
+        "effective_stack": 6300,
+        "bet_sizes": {
+            "flop":  {"bet": "33%, 75%", "raise": "3x"},
+            "turn":  {"bet": "33%, 75%", "raise": "3x"},
+            "river": {"bet": "33%, 75%, a", "raise": "3x"}
+        },
+        "hero": {"player": "ip", "hand": "2h2s"},
+        "flop_pot": 2450,
+        "flop_stack": 8800,
+        "line": [
+            step("flop", "oop", "check", None),
+            step("flop", "ip", "bet", Some(2500)),
+            step("flop", "oop", "call", None),
+        ],
+    });
+    let (status, v) = post(AppState::new(line_settings()), body).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["narrowing"]["narrowed"], true, "{}", v["narrowing"]);
+    assert_frequencies_sum_to_one(&v);
+}
+
+// ---------- current-street actions and known villain hands ----------
+
+fn actions_of(v: &Value) -> Vec<(String, i64)> {
+    v.as_array()
+        .unwrap()
+        .iter()
+        .map(|a| (a["action"].as_str().unwrap().to_string(), a["amount"].as_i64().unwrap()))
+        .collect()
+}
+
+fn hero_ev(v: &Value, action: &str) -> f64 {
+    v["hero_hand"]["actions"].as_array().unwrap().iter().find(|a| a["action"] == action).unwrap()["ev"]
+        .as_f64()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn walks_to_hero_facing_a_bet_with_the_exact_size_and_evs() {
+    // OOP bets 400 into 550 on the river (not a default size), hero IP to act.
+    let mut body = tiny_river();
+    body["street_actions"] = json!([step("river", "oop", "bet", Some(400))]);
+    let (status, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let sl = &v["street_line"];
+    assert_eq!(sl["matched"], true, "{sl}");
+    assert_eq!(sl["sizes"], json!([{"street": "river", "player": "oop", "action": "bet", "requested": 400, "used": 400, "size": "72.7%", "added": true}]));
+    assert_eq!(sl["villain_locked"], false);
+    assert!(sl["villain_range"]["classes"].as_array().is_some_and(|c| !c.is_empty()), "{sl}");
+    assert_frequencies_sum_to_one(&v);
+
+    // Villain's root (the 400 bet added for OOP only), then hero facing it.
+    let nodes = v["nodes"].as_array().unwrap();
+    assert_eq!((nodes[0]["player"].as_str(), nodes[0]["line"].clone()), (Some("oop"), json!([])));
+    assert!(actions_of(&nodes[0]["actions"]).contains(&("Bet".into(), 400)));
+    assert_eq!((nodes[1]["player"].as_str(), nodes[1]["line"].clone()), (Some("ip"), json!(["Bet"])));
+    assert_eq!((nodes[1]["pot"].as_i64(), nodes[1]["to_call"].as_i64()), (Some(950), Some(400)));
+    // Hero's options: fold, call, the 3x raise, all-in.
+    assert_eq!(
+        actions_of(&nodes[1]["actions"]),
+        vec![("Fold".into(), 0), ("Call".into(), 0), ("Raise".into(), 1200), ("AllIn".into(), 9750)]
+    );
+    // IP facing a check doesn't get the 400 bet (OOP-only size): not reported here, but
+    // the root bet list differs from IP's options in the unit tests.
+    let h = &v["hero_hand"];
+    assert_eq!(h["node"], 1);
+    assert_eq!(hero_ev(&v, "Fold"), 0.0);
+    // Hero's EV is the strategy-weighted action EV.
+    let mix: f64 = h["actions"].as_array().unwrap().iter().map(|a| a["frequency"].as_f64().unwrap() * a["ev"].as_f64().unwrap()).sum();
+    assert!((mix - h["ev"].as_f64().unwrap()).abs() < 2.0, "{h}");
+    // A river call is a showdown: EV = equity * final pot - call.
+    let call = hero_ev(&v, "Call");
+    let eq = h["equity"].as_f64().unwrap();
+    assert!((call - (eq * 1750.0 - 400.0)).abs() < 3.0, "call {call} vs equity {eq}");
+}
+
+#[tokio::test]
+async fn known_villain_hand_facing_a_flop_shove() {
+    // Plan check 1: BTN AhKh vs BB 72o on Td9d6h, BB shoves 97.5bb into 5.5bb.
+    let body = json!({
+        "board": "Td9d6h",
+        "oop_range": SRP_OOP,
+        "ip_range": "AhKh,QQ,JJ,AQs",
+        "starting_pot": 550,
+        "effective_stack": 9750,
+        "bet_sizes": {"flop": {"bet": "50%", "raise": ""}, "turn": {"bet": "75%", "raise": ""}, "river": {"bet": "75%", "raise": ""}},
+        "hero": {"player": "ip", "hand": "AhKh"},
+        "villain_hand": "72o",
+        "street_actions": [step("flop", "oop", "allin", None)],
+        "max_iterations": 100,
+        "target_exploitability_pct": 0.5
+    });
+    let (status, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let sl = &v["street_line"];
+    assert_eq!(sl["matched"], true, "{sl}");
+    assert_eq!(sl["villain_locked"], true);
+    assert_eq!(sl["villain_rare"], false);
+    assert_eq!(sl["villain_range"]["classes"], json!([{"hand": "72o", "combos": 12.0, "weight": 1.0}]));
+    // Villain's (locked) node is skipped: only hero facing the shove.
+    let nodes = v["nodes"].as_array().unwrap();
+    assert_eq!(nodes.len(), 1);
+    assert_eq!(actions_of(&nodes[0]["actions"]), vec![("Fold".into(), 0), ("Call".into(), 0)]);
+    let h = &v["hero_hand"];
+    assert_eq!(h["node"], 0);
+    let eq = h["equity"].as_f64().unwrap();
+    assert!((eq - 0.647).abs() < 0.01, "equity {eq}");
+    let call = hero_ev(&v, "Call");
+    assert!((call - (eq * 20050.0 - 9750.0)).abs() < 5.0, "call EV {call}");
+    assert!((call - 3220.0).abs() < 60.0, "call EV {call}");
+    assert_eq!(hero_ev(&v, "Fold"), 0.0);
+    let freq = |a: &str| h["actions"].as_array().unwrap().iter().find(|x| x["action"] == a).unwrap()["frequency"].as_f64().unwrap();
+    assert!(freq("Call") > 0.99, "{h}");
+}
+
+#[tokio::test]
+async fn villain_hand_on_the_board_is_invalid_board() {
+    let mut body = tiny_river();
+    body["villain_hand"] = json!("Td7c");
+    let (status, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(v["reason"], "INVALID_BOARD");
+    let mut body = tiny_river();
+    body["villain_hand"] = json!("Ah7c"); // hero holds the Ah
+    let (_, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(v["reason"], "INVALID_BOARD");
+}
+
+#[tokio::test]
+async fn villain_line_the_solver_never_takes_is_resolved_locked() {
+    // OOP holds only air against IP's aces: it never shoves the river in the solve, so
+    // the walk would reach hero with no villain range. Re-solved with villain locked.
+    let mut body = tiny_river();
+    body["oop_range"] = json!("43o");
+    body["ip_range"] = json!("AA");
+    body["hero"] = json!({"player": "ip", "hand": "AsAc"});
+    body["street_actions"] = json!([step("river", "oop", "allin", None)]);
+    let (status, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    let sl = &v["street_line"];
+    assert_eq!((sl["matched"].clone(), sl["villain_rare"].clone(), sl["villain_locked"].clone()), (json!(true), json!(true), json!(true)), "{sl}");
+    assert!(hero_ev(&v, "Call") > 9000.0, "{v}");
+}
+
+#[tokio::test]
+async fn unusable_street_actions_fall_back_to_the_street_start() {
+    let mut body = tiny_river();
+    body["street_actions"] = json!([step("river", "ip", "bet", Some(400))]);
+    let (status, v) = post(AppState::new(settings()), body).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["street_line"]["matched"], false);
+    assert!(v["street_line"]["reason"].as_str().unwrap().contains("out of turn"));
+    assert_frequencies_sum_to_one(&v);
+    assert_eq!(v["nodes"][1]["line"], json!(["Check"]));
+    // Hero EVs are reported at the usual nodes too; fold isn't an option there.
+    let h = &v["hero_hand"];
+    let mix: f64 = h["actions"].as_array().unwrap().iter().map(|a| a["frequency"].as_f64().unwrap() * a["ev"].as_f64().unwrap()).sum();
+    assert!((mix - h["ev"].as_f64().unwrap()).abs() < 2.0, "{h}");
+    assert!(v.get("street_line").is_some());
+    let (_, plain) = post(AppState::new(settings()), tiny_river()).await;
+    assert!(plain.get("street_line").is_none());
 }

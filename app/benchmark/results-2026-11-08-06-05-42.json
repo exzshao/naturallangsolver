@@ -1,0 +1,5673 @@
+{
+ "ranAt": "2026-11-08T06:05:42.282Z",
+ "base": "http://localhost:3000",
+ "passed": 4,
+ "total": 5,
+ "comparisons": [],
+ "totalSecs": 65.96,
+ "spots": [
+  {
+   "id": "usd-co-set-vs-raise",
+   "pass": true,
+   "seconds": 22.757,
+   "outcomes": [
+    {
+     "label": "status ok",
+     "pass": true,
+     "detail": "ok"
+    },
+    {
+     "label": "spot.street=flop",
+     "pass": true,
+     "detail": "flop"
+    },
+    {
+     "label": "spot.potType=srp",
+     "pass": true,
+     "detail": "srp"
+    },
+    {
+     "label": "spot.heroPosition=CO",
+     "pass": true,
+     "detail": "CO"
+    },
+    {
+     "label": "spot.villainPosition=BTN",
+     "pass": true,
+     "detail": "BTN"
+    },
+    {
+     "label": "spot.board=Qs8h5c",
+     "pass": true,
+     "detail": "Qs8h5c"
+    },
+    {
+     "label": "spot.heroHand=QcQd",
+     "pass": true,
+     "detail": "QdQc"
+    },
+    {
+     "label": "spot.potBb=7.5",
+     "pass": true,
+     "detail": "7.5"
+    },
+    {
+     "label": "street walked",
+     "pass": true,
+     "detail": "true"
+    },
+    {
+     "label": "hero Fold <=2%",
+     "pass": true,
+     "detail": "0%"
+    },
+    {
+     "label": "hero best not Fold",
+     "pass": true,
+     "detail": "Call 6.5bb"
+    },
+    {
+     "label": "time <=60s",
+     "pass": true,
+     "detail": "22.8s"
+    }
+   ],
+   "summary": {
+    "spot": "flop srp CO(oop) v BTN Qs8h5c QdQc pot 7.5 stack 97",
+    "hero": "Fold 0% ev 0 | Call 6.5bb 35% ev 48.87 | Raise 27bb 65% ev 48.36 | All-in 97bb 0% ev 44.48",
+    "heroEquity": 0.946,
+    "verdict": "SLIGHT EDGE: CALL 6.5bb (+0.51bb OVER RAISE 27bb)",
+    "oopNode": "CO facing BTN raise to 9bb: Fold 40%, Call 6.5bb 40%, Raise 27bb 20%, All-in 97bb 0%",
+    "ipNode": "BTN after you bet 2.5bb: Fold 6%, Call 2.5bb 86%, Raise 9bb 8%",
+    "narrowing": null,
+    "solveMs": 20059,
+    "exploitabilityPct": 0.4273,
+    "assumptions": [
+     "Counted 1.5bb of blinds as dead money (CO vs BTN)",
+     "Computed a 7.5bb pot at the start of the flop from the betting",
+     "Computed a 97bb effective stack at the start of the flop (100bb minus 3bb put in)",
+     "Assumed standard 100bb ranges: CO open vs BTN call",
+     "Flop tree: CO (preflop raiser) bets 33%, BTN can bet 33% when checked to, no raises; turn and river: 75% bets, no raises or leads into the last bettor (simplified to keep the solve fast)",
+     "Strategy shown at your decision after the flop action (you bet 2.5bb, villain raised to 9bb)",
+     "Added to the solver's flop sizes: your 2.5bb bet for you, villain's 9bb raise for villain"
+    ]
+   },
+   "response": {
+    "status": "ok",
+    "spot": {
+     "board": "Qs8h5c",
+     "street": "flop",
+     "potType": "srp",
+     "heroPosition": "CO",
+     "villainPosition": "BTN",
+     "oopPosition": "CO",
+     "ipPosition": "BTN",
+     "heroPlayer": "oop",
+     "heroHand": "QdQc",
+     "potBb": 7.5,
+     "effectiveStackBb": 97,
+     "oopRange": "AA,AKs,AQs,AJs,ATs,A9s,A8s,A7s,A6s,A5s,A4s,A3s,A2s,KK,KQs,KJs,KTs,K9s,K8s,K7s,K6s,K5s,K4s,K3s,K2s:0.23,QQ,QJs,QTs,Q9s,Q8s,Q7s:0.06,Q6s:0.74,Q5s:0.01,JJ,JTs,J9s,J8s,J7s:0.51,TT,T9s,T8s,99,98s,88,87s:0.02,77,76s:0.19,66,65s:0.33,55,54s:0.35,44:0.83,33:0.1,AKo,AQo,AJo,ATo,A9o,A8o,A7o:0.76,A5o,A4o:0.08,KQo,KJo,KTo,K9o:0.48,QJo,QTo,JTo",
+     "ipRange": "AQs:0.05,AJs:0.58,ATs:0.82,A9s:0.43,A8s:0.16,A5s:0.11,A4s:0.29,KQs:0.43,KJs:0.29,KTs:0.58,K9s:0.08,QJs:0.42,QTs:0.35,JJ:0.05,JTs:0.41,TT:0.43,99:0.61,88:0.58,77:0.43,66:0.25,65s:0.12,55:0.19,54s:0.15,44:0.07,33:0.05,22:0.03,AQo:0.31,AJo:0.03,KQo:0.06,KJo:0.04",
+     "betSizes": {
+      "flop": {
+       "bet": "33%, 75%",
+       "raise": "",
+       "ip": {
+        "bet": "33%",
+        "raise": "3x"
+       }
+      },
+      "turn": {
+       "bet": "75%",
+       "raise": "",
+       "donk": ""
+      },
+      "river": {
+       "bet": "75%",
+       "raise": "",
+       "donk": ""
+      }
+     }
+    },
+    "assumptions": [
+     "Counted 1.5bb of blinds as dead money (CO vs BTN)",
+     "Computed a 7.5bb pot at the start of the flop from the betting",
+     "Computed a 97bb effective stack at the start of the flop (100bb minus 3bb put in)",
+     "Assumed standard 100bb ranges: CO open vs BTN call",
+     "Flop tree: CO (preflop raiser) bets 33%, BTN can bet 33% when checked to, no raises; turn and river: 75% bets, no raises or leads into the last bettor (simplified to keep the solve fast)",
+     "Strategy shown at your decision after the flop action (you bet 2.5bb, villain raised to 9bb)",
+     "Added to the solver's flop sizes: your 2.5bb bet for you, villain's 9bb raise for villain"
+    ],
+    "notes": "The stated $200 effective stack converts to 100bb at $1/$2; remaining stack at the start of the flop is not stated.",
+    "players": {
+     "oop": {
+      "position": "CO",
+      "equity": 0.4729,
+      "evBb": 4.63
+     },
+     "ip": {
+      "position": "BTN",
+      "equity": 0.5271,
+      "evBb": 14.37
+     }
+    },
+    "nodes": [
+     {
+      "title": "BTN after you bet 2.5bb",
+      "player": "ip",
+      "position": "BTN",
+      "isHero": false,
+      "actions": [
+       {
+        "action": "Fold",
+        "label": "Fold",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.059,
+        "topClasses": [
+         {
+          "hand": "AJo",
+          "frequency": 0.7992
+         },
+         {
+          "hand": "33",
+          "frequency": 0.497
+         },
+         {
+          "hand": "22",
+          "frequency": 0.47
+         },
+         {
+          "hand": "44",
+          "frequency": 0.4185
+         },
+         {
+          "hand": "KJo",
+          "frequency": 0.3399
+         },
+         {
+          "hand": "ATs",
+          "frequency": 0.1708
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Call",
+        "label": "Call 2.5bb",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.861,
+        "topClasses": [
+         {
+          "hand": "KQo",
+          "frequency": 1
+         },
+         {
+          "hand": "A5s",
+          "frequency": 1
+         },
+         {
+          "hand": "JJ",
+          "frequency": 1
+         },
+         {
+          "hand": "AQo",
+          "frequency": 0.9912
+         },
+         {
+          "hand": "TT",
+          "frequency": 0.9865
+         },
+         {
+          "hand": "66",
+          "frequency": 0.964
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Raise",
+        "label": "Raise 9bb",
+        "amountBb": 9,
+        "potPct": null,
+        "frequency": 0.08,
+        "topClasses": [
+         {
+          "hand": "65s",
+          "frequency": 0.3215
+         },
+         {
+          "hand": "88",
+          "frequency": 0.2844
+         },
+         {
+          "hand": "55",
+          "frequency": 0.2495
+         },
+         {
+          "hand": "22",
+          "frequency": 0.1766
+         },
+         {
+          "hand": "54s",
+          "frequency": 0.1703
+         },
+         {
+          "hand": "AQs",
+          "frequency": 0.1673
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     },
+     {
+      "title": "CO facing BTN raise to 9bb",
+      "player": "oop",
+      "position": "CO",
+      "isHero": true,
+      "actions": [
+       {
+        "action": "Fold",
+        "label": "Fold",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.404,
+        "topClasses": [
+         {
+          "hand": "AJo",
+          "frequency": 1
+         },
+         {
+          "hand": "KJo",
+          "frequency": 1
+         },
+         {
+          "hand": "K6s",
+          "frequency": 1
+         },
+         {
+          "hand": "K7s",
+          "frequency": 1
+         },
+         {
+          "hand": "KTs",
+          "frequency": 1
+         },
+         {
+          "hand": "K9s",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Call",
+        "label": "Call 6.5bb",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.401,
+        "topClasses": [
+         {
+          "hand": "AA",
+          "frequency": 1
+         },
+         {
+          "hand": "76s",
+          "frequency": 1
+         },
+         {
+          "hand": "Q6s",
+          "frequency": 1
+         },
+         {
+          "hand": "Q7s",
+          "frequency": 0.9999
+         },
+         {
+          "hand": "Q5s",
+          "frequency": 1
+         },
+         {
+          "hand": "99",
+          "frequency": 0.9911
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Raise",
+        "label": "Raise 27bb",
+        "amountBb": 27,
+        "potPct": null,
+        "frequency": 0.195,
+        "topClasses": [
+         {
+          "hand": "88",
+          "frequency": 0.7092
+         },
+         {
+          "hand": "A8o",
+          "frequency": 0.6275
+         },
+         {
+          "hand": "J8s",
+          "frequency": 0.6249
+         },
+         {
+          "hand": "QQ",
+          "frequency": 0.6126
+         },
+         {
+          "hand": "K8s",
+          "frequency": 0.537
+         },
+         {
+          "hand": "T8s",
+          "frequency": 0.509
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "AllIn",
+        "label": "All-in 97bb",
+        "amountBb": 97,
+        "potPct": null,
+        "frequency": 0,
+        "topClasses": [],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     }
+    ],
+    "heroHand": {
+     "hand": "QdQc",
+     "nodeTitle": "CO facing BTN raise to 9bb",
+     "situation": "when BTN raise",
+     "decision": "facing BTN raise to 9bb",
+     "streetAction": "you bet 2.5bb, BTN raised to 9bb",
+     "equity": 0.946,
+     "evBb": 48.54,
+     "actions": [
+      {
+       "action": "Fold",
+       "label": "Fold",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 0,
+       "best": false
+      },
+      {
+       "action": "Call",
+       "label": "Call 6.5bb",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0.3505,
+       "topClasses": [],
+       "evBb": 48.87,
+       "best": true
+      },
+      {
+       "action": "Raise",
+       "label": "Raise 27bb",
+       "amountBb": 27,
+       "potPct": null,
+       "frequency": 0.6495,
+       "topClasses": [],
+       "evBb": 48.36,
+       "best": false
+      },
+      {
+       "action": "AllIn",
+       "label": "All-in 97bb",
+       "amountBb": 97,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 44.48,
+       "best": false
+      }
+     ],
+     "verdict": {
+      "kind": "slight",
+      "text": "SLIGHT EDGE: CALL 6.5bb (+0.51bb OVER RAISE 27bb)",
+      "gapBb": 0.51,
+      "gapPot": 0.026842105263157896
+     }
+    },
+    "narrowing": null,
+    "streetLine": {
+     "matched": true,
+     "villainRange": {
+      "position": "BTN",
+      "combosBefore": 37.3,
+      "combosAfter": 2.95,
+      "classes": [
+       {
+        "hand": "88",
+        "combos": 0.495,
+        "weight": 0.165
+       },
+       {
+        "hand": "ATs",
+        "combos": 0.297,
+        "weight": 0.0743
+       },
+       {
+        "hand": "KTs",
+        "combos": 0.263,
+        "weight": 0.0658
+       },
+       {
+        "hand": "JTs",
+        "combos": 0.228,
+        "weight": 0.057
+       },
+       {
+        "hand": "77",
+        "combos": 0.206,
+        "weight": 0.0344
+       },
+       {
+        "hand": "99",
+        "combos": 0.177,
+        "weight": 0.0295
+       },
+       {
+        "hand": "QTs",
+        "combos": 0.149,
+        "weight": 0.0495
+       },
+       {
+        "hand": "55",
+        "combos": 0.142,
+        "weight": 0.0474
+       },
+       {
+        "hand": "A9s",
+        "combos": 0.129,
+        "weight": 0.0323
+       },
+       {
+        "hand": "65s",
+        "combos": 0.116,
+        "weight": 0.0388
+       },
+       {
+        "hand": "QJs",
+        "combos": 0.1,
+        "weight": 0.0335
+       },
+       {
+        "hand": "54s",
+        "combos": 0.076,
+        "weight": 0.0254
+       },
+       {
+        "hand": "KQs",
+        "combos": 0.072,
+        "weight": 0.0241
+       },
+       {
+        "hand": "KJs",
+        "combos": 0.065,
+        "weight": 0.0162
+       },
+       {
+        "hand": "A4s",
+        "combos": 0.063,
+        "weight": 0.0158
+       },
+       {
+        "hand": "66",
+        "combos": 0.054,
+        "weight": 0.0089
+       },
+       {
+        "hand": "AJs",
+        "combos": 0.045,
+        "weight": 0.0112
+       },
+       {
+        "hand": "33",
+        "combos": 0.043,
+        "weight": 0.0071
+       },
+       {
+        "hand": "A8s",
+        "combos": 0.035,
+        "weight": 0.0118
+       },
+       {
+        "hand": "TT",
+        "combos": 0.035,
+        "weight": 0.0058
+       },
+       {
+        "hand": "22",
+        "combos": 0.032,
+        "weight": 0.0053
+       },
+       {
+        "hand": "44",
+        "combos": 0.03,
+        "weight": 0.005
+       },
+       {
+        "hand": "K9s",
+        "combos": 0.03,
+        "weight": 0.0075
+       },
+       {
+        "hand": "AQs",
+        "combos": 0.025,
+        "weight": 0.0084
+       },
+       {
+        "hand": "AQo",
+        "combos": 0.024,
+        "weight": 0.0027
+       },
+       {
+        "hand": "KJo",
+        "combos": 0.013,
+        "weight": 0.0011
+       },
+       {
+        "hand": "AJo",
+        "combos": 0.01,
+        "weight": 0.0009
+       }
+      ]
+     }
+    },
+    "villainHand": null,
+    "stats": {
+     "exploitabilityPct": 0.4273,
+     "targetExploitabilityPct": 0.5,
+     "iterations": 100,
+     "solveMs": 20059,
+     "memoryMb": 912.4,
+     "compressed": false
+    }
+   }
+  },
+  {
+   "id": "extraction-slang-bb-vs-co",
+   "pass": true,
+   "seconds": 8.41,
+   "outcomes": [
+    {
+     "label": "status ok",
+     "pass": true,
+     "detail": "ok"
+    },
+    {
+     "label": "spot.street=flop",
+     "pass": true,
+     "detail": "flop"
+    },
+    {
+     "label": "spot.potType=srp",
+     "pass": true,
+     "detail": "srp"
+    },
+    {
+     "label": "spot.heroPosition=BB",
+     "pass": true,
+     "detail": "BB"
+    },
+    {
+     "label": "spot.villainPosition=CO",
+     "pass": true,
+     "detail": "CO"
+    },
+    {
+     "label": "board ranks",
+     "pass": true,
+     "detail": "AK4"
+    },
+    {
+     "label": "spot.heroHand=5h5c",
+     "pass": true,
+     "detail": "5h5c"
+    },
+    {
+     "label": "spot.potBb=5.5",
+     "pass": true,
+     "detail": "5.5"
+    },
+    {
+     "label": "street walked",
+     "pass": true,
+     "detail": "true"
+    },
+    {
+     "label": "ip range aggro >=50%",
+     "pass": true,
+     "detail": "75%"
+    },
+    {
+     "label": "not CLEAR Raise/AllIn",
+     "pass": true,
+     "detail": "CLOSE: EITHER FOLD OR CALL 1.82bb IS FINE (0.02bb APART)"
+    },
+    {
+     "label": "time <=60s",
+     "pass": true,
+     "detail": "8.4s"
+    }
+   ],
+   "summary": {
+    "spot": "flop srp BB(oop) v CO AcKd4h 5h5c pot 5.5 stack 97.5",
+    "hero": "Fold 100% ev 0 | Call 1.82bb 0% ev -0.02 | Raise 5.46bb 0% ev -0.46 | All-in 97.5bb 0% ev -4.28",
+    "heroEquity": 0.2651,
+    "verdict": "CLOSE: EITHER FOLD OR CALL 1.82bb IS FINE (0.02bb APART)",
+    "oopNode": "BB facing CO bet 1.82bb: Fold 42%, Call 1.82bb 45%, Raise 5.46bb 13%, All-in 97.5bb 0%",
+    "ipNode": "CO after you checked: Check 25%, Bet 1.82bb 75%",
+    "narrowing": null,
+    "solveMs": 5960,
+    "exploitabilityPct": 0.3622,
+    "assumptions": [
+     "Assumed a 5.5bb pot: CO opens 2.5bb, BB calls, SB folds",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Assumed 97.5bb effective stack at the start of the flop",
+     "Assumed standard 100bb ranges: CO open vs BB call",
+     "Flop tree: CO (preflop raiser) bets 33%, BB can check-raise 3x and doesn't lead; turn and river: 75% bets, no raises or leads into the last bettor",
+     "Strategy shown at your decision after the flop action (you checked, villain bet 1.82bb)"
+    ]
+   },
+   "response": {
+    "status": "ok",
+    "spot": {
+     "board": "AcKd4h",
+     "street": "flop",
+     "potType": "srp",
+     "heroPosition": "BB",
+     "villainPosition": "CO",
+     "oopPosition": "BB",
+     "ipPosition": "CO",
+     "heroPlayer": "oop",
+     "heroHand": "5h5c",
+     "potBb": 5.5,
+     "effectiveStackBb": 97.5,
+     "oopRange": "AQs:0.47,AJs,ATs,A9s,A8s,A7s,A6s:0.62,A5s:0.94,A4s:0.72,A3s:0.8,A2s:0.1,KQs:0.97,KJs:0.87,KTs:0.97,K9s,K8s,K7s:0.95,K6s:0.51,K5s:0.95,K4s:0.72,K3s:0.22,K2s:0.46,QJs:0.65,QTs,Q9s:0.53,Q8s:0.64,Q7s:0.6,Q6s:0.33,Q5s:0.01,Q4s:0.2,JTs:0.93,J9s:0.86,J8s:0.7,J7s:0.1,TT:0.75,T9s:0.92,T8s,T7s:0.66,99:0.98,98s:0.99,97s,96s:0.99,88:0.99,87s:0.89,86s,85s:0.21,77:0.94,76s:0.93,75s,66:0.8,65s:0.9,64s:0.93,55:0.76,54s:0.93,53s,44:0.96,43s:0.88,33:0.99,22,AQo:0.87,AJo:0.8,ATo:0.88,A9o:0.88,KQo:0.53,KJo:0.54,KTo:0.86,QJo:0.57,QTo:0.57,JTo:0.59",
+     "ipRange": "AA,AKs,AQs,AJs,ATs,A9s,A8s,A7s,A6s,A5s,A4s,A3s,A2s,KK,KQs,KJs,KTs,K9s,K8s,K7s,K6s,K5s,K4s,K3s,K2s:0.23,QQ,QJs,QTs,Q9s,Q8s,Q7s:0.06,Q6s:0.74,Q5s:0.01,JJ,JTs,J9s,J8s,J7s:0.51,TT,T9s,T8s,99,98s,88,87s:0.02,77,76s:0.19,66,65s:0.33,55,54s:0.35,44:0.83,33:0.1,AKo,AQo,AJo,ATo,A9o,A8o,A7o:0.76,A5o,A4o:0.08,KQo,KJo,KTo,K9o:0.48,QJo,QTo,JTo",
+     "betSizes": {
+      "flop": {
+       "bet": "33%, 75%",
+       "raise": "",
+       "oop": {
+        "bet": "",
+        "raise": "3x"
+       }
+      },
+      "turn": {
+       "bet": "75%",
+       "raise": "",
+       "donk": ""
+      },
+      "river": {
+       "bet": "75%",
+       "raise": "",
+       "donk": ""
+      }
+     }
+    },
+    "assumptions": [
+     "Assumed a 5.5bb pot: CO opens 2.5bb, BB calls, SB folds",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Assumed 97.5bb effective stack at the start of the flop",
+     "Assumed standard 100bb ranges: CO open vs BB call",
+     "Flop tree: CO (preflop raiser) bets 33%, BB can check-raise 3x and doesn't lead; turn and river: 75% bets, no raises or leads into the last bettor",
+     "Strategy shown at your decision after the flop action (you checked, villain bet 1.82bb)"
+    ],
+    "notes": "Board suits were not specified beyond rainbow; assigned different suits in order.",
+    "players": {
+     "oop": {
+      "position": "BB",
+      "equity": 0.3958,
+      "evBb": 1.51
+     },
+     "ip": {
+      "position": "CO",
+      "equity": 0.6042,
+      "evBb": 5.81
+     }
+    },
+    "nodes": [
+     {
+      "title": "CO after you checked",
+      "player": "ip",
+      "position": "CO",
+      "isHero": false,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.2454,
+        "topClasses": [
+         {
+          "hand": "76s",
+          "frequency": 0.7715
+         },
+         {
+          "hand": "QQ",
+          "frequency": 0.746
+         },
+         {
+          "hand": "87s",
+          "frequency": 0.601
+         },
+         {
+          "hand": "65s",
+          "frequency": 0.5726
+         },
+         {
+          "hand": "99",
+          "frequency": 0.5565
+         },
+         {
+          "hand": "J7s",
+          "frequency": 0.5313
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 1.82bb",
+        "amountBb": 1.82,
+        "potPct": 33,
+        "frequency": 0.7546,
+        "topClasses": [
+         {
+          "hand": "AQo",
+          "frequency": 1
+         },
+         {
+          "hand": "AKo",
+          "frequency": 1
+         },
+         {
+          "hand": "KK",
+          "frequency": 1
+         },
+         {
+          "hand": "A9s",
+          "frequency": 0.9996
+         },
+         {
+          "hand": "AQs",
+          "frequency": 1
+         },
+         {
+          "hand": "AA",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     },
+     {
+      "title": "BB facing CO bet 1.82bb",
+      "player": "oop",
+      "position": "BB",
+      "isHero": true,
+      "actions": [
+       {
+        "action": "Fold",
+        "label": "Fold",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.4202,
+        "topClasses": [
+         {
+          "hand": "22",
+          "frequency": 1
+         },
+         {
+          "hand": "33",
+          "frequency": 1
+         },
+         {
+          "hand": "66",
+          "frequency": 1
+         },
+         {
+          "hand": "55",
+          "frequency": 0.9956
+         },
+         {
+          "hand": "75s",
+          "frequency": 1
+         },
+         {
+          "hand": "86s",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Call",
+        "label": "Call 1.82bb",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.4542,
+        "topClasses": [
+         {
+          "hand": "KTo",
+          "frequency": 0.9969
+         },
+         {
+          "hand": "JTo",
+          "frequency": 0.9955
+         },
+         {
+          "hand": "KJo",
+          "frequency": 0.9999
+         },
+         {
+          "hand": "KQo",
+          "frequency": 0.9999
+         },
+         {
+          "hand": "K8s",
+          "frequency": 0.9997
+         },
+         {
+          "hand": "K7s",
+          "frequency": 0.9997
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Raise",
+        "label": "Raise 5.46bb",
+        "amountBb": 5.46,
+        "potPct": null,
+        "frequency": 0.1256,
+        "topClasses": [
+         {
+          "hand": "44",
+          "frequency": 1
+         },
+         {
+          "hand": "K4s",
+          "frequency": 1
+         },
+         {
+          "hand": "A4s",
+          "frequency": 1
+         },
+         {
+          "hand": "AQs",
+          "frequency": 0.8084
+         },
+         {
+          "hand": "53s",
+          "frequency": 0.7424
+         },
+         {
+          "hand": "43s",
+          "frequency": 0.6669
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "AllIn",
+        "label": "All-in 97.5bb",
+        "amountBb": 97.5,
+        "potPct": null,
+        "frequency": 0,
+        "topClasses": [],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     }
+    ],
+    "heroHand": {
+     "hand": "5h5c",
+     "nodeTitle": "BB facing CO bet 1.82bb",
+     "situation": "when CO bet",
+     "decision": "facing CO bet 1.82bb",
+     "streetAction": "you checked, CO bet 1.82bb",
+     "equity": 0.2651,
+     "evBb": 0,
+     "actions": [
+      {
+       "action": "Fold",
+       "label": "Fold",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0.998,
+       "topClasses": [],
+       "evBb": 0,
+       "best": true
+      },
+      {
+       "action": "Call",
+       "label": "Call 1.82bb",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0.002,
+       "topClasses": [],
+       "evBb": -0.02,
+       "best": false
+      },
+      {
+       "action": "Raise",
+       "label": "Raise 5.46bb",
+       "amountBb": 5.46,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": -0.46,
+       "best": false
+      },
+      {
+       "action": "AllIn",
+       "label": "All-in 97.5bb",
+       "amountBb": 97.5,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": -4.28,
+       "best": false
+      }
+     ],
+     "verdict": {
+      "kind": "close",
+      "text": "CLOSE: EITHER FOLD OR CALL 1.82bb IS FINE (0.02bb APART)",
+      "gapBb": 0.02,
+      "gapPot": 0.00273224043715847
+     }
+    },
+    "narrowing": null,
+    "streetLine": {
+     "matched": true,
+     "villainRange": {
+      "position": "CO",
+      "combosBefore": 305,
+      "combosAfter": 230.27,
+      "classes": [
+       {
+        "hand": "QJo",
+        "combos": 11.302,
+        "weight": 0.9418
+       },
+       {
+        "hand": "QTo",
+        "combos": 11.096,
+        "weight": 0.9247
+       },
+       {
+        "hand": "JTo",
+        "combos": 10.71,
+        "weight": 0.8925
+       },
+       {
+        "hand": "AQo",
+        "combos": 9,
+        "weight": 1
+       },
+       {
+        "hand": "A9o",
+        "combos": 7.994,
+        "weight": 0.8882
+       },
+       {
+        "hand": "A5o",
+        "combos": 7.059,
+        "weight": 0.7843
+       },
+       {
+        "hand": "AKo",
+        "combos": 7,
+        "weight": 1
+       },
+       {
+        "hand": "KTo",
+        "combos": 5.857,
+        "weight": 0.6508
+       },
+       {
+        "hand": "A8o",
+        "combos": 5.649,
+        "weight": 0.6277
+       },
+       {
+        "hand": "KQo",
+        "combos": 5.558,
+        "weight": 0.6176
+       },
+       {
+        "hand": "KJo",
+        "combos": 5.519,
+        "weight": 0.6132
+       },
+       {
+        "hand": "AJo",
+        "combos": 5.273,
+        "weight": 0.5859
+       },
+       {
+        "hand": "66",
+        "combos": 5.233,
+        "weight": 0.8722
+       },
+       {
+        "hand": "A7o",
+        "combos": 4.959,
+        "weight": 0.551
+       },
+       {
+        "hand": "ATo",
+        "combos": 4.669,
+        "weight": 0.5188
+       },
+       {
+        "hand": "55",
+        "combos": 4.654,
+        "weight": 0.7757
+       },
+       {
+        "hand": "77",
+        "combos": 4.271,
+        "weight": 0.7118
+       },
+       {
+        "hand": "88",
+        "combos": 3.902,
+        "weight": 0.6503
+       },
+       {
+        "hand": "JTs",
+        "combos": 3.867,
+        "weight": 0.9668
+       },
+       {
+        "hand": "QJs",
+        "combos": 3.84,
+        "weight": 0.96
+       },
+       {
+        "hand": "QTs",
+        "combos": 3.777,
+        "weight": 0.9443
+       },
+       {
+        "hand": "TT",
+        "combos": 3.482,
+        "weight": 0.5803
+       },
+       {
+        "hand": "Q9s",
+        "combos": 3.156,
+        "weight": 0.789
+       },
+       {
+        "hand": "J9s",
+        "combos": 3.023,
+        "weight": 0.7558
+       },
+       {
+        "hand": "AA",
+        "combos": 3,
+        "weight": 1
+       },
+       {
+        "hand": "AQs",
+        "combos": 3,
+        "weight": 1
+       },
+       {
+        "hand": "KK",
+        "combos": 3,
+        "weight": 1
+       },
+       {
+        "hand": "A9s",
+        "combos": 2.999,
+        "weight": 0.9997
+       },
+       {
+        "hand": "K8s",
+        "combos": 2.922,
+        "weight": 0.974
+       },
+       {
+        "hand": "A8s",
+        "combos": 2.889,
+        "weight": 0.963
+       },
+       {
+        "hand": "K9s",
+        "combos": 2.882,
+        "weight": 0.9607
+       },
+       {
+        "hand": "A7s",
+        "combos": 2.859,
+        "weight": 0.953
+       },
+       {
+        "hand": "JJ",
+        "combos": 2.855,
+        "weight": 0.4758
+       },
+       {
+        "hand": "A6s",
+        "combos": 2.822,
+        "weight": 0.9407
+       },
+       {
+        "hand": "T9s",
+        "combos": 2.744,
+        "weight": 0.686
+       },
+       {
+        "hand": "A5s",
+        "combos": 2.711,
+        "weight": 0.9037
+       },
+       {
+        "hand": "99",
+        "combos": 2.66,
+        "weight": 0.4433
+       },
+       {
+        "hand": "K9o",
+        "combos": 2.589,
+        "weight": 0.2877
+       },
+       {
+        "hand": "K7s",
+        "combos": 2.564,
+        "weight": 0.8547
+       },
+       {
+        "hand": "K6s",
+        "combos": 2.554,
+        "weight": 0.8513
+       },
+       {
+        "hand": "J8s",
+        "combos": 2.51,
+        "weight": 0.6275
+       },
+       {
+        "hand": "44",
+        "combos": 2.49,
+        "weight": 0.83
+       },
+       {
+        "hand": "Q8s",
+        "combos": 2.49,
+        "weight": 0.6225
+       },
+       {
+        "hand": "A3s",
+        "combos": 2.469,
+        "weight": 0.823
+       },
+       {
+        "hand": "98s",
+        "combos": 2.379,
+        "weight": 0.5948
+       },
+       {
+        "hand": "AJs",
+        "combos": 2.349,
+        "weight": 0.783
+       },
+       {
+        "hand": "T8s",
+        "combos": 2.294,
+        "weight": 0.5735
+       },
+       {
+        "hand": "K3s",
+        "combos": 2.211,
+        "weight": 0.737
+       },
+       {
+        "hand": "A2s",
+        "combos": 2.173,
+        "weight": 0.7243
+       },
+       {
+        "hand": "ATs",
+        "combos": 2.087,
+        "weight": 0.6957
+       },
+       {
+        "hand": "KTs",
+        "combos": 2.084,
+        "weight": 0.6947
+       },
+       {
+        "hand": "A4s",
+        "combos": 2,
+        "weight": 1
+       },
+       {
+        "hand": "AKs",
+        "combos": 2,
+        "weight": 1
+       },
+       {
+        "hand": "K4s",
+        "combos": 2,
+        "weight": 1
+       },
+       {
+        "hand": "KJs",
+        "combos": 1.841,
+        "weight": 0.6137
+       },
+       {
+        "hand": "K5s",
+        "combos": 1.777,
+        "weight": 0.5923
+       },
+       {
+        "hand": "KQs",
+        "combos": 1.777,
+        "weight": 0.5923
+       },
+       {
+        "hand": "Q6s",
+        "combos": 1.533,
+        "weight": 0.3833
+       },
+       {
+        "hand": "QQ",
+        "combos": 1.524,
+        "weight": 0.254
+       },
+       {
+        "hand": "54s",
+        "combos": 1.05,
+        "weight": 0.35
+       },
+       {
+        "hand": "J7s",
+        "combos": 0.957,
+        "weight": 0.2393
+       },
+       {
+        "hand": "65s",
+        "combos": 0.565,
+        "weight": 0.1412
+       },
+       {
+        "hand": "A4o",
+        "combos": 0.56,
+        "weight": 0.08
+       },
+       {
+        "hand": "33",
+        "combos": 0.465,
+        "weight": 0.0775
+       },
+       {
+        "hand": "K2s",
+        "combos": 0.461,
+        "weight": 0.1537
+       },
+       {
+        "hand": "76s",
+        "combos": 0.173,
+        "weight": 0.0432
+       },
+       {
+        "hand": "Q7s",
+        "combos": 0.111,
+        "weight": 0.0277
+       },
+       {
+        "hand": "87s",
+        "combos": 0.028,
+        "weight": 0.007
+       },
+       {
+        "hand": "Q5s",
+        "combos": 0.015,
+        "weight": 0.0037
+       }
+      ]
+     }
+    },
+    "villainHand": null,
+    "stats": {
+     "exploitabilityPct": 0.3622,
+     "targetExploitabilityPct": 0.5,
+     "iterations": 60,
+     "solveMs": 5960,
+     "memoryMb": 446.9,
+     "compressed": false
+    }
+   }
+  },
+  {
+   "id": "turn-btn-set-barrel",
+   "pass": true,
+   "seconds": 11.095,
+   "outcomes": [
+    {
+     "label": "status ok",
+     "pass": true,
+     "detail": "ok"
+    },
+    {
+     "label": "spot.street=turn",
+     "pass": true,
+     "detail": "turn"
+    },
+    {
+     "label": "spot.potType=srp",
+     "pass": true,
+     "detail": "srp"
+    },
+    {
+     "label": "spot.heroPosition=BTN",
+     "pass": true,
+     "detail": "BTN"
+    },
+    {
+     "label": "spot.villainPosition=BB",
+     "pass": true,
+     "detail": "BB"
+    },
+    {
+     "label": "spot.board=Ks7d2c5h",
+     "pass": true,
+     "detail": "Ks7d2c5h"
+    },
+    {
+     "label": "spot.heroHand=7c7h",
+     "pass": true,
+     "detail": "7h7c"
+    },
+    {
+     "label": "narrowed",
+     "pass": true,
+     "detail": "228/180 combos"
+    },
+    {
+     "label": "hero aggro >=50%",
+     "pass": true,
+     "detail": "100%"
+    },
+    {
+     "label": "time <=60s",
+     "pass": true,
+     "detail": "11.1s"
+    }
+   ],
+   "summary": {
+    "spot": "turn srp BTN(ip) v BB Ks7d2c5h 7h7c pot 9.1 stack 95.7",
+    "hero": "Check 0% ev 20.05 | Bet 3bb 0% ev 22.19 | Bet 6.83bb 100% ev 22.41",
+    "heroEquity": 0.9956,
+    "verdict": "SLIGHT EDGE: BET 6.83bb (+0.22bb OVER BET 3bb)",
+    "oopNode": "BB acts first: Check 55%, Bet 3bb 32%, Bet 6.83bb 13%",
+    "ipNode": "BTN after BB checks: Check 57%, Bet 3bb 32%, Bet 6.83bb 11%",
+    "narrowing": {
+     "oop": {
+      "combos": 228,
+      "lineProbability": 0.76352,
+      "blended": false
+     },
+     "ip": {
+      "combos": 180,
+      "lineProbability": 0.36591,
+      "blended": false
+     }
+    },
+    "solveMs": 8862,
+    "exploitabilityPct": 0.474,
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 9.1bb pot at the start of the turn from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 95.7bb effective stack at the start of the turn (100bb minus 4.3bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the turn and river: 33%, 75%, plus all-in on the river; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain checked, you bet 1.8bb, villain called on the flop). Flop model: you bet 33%/75%, villain doesn't lead, no raises; your 1.8bb bet added for you. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Strategy shown at your decision after the turn action (villain checked)"
+    ]
+   },
+   "response": {
+    "status": "ok",
+    "spot": {
+     "board": "Ks7d2c5h",
+     "street": "turn",
+     "potType": "srp",
+     "heroPosition": "BTN",
+     "villainPosition": "BB",
+     "oopPosition": "BB",
+     "ipPosition": "BTN",
+     "heroPlayer": "ip",
+     "heroHand": "7h7c",
+     "potBb": 9.1,
+     "effectiveStackBb": 95.7,
+     "oopRange": "AJs:0.38,ATs,A9s,A8s,A7s,A6s,A5s:0.37,A4s,A3s,A2s,KJs,KTs,K9s,K8s,K7s,K6s:0.89,K5s,K4s:0.95,K3s:0.33,K2s:0.38,QJs:0.89,QTs:0.67,Q9s:0.87,Q8s:0.67,Q7s:0.81,Q6s:0.63,Q5s:0.8,Q4s:0.92,Q3s:0.39,Q2s:0.59,JTs:0.75,J9s:0.66,J8s:0.79,J7s:0.39,J6s:0.54,J5s:0.84,J4s:0.21,T9s:0.46,T8s:0.86,T7s:0.56,T6s:0.35,99:0.54,98s:0.88,97s,96s:0.95,88:0.86,87s:0.75,86s,85s,77:0.98,76s:0.77,75s,74s:0.91,66:0.89,65s:0.67,64s,55:0.84,54s:0.66,53s,44,43s,33,22,AQo:0.18,AJo:0.91,ATo:0.71,A9o:0.9,A8o:0.88,A7o:0.6,A5o:0.5,A4o:0.17,KQo:0.71,KJo:0.46,KTo:0.52,K9o:0.68,QJo:0.59,QTo:0.72,Q9o:0.35,JTo:0.63,J9o:0.38,T9o:0.71",
+     "ipRange": "AA,AKs,AQs,AJs,ATs,A9s,A8s,A7s,A6s,A5s,A4s,A3s,A2s,KK,KQs,KJs,KTs,K9s,K8s,K7s,K6s,K5s,K4s,K3s,K2s,QQ,QJs,QTs,Q9s,Q8s,Q7s,Q6s,Q5s,Q4s,Q3s,JJ,JTs,J9s,J8s,J7s,J6s,J5s,J4s:0.57,TT,T9s,T8s,T7s,T6s,99,98s,97s,96s:0.58,88,87s,86s,77,76s,75s:0.85,66,65s,55,54s:0.63,44,33,22:0.56,AKo,AQo,AJo,ATo,A9o,A8o,A7o,A6o,A5o,A4o,A3o,A2o:0.19,KQo,KJo,KTo,K9o,K8o:0.97,K7o:0.47,QJo,QTo,Q9o,JTo,J9o,J8o:0.03,T9o,T8o:0.64",
+     "betSizes": {
+      "flop": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "turn": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "river": {
+       "bet": "33%, 75%, a",
+       "raise": "3x"
+      }
+     }
+    },
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 9.1bb pot at the start of the turn from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 95.7bb effective stack at the start of the turn (100bb minus 4.3bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the turn and river: 33%, 75%, plus all-in on the river; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain checked, you bet 1.8bb, villain called on the flop). Flop model: you bet 33%/75%, villain doesn't lead, no raises; your 1.8bb bet added for you. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Strategy shown at your decision after the turn action (villain checked)"
+    ],
+    "notes": null,
+    "players": {
+     "oop": {
+      "position": "BB",
+      "equity": 0.5279,
+      "evBb": 4.25
+     },
+     "ip": {
+      "position": "BTN",
+      "equity": 0.4721,
+      "evBb": 4.85
+     }
+    },
+    "nodes": [
+     {
+      "title": "BB acts first",
+      "player": "oop",
+      "position": "BB",
+      "isHero": false,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.5481,
+        "topClasses": [
+         {
+          "hand": "ATs",
+          "frequency": 0.9952
+         },
+         {
+          "hand": "A9o",
+          "frequency": 0.9871
+         },
+         {
+          "hand": "ATo",
+          "frequency": 0.9929
+         },
+         {
+          "hand": "K3s",
+          "frequency": 0.9924
+         },
+         {
+          "hand": "A9s",
+          "frequency": 0.9833
+         },
+         {
+          "hand": "AJs",
+          "frequency": 0.9587
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 3bb",
+        "amountBb": 3,
+        "potPct": 33,
+        "frequency": 0.3246,
+        "topClasses": [
+         {
+          "hand": "A2s",
+          "frequency": 0.741
+         },
+         {
+          "hand": "76s",
+          "frequency": 0.6805
+         },
+         {
+          "hand": "A7o",
+          "frequency": 0.625
+         },
+         {
+          "hand": "K2s",
+          "frequency": 0.6228
+         },
+         {
+          "hand": "88",
+          "frequency": 0.6065
+         },
+         {
+          "hand": "K8s",
+          "frequency": 0.6025
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 6.83bb",
+        "amountBb": 6.83,
+        "potPct": 75,
+        "frequency": 0.1273,
+        "topClasses": [
+         {
+          "hand": "96s",
+          "frequency": 0.7408
+         },
+         {
+          "hand": "22",
+          "frequency": 0.6493
+         },
+         {
+          "hand": "98s",
+          "frequency": 0.6279
+         },
+         {
+          "hand": "A3s",
+          "frequency": 0.5195
+         },
+         {
+          "hand": "64s",
+          "frequency": 0.4851
+         },
+         {
+          "hand": "86s",
+          "frequency": 0.4805
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     },
+     {
+      "title": "BTN after BB checks",
+      "player": "ip",
+      "position": "BTN",
+      "isHero": true,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.5684,
+        "topClasses": [
+         {
+          "hand": "ATo",
+          "frequency": 1
+         },
+         {
+          "hand": "A9o",
+          "frequency": 1
+         },
+         {
+          "hand": "A8o",
+          "frequency": 1
+         },
+         {
+          "hand": "AJo",
+          "frequency": 0.9989
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.9974
+         },
+         {
+          "hand": "ATs",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 3bb",
+        "amountBb": 3,
+        "potPct": 33,
+        "frequency": 0.3202,
+        "topClasses": [
+         {
+          "hand": "K5s",
+          "frequency": 0.8896
+         },
+         {
+          "hand": "Q3s",
+          "frequency": 0.7388
+         },
+         {
+          "hand": "A5s",
+          "frequency": 0.7415
+         },
+         {
+          "hand": "A5o",
+          "frequency": 0.7319
+         },
+         {
+          "hand": "KTo",
+          "frequency": 0.6911
+         },
+         {
+          "hand": "KTs",
+          "frequency": 0.6869
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 6.83bb",
+        "amountBb": 6.83,
+        "potPct": 75,
+        "frequency": 0.1115,
+        "topClasses": [
+         {
+          "hand": "77",
+          "frequency": 0.9987
+         },
+         {
+          "hand": "KK",
+          "frequency": 0.8862
+         },
+         {
+          "hand": "86s",
+          "frequency": 0.746
+         },
+         {
+          "hand": "K7o",
+          "frequency": 0.6823
+         },
+         {
+          "hand": "KQo",
+          "frequency": 0.5716
+         },
+         {
+          "hand": "KQs",
+          "frequency": 0.5511
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     }
+    ],
+    "heroHand": {
+     "hand": "7h7c",
+     "nodeTitle": "BTN after BB checks",
+     "situation": "when BB checks",
+     "decision": "after BB checks",
+     "streetAction": "BB checked",
+     "equity": 0.9956,
+     "evBb": 22.4,
+     "actions": [
+      {
+       "action": "Check",
+       "label": "Check",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 20.05,
+       "best": false
+      },
+      {
+       "action": "Bet",
+       "label": "Bet 3bb",
+       "amountBb": 3,
+       "potPct": 33,
+       "frequency": 0.0015,
+       "topClasses": [],
+       "evBb": 22.19,
+       "best": false
+      },
+      {
+       "action": "Bet",
+       "label": "Bet 6.83bb",
+       "amountBb": 6.83,
+       "potPct": 75,
+       "frequency": 0.9985,
+       "topClasses": [],
+       "evBb": 22.41,
+       "best": true
+      }
+     ],
+     "verdict": {
+      "kind": "slight",
+      "text": "SLIGHT EDGE: BET 6.83bb (+0.22bb OVER BET 3bb)",
+      "gapBb": 0.22,
+      "gapPot": 0.024175824175824177
+     }
+    },
+    "narrowing": {
+     "players": {
+      "oop": {
+       "position": "BB",
+       "combosBefore": 299.1,
+       "combosAfter": 228.35,
+       "classes": [
+        {
+         "hand": "AJo",
+         "combos": 10.92,
+         "weight": 0.91
+        },
+        {
+         "hand": "A9o",
+         "combos": 10.8,
+         "weight": 0.9
+        },
+        {
+         "hand": "A8o",
+         "combos": 10.514,
+         "weight": 0.8762
+        },
+        {
+         "hand": "ATo",
+         "combos": 8.52,
+         "weight": 0.71
+        },
+        {
+         "hand": "QJo",
+         "combos": 7.08,
+         "weight": 0.59
+        },
+        {
+         "hand": "KQo",
+         "combos": 6.39,
+         "weight": 0.71
+        },
+        {
+         "hand": "K9o",
+         "combos": 6.12,
+         "weight": 0.68
+        },
+        {
+         "hand": "33",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "44",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "A7o",
+         "combos": 5.4,
+         "weight": 0.6
+        },
+        {
+         "hand": "66",
+         "combos": 5.34,
+         "weight": 0.89
+        },
+        {
+         "hand": "88",
+         "combos": 5.16,
+         "weight": 0.86
+        },
+        {
+         "hand": "KTo",
+         "combos": 4.68,
+         "weight": 0.52
+        },
+        {
+         "hand": "QTo",
+         "combos": 4.606,
+         "weight": 0.3838
+        },
+        {
+         "hand": "KJo",
+         "combos": 4.14,
+         "weight": 0.46
+        },
+        {
+         "hand": "A9s",
+         "combos": 4,
+         "weight": 1
+        },
+        {
+         "hand": "ATs",
+         "combos": 4,
+         "weight": 1
+        },
+        {
+         "hand": "A8s",
+         "combos": 3.994,
+         "weight": 0.9985
+        },
+        {
+         "hand": "QJs",
+         "combos": 3.56,
+         "weight": 0.89
+        },
+        {
+         "hand": "99",
+         "combos": 3.24,
+         "weight": 0.54
+        },
+        {
+         "hand": "98s",
+         "combos": 3.123,
+         "weight": 0.7807
+        },
+        {
+         "hand": "JTo",
+         "combos": 3.09,
+         "weight": 0.2575
+        },
+        {
+         "hand": "22",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "86s",
+         "combos": 3,
+         "weight": 0.75
+        },
+        {
+         "hand": "97s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "A2s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "A3s",
+         "combos": 3,
+         "weight": 0.75
+        },
+        {
+         "hand": "A4s",
+         "combos": 3,
+         "weight": 0.75
+        },
+        {
+         "hand": "A6s",
+         "combos": 3,
+         "weight": 0.75
+        },
+        {
+         "hand": "A7s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K8s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K9s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KJs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KTs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "77",
+         "combos": 2.94,
+         "weight": 0.98
+        },
+        {
+         "hand": "K4s",
+         "combos": 2.85,
+         "weight": 0.95
+        },
+        {
+         "hand": "74s",
+         "combos": 2.73,
+         "weight": 0.91
+        },
+        {
+         "hand": "JTs",
+         "combos": 2.71,
+         "weight": 0.6775
+        },
+        {
+         "hand": "K6s",
+         "combos": 2.67,
+         "weight": 0.89
+        },
+        {
+         "hand": "Q9s",
+         "combos": 2.61,
+         "weight": 0.6525
+        },
+        {
+         "hand": "T8s",
+         "combos": 2.58,
+         "weight": 0.645
+        },
+        {
+         "hand": "55",
+         "combos": 2.52,
+         "weight": 0.84
+        },
+        {
+         "hand": "Q7s",
+         "combos": 2.43,
+         "weight": 0.81
+        },
+        {
+         "hand": "QTs",
+         "combos": 2.408,
+         "weight": 0.602
+        },
+        {
+         "hand": "J8s",
+         "combos": 2.318,
+         "weight": 0.5795
+        },
+        {
+         "hand": "76s",
+         "combos": 2.31,
+         "weight": 0.77
+        },
+        {
+         "hand": "87s",
+         "combos": 2.25,
+         "weight": 0.75
+        },
+        {
+         "hand": "96s",
+         "combos": 2.221,
+         "weight": 0.5553
+        },
+        {
+         "hand": "AQo",
+         "combos": 2.16,
+         "weight": 0.18
+        },
+        {
+         "hand": "75s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "K5s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "K7s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "85s",
+         "combos": 1.989,
+         "weight": 0.663
+        },
+        {
+         "hand": "J9s",
+         "combos": 1.98,
+         "weight": 0.495
+        },
+        {
+         "hand": "Q8s",
+         "combos": 1.881,
+         "weight": 0.4702
+        },
+        {
+         "hand": "54s",
+         "combos": 1.859,
+         "weight": 0.6197
+        },
+        {
+         "hand": "65s",
+         "combos": 1.848,
+         "weight": 0.616
+        },
+        {
+         "hand": "Q2s",
+         "combos": 1.77,
+         "weight": 0.59
+        },
+        {
+         "hand": "T7s",
+         "combos": 1.68,
+         "weight": 0.56
+        },
+        {
+         "hand": "T9s",
+         "combos": 1.586,
+         "weight": 0.3965
+        },
+        {
+         "hand": "AJs",
+         "combos": 1.52,
+         "weight": 0.38
+        },
+        {
+         "hand": "J7s",
+         "combos": 1.17,
+         "weight": 0.39
+        },
+        {
+         "hand": "A5s",
+         "combos": 1.11,
+         "weight": 0.37
+        },
+        {
+         "hand": "K3s",
+         "combos": 0.99,
+         "weight": 0.33
+        },
+        {
+         "hand": "T9o",
+         "combos": 0.961,
+         "weight": 0.0801
+        },
+        {
+         "hand": "A5o",
+         "combos": 0.849,
+         "weight": 0.0943
+        },
+        {
+         "hand": "K2s",
+         "combos": 0.76,
+         "weight": 0.38
+        },
+        {
+         "hand": "64s",
+         "combos": 0.016,
+         "weight": 0.004
+        }
+       ],
+       "range": "99:0.54,88:0.86,77:0.98,66:0.89,55:0.84,44-22,AJs:0.38,ATs-A9s,A7s,A5s:0.37,A2s,AQo:0.18,AJo:0.91,ATo:0.71,A9o:0.9,A7o:0.6,KJs-K7s,K6s:0.89,K5s,K4s:0.95,K3s:0.33,K2s:0.38,KQo:0.71,KJo:0.46,KTo:0.52,K9o:0.68,QJs:0.89,Q7s:0.81,Q2s:0.59,QJo:0.59,J7s:0.39,T7s:0.56,97s,87s:0.75,76s:0.77,75s,74s:0.91,As8s,Ah8h:0.994,Ad8d,Ac8c,As8h:0.876,As8d:0.876,As8c:0.877,Ah8s:0.875,Ah8d:0.875,Ah8c:0.876,Ad8s:0.877,Ad8h:0.876,Ad8c:0.877,Ac8s:0.877,Ac8h:0.876,Ac8d:0.876,As6s,Ad6d,Ac6c,As5d:0.118,As5c:0.137,Ah5s:0.032,Ah5d:0.052,Ah5c:0.078,Ad5s:0.093,Ad5c:0.126,Ac5s:0.1,Ac5d:0.113,As4s,Ad4d,Ac4c,As3s,Ad3d,Ac3c,QsTs:0.67,QhTh:0.398,QdTd:0.67,QcTc:0.67,QsTh:0.491,QsTd:0.405,QsTc:0.459,QhTs:0.387,QhTd:0.341,QhTc:0.395,QdTs:0.326,QdTh:0.346,QdTc:0.333,QcTs:0.38,QcTh:0.405,QcTd:0.338,Qs9s:0.87,Qd9d:0.87,Qc9c:0.87,Qs8s:0.669,Qd8d:0.562,Qc8c:0.65,JsTs:0.75,JhTh:0.46,JdTd:0.75,JcTc:0.75,JsTh:0.303,JsTd:0.193,JsTc:0.236,JhTs:0.312,JhTd:0.277,JhTc:0.315,JdTs:0.202,JdTh:0.276,JdTc:0.206,JcTs:0.246,JcTh:0.316,JcTd:0.208,Js9s:0.66,Jd9d:0.66,Jc9c:0.66,Js8s:0.785,Jd8d:0.757,Jc8c:0.776,Ts9s:0.46,Th9h:0.206,Td9d:0.46,Tc9c:0.46,Ts9h:0.231,Ts9c:0.017,Th9s:0.108,Th9d:0.026,Th9c:0.131,Td9h:0.193,Td9c:0.005,Tc9s:0.015,Tc9h:0.235,Ts8s:0.86,Td8d:0.86,Tc8c:0.86,9s8s:0.88,9h8h:0.483,9d8d:0.88,9c8c:0.88,9s6s:0.735,9d6d:0.749,9c6c:0.737,8s6s,8d6d,8c6c,8s5s:0.625,8d5d:0.7,8c5c:0.664,6s5s:0.542,6d5d:0.655,6c5c:0.651,6d4d:0.016,5s4s:0.574,5d4d:0.645,5c4c:0.64",
+       "lineProbability": 0.76352,
+       "blended": false
+      },
+      "ip": {
+       "position": "BTN",
+       "combosBefore": 490.6,
+       "combosAfter": 179.53,
+       "classes": [
+        {
+         "hand": "A9o",
+         "combos": 6.009,
+         "weight": 0.5008
+        },
+        {
+         "hand": "A8o",
+         "combos": 5.999,
+         "weight": 0.4999
+        },
+        {
+         "hand": "ATo",
+         "combos": 5.985,
+         "weight": 0.4987
+        },
+        {
+         "hand": "AJo",
+         "combos": 5.901,
+         "weight": 0.4918
+        },
+        {
+         "hand": "AQo",
+         "combos": 5.745,
+         "weight": 0.4788
+        },
+        {
+         "hand": "QJo",
+         "combos": 5.351,
+         "weight": 0.4459
+        },
+        {
+         "hand": "A6o",
+         "combos": 5.3,
+         "weight": 0.4417
+        },
+        {
+         "hand": "K9o",
+         "combos": 4.493,
+         "weight": 0.4992
+        },
+        {
+         "hand": "K8o",
+         "combos": 4.367,
+         "weight": 0.4852
+        },
+        {
+         "hand": "QTo",
+         "combos": 4.079,
+         "weight": 0.3399
+        },
+        {
+         "hand": "Q9o",
+         "combos": 4.036,
+         "weight": 0.3364
+        },
+        {
+         "hand": "KTo",
+         "combos": 4.013,
+         "weight": 0.4459
+        },
+        {
+         "hand": "A4o",
+         "combos": 3.99,
+         "weight": 0.3325
+        },
+        {
+         "hand": "J9o",
+         "combos": 3.837,
+         "weight": 0.3197
+        },
+        {
+         "hand": "A3o",
+         "combos": 3.793,
+         "weight": 0.3161
+        },
+        {
+         "hand": "T9o",
+         "combos": 3.507,
+         "weight": 0.2922
+        },
+        {
+         "hand": "A7o",
+         "combos": 3.479,
+         "weight": 0.3865
+        },
+        {
+         "hand": "JTo",
+         "combos": 3.375,
+         "weight": 0.2812
+        },
+        {
+         "hand": "A5o",
+         "combos": 3.211,
+         "weight": 0.3567
+        },
+        {
+         "hand": "88",
+         "combos": 2.996,
+         "weight": 0.4993
+        },
+        {
+         "hand": "66",
+         "combos": 2.976,
+         "weight": 0.4961
+        },
+        {
+         "hand": "99",
+         "combos": 2.956,
+         "weight": 0.4927
+        },
+        {
+         "hand": "QQ",
+         "combos": 2.951,
+         "weight": 0.4918
+        },
+        {
+         "hand": "JJ",
+         "combos": 2.94,
+         "weight": 0.49
+        },
+        {
+         "hand": "TT",
+         "combos": 2.936,
+         "weight": 0.4893
+        },
+        {
+         "hand": "T8o",
+         "combos": 2.897,
+         "weight": 0.2414
+        },
+        {
+         "hand": "KJo",
+         "combos": 2.677,
+         "weight": 0.2974
+        },
+        {
+         "hand": "44",
+         "combos": 2.451,
+         "weight": 0.4085
+        },
+        {
+         "hand": "33",
+         "combos": 2.053,
+         "weight": 0.3422
+        },
+        {
+         "hand": "ATs",
+         "combos": 1.973,
+         "weight": 0.4932
+        },
+        {
+         "hand": "A9s",
+         "combos": 1.972,
+         "weight": 0.493
+        },
+        {
+         "hand": "AJs",
+         "combos": 1.95,
+         "weight": 0.4874
+        },
+        {
+         "hand": "A8s",
+         "combos": 1.894,
+         "weight": 0.4735
+        },
+        {
+         "hand": "AQs",
+         "combos": 1.794,
+         "weight": 0.4486
+        },
+        {
+         "hand": "QJs",
+         "combos": 1.576,
+         "weight": 0.3941
+        },
+        {
+         "hand": "K4s",
+         "combos": 1.506,
+         "weight": 0.5019
+        },
+        {
+         "hand": "K3s",
+         "combos": 1.502,
+         "weight": 0.5005
+        },
+        {
+         "hand": "K6s",
+         "combos": 1.5,
+         "weight": 0.5
+        },
+        {
+         "hand": "K8s",
+         "combos": 1.498,
+         "weight": 0.4993
+        },
+        {
+         "hand": "Q8s",
+         "combos": 1.492,
+         "weight": 0.373
+        },
+        {
+         "hand": "K9s",
+         "combos": 1.49,
+         "weight": 0.4968
+        },
+        {
+         "hand": "AKo",
+         "combos": 1.48,
+         "weight": 0.1644
+        },
+        {
+         "hand": "A6s",
+         "combos": 1.417,
+         "weight": 0.3543
+        },
+        {
+         "hand": "97s",
+         "combos": 1.407,
+         "weight": 0.4691
+        },
+        {
+         "hand": "T7s",
+         "combos": 1.406,
+         "weight": 0.4687
+        },
+        {
+         "hand": "55",
+         "combos": 1.392,
+         "weight": 0.464
+        },
+        {
+         "hand": "J6s",
+         "combos": 1.384,
+         "weight": 0.346
+        },
+        {
+         "hand": "J7s",
+         "combos": 1.384,
+         "weight": 0.4613
+        },
+        {
+         "hand": "Q6s",
+         "combos": 1.379,
+         "weight": 0.3449
+        },
+        {
+         "hand": "87s",
+         "combos": 1.352,
+         "weight": 0.4506
+        },
+        {
+         "hand": "J8s",
+         "combos": 1.339,
+         "weight": 0.3348
+        },
+        {
+         "hand": "Q7s",
+         "combos": 1.334,
+         "weight": 0.4445
+        },
+        {
+         "hand": "T6s",
+         "combos": 1.322,
+         "weight": 0.3305
+        },
+        {
+         "hand": "KQo",
+         "combos": 1.321,
+         "weight": 0.1468
+        },
+        {
+         "hand": "KTs",
+         "combos": 1.224,
+         "weight": 0.4079
+        },
+        {
+         "hand": "Q4s",
+         "combos": 1.224,
+         "weight": 0.306
+        },
+        {
+         "hand": "Q3s",
+         "combos": 1.181,
+         "weight": 0.2952
+        },
+        {
+         "hand": "QTs",
+         "combos": 1.15,
+         "weight": 0.2876
+        },
+        {
+         "hand": "76s",
+         "combos": 1.147,
+         "weight": 0.3825
+        },
+        {
+         "hand": "86s",
+         "combos": 1.102,
+         "weight": 0.2756
+        },
+        {
+         "hand": "T8s",
+         "combos": 1.09,
+         "weight": 0.2726
+        },
+        {
+         "hand": "Q9s",
+         "combos": 1.089,
+         "weight": 0.2723
+        },
+        {
+         "hand": "98s",
+         "combos": 1.088,
+         "weight": 0.272
+        },
+        {
+         "hand": "A7s",
+         "combos": 1.077,
+         "weight": 0.3589
+        },
+        {
+         "hand": "J5s",
+         "combos": 0.998,
+         "weight": 0.3327
+        },
+        {
+         "hand": "K5s",
+         "combos": 0.997,
+         "weight": 0.4985
+        },
+        {
+         "hand": "Q5s",
+         "combos": 0.987,
+         "weight": 0.3291
+        },
+        {
+         "hand": "J9s",
+         "combos": 0.956,
+         "weight": 0.239
+        },
+        {
+         "hand": "AA",
+         "combos": 0.928,
+         "weight": 0.1546
+        },
+        {
+         "hand": "A4s",
+         "combos": 0.915,
+         "weight": 0.2288
+        },
+        {
+         "hand": "A3s",
+         "combos": 0.818,
+         "weight": 0.2046
+        },
+        {
+         "hand": "KJs",
+         "combos": 0.817,
+         "weight": 0.2725
+        },
+        {
+         "hand": "T9s",
+         "combos": 0.8,
+         "weight": 0.1999
+        },
+        {
+         "hand": "65s",
+         "combos": 0.773,
+         "weight": 0.2578
+        },
+        {
+         "hand": "JTs",
+         "combos": 0.718,
+         "weight": 0.1795
+        },
+        {
+         "hand": "J4s",
+         "combos": 0.706,
+         "weight": 0.1766
+        },
+        {
+         "hand": "96s",
+         "combos": 0.696,
+         "weight": 0.1739
+        },
+        {
+         "hand": "A5s",
+         "combos": 0.66,
+         "weight": 0.2202
+        },
+        {
+         "hand": "75s",
+         "combos": 0.637,
+         "weight": 0.3184
+        },
+        {
+         "hand": "K2s",
+         "combos": 0.554,
+         "weight": 0.2768
+        },
+        {
+         "hand": "54s",
+         "combos": 0.518,
+         "weight": 0.1727
+        },
+        {
+         "hand": "AKs",
+         "combos": 0.421,
+         "weight": 0.1403
+        },
+        {
+         "hand": "KK",
+         "combos": 0.383,
+         "weight": 0.1278
+        },
+        {
+         "hand": "KQs",
+         "combos": 0.379,
+         "weight": 0.1265
+        },
+        {
+         "hand": "K7o",
+         "combos": 0.306,
+         "weight": 0.0438
+        },
+        {
+         "hand": "K7s",
+         "combos": 0.231,
+         "weight": 0.1155
+        },
+        {
+         "hand": "A2o",
+         "combos": 0.228,
+         "weight": 0.0253
+        },
+        {
+         "hand": "J8o",
+         "combos": 0.157,
+         "weight": 0.0131
+        },
+        {
+         "hand": "A2s",
+         "combos": 0.112,
+         "weight": 0.0373
+        },
+        {
+         "hand": "77",
+         "combos": 0.093,
+         "weight": 0.0309
+        }
+       ],
+       "range": "K5s:0.988,AsAh:0.294,AsAd:0.376,AsAc:0.371,AhAd:0.239,AhAc:0.229,AdAc:0.33,KhKd:0.195,KhKc:0.378,KdKc:0.187,QsQh:0.985,QsQd:0.97,QsQc:0.966,QhQd:0.984,QhQc:0.979,QdQc:0.964,JsJh:0.969,JsJd:0.974,JsJc:0.972,JhJd:0.971,JhJc:0.968,JdJc:0.973,TsTh:0.969,TsTd:0.972,TsTc:0.971,ThTd:0.969,ThTc:0.967,TdTc:0.971,9s9h:0.976,9s9d:0.977,9s9c:0.978,9h9d:0.976,9h9c:0.974,9d9c:0.978,8s8h:0.986,8s8d:0.984,8s8c:0.988,8h8d:0.993,8h8c:0.997,8d8c:0.99,7s7h:0.019,7s7c:0.011,7h7c:0.154,6s6h:0.97,6s6d:0.988,6s6c:0.993,6h6d:0.975,6h6c:0.982,6d6c:0.991,5s5d:0.926,5s5c:0.919,5d5c:0.914,4s4h:0.829,4s4d:0.795,4s4c:0.793,4h4d:0.827,4h4c:0.824,4d4c:0.79,3s3h:0.702,3s3d:0.659,3s3c:0.663,3h3d:0.694,3h3c:0.697,3d3c:0.654,AhKh:0.24,AdKd:0.309,AcKc:0.285,AsKh:0.362,AsKd:0.375,AsKc:0.348,AhKd:0.245,AhKc:0.222,AdKh:0.357,AdKc:0.341,AcKh:0.346,AcKd:0.337,AsQs:0.913,AhQh:0.962,AdQd:0.862,AcQc:0.819,AsQh:0.964,AsQd:0.945,AsQc:0.948,AhQs:0.939,AhQd:0.939,AhQc:0.942,AdQs:0.949,AdQh:0.965,AdQc:0.95,AcQs:0.939,AcQh:0.965,AcQd:0.942,AsJs:0.965,AhJh:0.978,AdJd:0.966,AcJc:0.955,AsJh:0.976,AsJd:0.974,AsJc:0.973,AhJs:0.974,AhJd:0.976,AhJc:0.976,AdJs:0.97,AdJh:0.976,AdJc:0.974,AcJs:0.972,AcJh:0.979,AcJd:0.976,AsTs:0.975,AhTh:0.993,AdTd:0.968,AcTc:0.974,AsTh:0.98,AsTd:0.985,AsTc:0.989,AhTs:0.993,AhTd:0.992,AhTc:0.993,AdTs:0.99,AdTh:0.983,AdTc:0.99,AcTs:0.991,AcTh:0.986,AcTd:0.989,As9s:0.979,Ah9h:0.988,Ad9d:0.967,Ac9c:0.974,As9h:0.985,As9d:0.991,As9c:0.991,Ah9s:0.995,Ah9d:0.998,Ah9c:0.996,Ad9s:0.993,Ad9h:0.988,Ad9c:0.994,Ac9s:0.994,Ac9h:0.988,Ac9d:0.997,As8s:0.948,Ah8h:0.985,Ad8d:0.902,Ac8c:0.919,As8h:0.986,As8d:0.992,As8c:0.989,Ah8s,Ah8d:0.992,Ah8c:0.994,Ad8s:0.988,Ad8h:0.986,Ad8c:0.991,Ac8s:0.991,Ac8h:0.988,Ac8d:0.992,As7s:0.722,Ah7h:0.771,Ac7c:0.641,As7h:0.762,As7c:0.776,Ah7s:0.772,Ah7c:0.784,Ad7s:0.769,Ad7h:0.76,Ad7c:0.775,Ac7s:0.749,Ac7h:0.748,As6s:0.648,Ah6h:0.908,Ad6d:0.626,Ac6c:0.627,As6h:0.81,As6d:0.856,As6c:0.854,Ah6s:0.926,Ah6d:0.932,Ah6c:0.934,Ad6s:0.869,Ad6h:0.817,Ad6c:0.866,Ac6s:0.894,Ac6h:0.846,Ac6d:0.9,As5s:0.45,Ad5d:0.421,Ac5c:0.438,As5d:0.689,As5c:0.691,Ah5s:0.702,Ah5d:0.711,Ah5c:0.719,Ad5s:0.703,Ad5c:0.702,Ac5s:0.724,Ac5d:0.722,As4s:0.394,Ah4h:0.678,Ad4d:0.362,Ac4c:0.38,As4h:0.635,As4d:0.642,As4c:0.643,Ah4s:0.674,Ah4d:0.678,Ah4c:0.681,Ad4s:0.651,Ad4h:0.644,Ad4c:0.653,Ac4s:0.671,Ac4h:0.664,Ac4d:0.671,As3s:0.347,Ah3h:0.647,Ad3d:0.298,Ac3c:0.33,As3h:0.601,As3d:0.609,As3c:0.61,Ah3s:0.643,Ah3d:0.649,Ah3c:0.65,Ad3s:0.615,Ad3h:0.609,Ad3c:0.618,Ac3s:0.638,Ac3h:0.633,Ac3d:0.642,As2s:0.006,Ah2h:0.216,As2h:0.056,As2d:0.05,Ah2s:0.051,Ah2d:0.043,Ad2s:0.065,Ad2h:0.063,Ac2s:0.046,Ac2h:0.042,Ac2d:0.036,KhQh:0.301,KdQd:0.25,KcQc:0.201,KhQs:0.323,KhQd:0.322,KhQc:0.285,KdQs:0.304,KdQh:0.274,KdQc:0.259,KcQs:0.298,KcQh:0.262,KcQd:0.292,KhJh:0.604,KdJd:0.519,KcJc:0.497,KhJs:0.607,KhJd:0.59,KhJc:0.59,KdJs:0.596,KdJh:0.597,KdJc:0.586,KcJs:0.584,KcJh:0.585,KcJd:0.57,KhTh:0.897,KdTd:0.775,KcTc:0.753,KhTs:0.897,KhTd:0.891,KhTc:0.875,KdTs:0.893,KdTh:0.899,KdTc:0.884,KcTs:0.872,KcTh:0.874,KcTd:0.868,Kh9h:0.995,Kd9d:0.984,Kc9c:0.975,Kh9s:0.99,Kh9d:0.99,Kh9c:0.99,Kd9s:0.988,Kd9h:0.991,Kd9c:0.989,Kc9s:0.986,Kc9h:0.99,Kc9d:0.991,Kh8h:0.991,Kd8d:0.992,Kc8c:0.986,Kh8s:0.963,Kh8d:0.96,Kh8c:0.96,Kd8s:0.967,Kd8h:0.961,Kd8c:0.963,Kc8s:0.961,Kc8h:0.96,Kc8d:0.96,Kh7h:0.209,Kc7c:0.249,Kh7s:0.087,Kh7c:0.127,Kd7s:0.066,Kd7h:0.058,Kd7c:0.11,Kc7s:0.082,Kc7h:0.077,Kh6h:0.989,Kd6d:0.993,Kc6c:0.991,Kh4h:0.992,Kd4d:0.998,Kc4c:0.994,Kh3h:0.991,Kd3d:0.994,Kc3c:0.991,Kh2h:0.556,Kd2d:0.541,QsJs:0.675,QhJh:0.841,QdJd:0.802,QcJc:0.806,QsJh:0.81,QsJd:0.837,QsJc:0.842,QhJs:0.947,QhJd:0.882,QhJc:0.89,QdJs:0.951,QdJh:0.849,QdJc:0.895,QcJs:0.958,QcJh:0.853,QcJd:0.892,QsTs:0.452,QhTh:0.657,QdTd:0.575,QcTc:0.596,QsTh:0.644,QsTd:0.647,QsTc:0.655,QhTs:0.706,QhTd:0.672,QhTc:0.682,QdTs:0.699,QdTh:0.65,QdTc:0.678,QcTs:0.712,QcTh:0.665,QcTd:0.674,Qs9s:0.419,Qh9h:0.601,Qd9d:0.555,Qc9c:0.584,Qs9h:0.621,Qs9d:0.665,Qs9c:0.678,Qh9s:0.68,Qh9d:0.643,Qh9c:0.661,Qd9s:0.707,Qd9h:0.611,Qd9c:0.69,Qc9s:0.721,Qc9h:0.636,Qc9d:0.687,Qs8s:0.689,Qh8h:0.678,Qd8d:0.787,Qc8c:0.803,Qs7s:0.889,Qh7h:0.913,Qc7c:0.841,Qs6s:0.638,Qh6h:0.629,Qd6d:0.726,Qc6c:0.741,Qs5s:0.591,Qd5d:0.674,Qc5c:0.692,Qs4s:0.539,Qh4h:0.61,Qd4d:0.629,Qc4c:0.648,Qs3s:0.489,Qh3h:0.607,Qd3d:0.61,Qc3c:0.634,JsTs:0.183,JhTh:0.536,JdTd:0.332,JcTc:0.372,JsTh:0.573,JsTd:0.569,JsTc:0.58,JhTs:0.571,JhTd:0.541,JhTc:0.545,JdTs:0.568,JdTh:0.539,JdTc:0.545,JcTs:0.573,JcTh:0.541,JcTd:0.544,Js9s:0.374,Jh9h:0.576,Jd9d:0.456,Jc9c:0.489,Js9h:0.608,Js9d:0.661,Js9c:0.669,Jh9s:0.641,Jh9d:0.623,Jh9c:0.628,Jd9s:0.653,Jd9h:0.584,Jd9c:0.643,Jc9s:0.661,Jc9h:0.592,Jc9d:0.641,Js8s:0.631,Jh8h:0.68,Jd8d:0.658,Jc8c:0.685,Js8h:0.022,Js8d:0.028,Js8c:0.028,Jh8s:0.028,Jh8d:0.026,Jh8c:0.026,Jd8s:0.029,Jd8h:0.021,Jd8c:0.027,Jc8s:0.029,Jc8h:0.021,Jc8d:0.027,Js7s:0.935,Jh7h:0.927,Jc7c:0.881,Js6s:0.659,Jh6h:0.656,Jd6d:0.706,Jc6c:0.722,Js5s:0.622,Jd5d:0.666,Jc5c:0.69,Js4s:0.323,Jh4h:0.363,Jd4d:0.348,Jc4c:0.366,Ts9s:0.26,Th9h:0.518,Td9d:0.377,Tc9c:0.43,Ts9h:0.549,Ts9d:0.609,Ts9c:0.612,Th9s:0.591,Th9d:0.573,Th9c:0.572,Td9s:0.606,Td9h:0.525,Td9c:0.588,Tc9s:0.609,Tc9h:0.527,Tc9d:0.589,Ts8s:0.481,Th8h:0.591,Td8d:0.528,Tc8c:0.561,Ts8h:0.402,Ts8d:0.509,Ts8c:0.512,Th8s:0.521,Th8d:0.48,Th8c:0.479,Td8s:0.532,Td8h:0.385,Td8c:0.491,Tc8s:0.541,Tc8h:0.392,Tc8d:0.497,Ts7s:0.957,Th7h:0.941,Tc7c:0.889,Ts6s:0.613,Th6h:0.632,Td6d:0.678,Tc6c:0.697,9s8s:0.497,9h8h:0.57,9d8d:0.522,9c8c:0.567,9s7s:0.937,9h7h:0.978,9c7c:0.874,9s6s:0.305,9h6h:0.364,9d6d:0.348,9c6c:0.362,8s7s:0.881,8h7h:0.965,8c7c:0.833,8s6s:0.517,8h6h:0.543,8d6d:0.544,8c6c:0.581,7s6s:0.697,7h6h:0.883,7c6c:0.694,7s5s:0.634,7c5c:0.628,6s5s:0.492,6d5d:0.493,6c5c:0.548,5s4s:0.334,5d4d:0.325,5c4c:0.368",
+       "lineProbability": 0.36591,
+       "blended": false
+      }
+     },
+     "flopSolveMs": 6015,
+     "iterations": 40,
+     "exploitabilityPct": 0.685
+    },
+    "streetLine": {
+     "matched": true,
+     "villainRange": {
+      "position": "BB",
+      "combosBefore": 228.4,
+      "combosAfter": 126.09,
+      "classes": [
+       {
+        "hand": "A9o",
+        "combos": 10.661,
+        "weight": 0.8884
+       },
+       {
+        "hand": "AJo",
+        "combos": 10.404,
+        "weight": 0.867
+       },
+       {
+        "hand": "A8o",
+        "combos": 9.92,
+        "weight": 0.8266
+       },
+       {
+        "hand": "ATo",
+        "combos": 8.46,
+        "weight": 0.705
+       },
+       {
+        "hand": "QJo",
+        "combos": 4.201,
+        "weight": 0.3501
+       },
+       {
+        "hand": "ATs",
+        "combos": 3.982,
+        "weight": 0.9955
+       },
+       {
+        "hand": "A9s",
+        "combos": 3.933,
+        "weight": 0.9832
+       },
+       {
+        "hand": "A8s",
+        "combos": 3.626,
+        "weight": 0.9065
+       },
+       {
+        "hand": "33",
+        "combos": 3.339,
+        "weight": 0.5565
+       },
+       {
+        "hand": "66",
+        "combos": 3.109,
+        "weight": 0.5181
+       },
+       {
+        "hand": "44",
+        "combos": 3.069,
+        "weight": 0.5115
+       },
+       {
+        "hand": "K4s",
+        "combos": 2.628,
+        "weight": 0.876
+       },
+       {
+        "hand": "QJs",
+        "combos": 2.15,
+        "weight": 0.5375
+       },
+       {
+        "hand": "97s",
+        "combos": 2.104,
+        "weight": 0.7013
+       },
+       {
+        "hand": "77",
+        "combos": 2.006,
+        "weight": 0.6686
+       },
+       {
+        "hand": "QTo",
+        "combos": 1.976,
+        "weight": 0.1647
+       },
+       {
+        "hand": "A7o",
+        "combos": 1.926,
+        "weight": 0.214
+       },
+       {
+        "hand": "88",
+        "combos": 1.912,
+        "weight": 0.3187
+       },
+       {
+        "hand": "Q7s",
+        "combos": 1.804,
+        "weight": 0.6013
+       },
+       {
+        "hand": "55",
+        "combos": 1.682,
+        "weight": 0.5606
+       },
+       {
+        "hand": "87s",
+        "combos": 1.595,
+        "weight": 0.5316
+       },
+       {
+        "hand": "KQo",
+        "combos": 1.53,
+        "weight": 0.17
+       },
+       {
+        "hand": "85s",
+        "combos": 1.518,
+        "weight": 0.506
+       },
+       {
+        "hand": "K9o",
+        "combos": 1.517,
+        "weight": 0.1685
+       },
+       {
+        "hand": "AJs",
+        "combos": 1.458,
+        "weight": 0.3645
+       },
+       {
+        "hand": "99",
+        "combos": 1.381,
+        "weight": 0.2302
+       },
+       {
+        "hand": "Q2s",
+        "combos": 1.376,
+        "weight": 0.4586
+       },
+       {
+        "hand": "54s",
+        "combos": 1.313,
+        "weight": 0.4376
+       },
+       {
+        "hand": "75s",
+        "combos": 1.261,
+        "weight": 0.6305
+       },
+       {
+        "hand": "74s",
+        "combos": 1.248,
+        "weight": 0.416
+       },
+       {
+        "hand": "K6s",
+        "combos": 1.243,
+        "weight": 0.4143
+       },
+       {
+        "hand": "65s",
+        "combos": 1.216,
+        "weight": 0.4053
+       },
+       {
+        "hand": "T7s",
+        "combos": 1.207,
+        "weight": 0.4023
+       },
+       {
+        "hand": "K8s",
+        "combos": 1.192,
+        "weight": 0.3973
+       },
+       {
+        "hand": "AQo",
+        "combos": 1.164,
+        "weight": 0.097
+       },
+       {
+        "hand": "A7s",
+        "combos": 1.161,
+        "weight": 0.387
+       },
+       {
+        "hand": "KJo",
+        "combos": 1.155,
+        "weight": 0.1283
+       },
+       {
+        "hand": "KTo",
+        "combos": 1.109,
+        "weight": 0.1232
+       },
+       {
+        "hand": "A6s",
+        "combos": 1.081,
+        "weight": 0.2702
+       },
+       {
+        "hand": "Q9s",
+        "combos": 1.08,
+        "weight": 0.27
+       },
+       {
+        "hand": "QTs",
+        "combos": 1.039,
+        "weight": 0.2597
+       },
+       {
+        "hand": "K3s",
+        "combos": 0.982,
+        "weight": 0.3273
+       },
+       {
+        "hand": "K5s",
+        "combos": 0.887,
+        "weight": 0.4435
+       },
+       {
+        "hand": "J7s",
+        "combos": 0.88,
+        "weight": 0.2933
+       },
+       {
+        "hand": "JTo",
+        "combos": 0.852,
+        "weight": 0.071
+       },
+       {
+        "hand": "KJs",
+        "combos": 0.837,
+        "weight": 0.279
+       },
+       {
+        "hand": "T8s",
+        "combos": 0.795,
+        "weight": 0.1987
+       },
+       {
+        "hand": "A2s",
+        "combos": 0.778,
+        "weight": 0.2593
+       },
+       {
+        "hand": "JTs",
+        "combos": 0.774,
+        "weight": 0.1935
+       },
+       {
+        "hand": "22",
+        "combos": 0.769,
+        "weight": 0.2563
+       },
+       {
+        "hand": "A4s",
+        "combos": 0.766,
+        "weight": 0.1915
+       },
+       {
+        "hand": "K7s",
+        "combos": 0.751,
+        "weight": 0.3755
+       },
+       {
+        "hand": "K9s",
+        "combos": 0.741,
+        "weight": 0.247
+       },
+       {
+        "hand": "76s",
+        "combos": 0.737,
+        "weight": 0.2457
+       },
+       {
+        "hand": "KTs",
+        "combos": 0.722,
+        "weight": 0.2407
+       },
+       {
+        "hand": "A3s",
+        "combos": 0.663,
+        "weight": 0.1657
+       },
+       {
+        "hand": "A5s",
+        "combos": 0.599,
+        "weight": 0.1997
+       },
+       {
+        "hand": "Q8s",
+        "combos": 0.599,
+        "weight": 0.1497
+       },
+       {
+        "hand": "J9s",
+        "combos": 0.563,
+        "weight": 0.1407
+       },
+       {
+        "hand": "T9s",
+        "combos": 0.557,
+        "weight": 0.1392
+       },
+       {
+        "hand": "J8s",
+        "combos": 0.54,
+        "weight": 0.135
+       },
+       {
+        "hand": "86s",
+        "combos": 0.537,
+        "weight": 0.1342
+       },
+       {
+        "hand": "A5o",
+        "combos": 0.457,
+        "weight": 0.0508
+       },
+       {
+        "hand": "T9o",
+        "combos": 0.282,
+        "weight": 0.0235
+       },
+       {
+        "hand": "98s",
+        "combos": 0.229,
+        "weight": 0.0572
+       },
+       {
+        "hand": "96s",
+        "combos": 0.066,
+        "weight": 0.0165
+       }
+      ]
+     }
+    },
+    "villainHand": null,
+    "stats": {
+     "exploitabilityPct": 0.474,
+     "targetExploitabilityPct": 0.5,
+     "iterations": 160,
+     "solveMs": 8862,
+     "memoryMb": 81.7,
+     "compressed": false
+    }
+   }
+  },
+  {
+   "id": "river-btn-nut-flush-checked-to",
+   "pass": true,
+   "seconds": 11.774,
+   "outcomes": [
+    {
+     "label": "status ok",
+     "pass": true,
+     "detail": "ok"
+    },
+    {
+     "label": "spot.street=river",
+     "pass": true,
+     "detail": "river"
+    },
+    {
+     "label": "spot.potType=srp",
+     "pass": true,
+     "detail": "srp"
+    },
+    {
+     "label": "spot.heroPosition=BTN",
+     "pass": true,
+     "detail": "BTN"
+    },
+    {
+     "label": "spot.villainPosition=BB",
+     "pass": true,
+     "detail": "BB"
+    },
+    {
+     "label": "spot.board=Kh9h4c2s7h",
+     "pass": true,
+     "detail": "Kh9h4c2s7h"
+    },
+    {
+     "label": "spot.heroHand=Ah5h",
+     "pass": true,
+     "detail": "Ah5h"
+    },
+    {
+     "label": "narrowed",
+     "pass": true,
+     "detail": "11/33 combos"
+    },
+    {
+     "label": "hero Check <=50%",
+     "pass": true,
+     "detail": "0%"
+    },
+    {
+     "label": "hero best in aggro",
+     "pass": true,
+     "detail": "Bet 6.83bb"
+    },
+    {
+     "label": "time <=60s",
+     "pass": true,
+     "detail": "11.8s"
+    }
+   ],
+   "summary": {
+    "spot": "river srp BTN(ip) v BB Kh9h4c2s7h Ah5h pot 9.1 stack 95.7",
+    "hero": "Check 0% ev 9.1 | Bet 3bb 0% ev 19.71 | Bet 6.83bb 99% ev 20.84 | All-in 95.7bb 1% ev 20.67",
+    "heroEquity": 1,
+    "verdict": "SLIGHT EDGE: BET 6.83bb (+0.17bb OVER ALL-IN 95.7bb)",
+    "oopNode": "BB acts first: Check 45%, Bet 3bb 26%, Bet 6.83bb 17%, All-in 95.7bb 12%",
+    "ipNode": "BTN after BB checks: Check 55%, Bet 3bb 23%, Bet 6.83bb 21%, All-in 95.7bb 0%",
+    "narrowing": {
+     "oop": {
+      "combos": 11,
+      "lineProbability": 0.03842,
+      "blended": true
+     },
+     "ip": {
+      "combos": 33,
+      "lineProbability": 0.06982,
+      "blended": false
+     }
+    },
+    "solveMs": 8900,
+    "exploitabilityPct": 0.4878,
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 9.1bb pot at the start of the river from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 95.7bb effective stack at the start of the river (100bb minus 4.3bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the river: 33%, 75%, all-in; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain checked, you bet 1.8bb, villain called on the flop; you checked, villain checked on the turn). Flop model: you bet 33%/75%, villain doesn't lead, no raises; your 1.8bb bet added for you. Turn model: both players bet 33%/75%, no raises. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Villain's line is unusual at equilibrium (~4% of his range) — his range is a rough estimate blended toward his starting range.",
+     "Your hand almost never takes this line in the flop solve; it was kept in your range at a small weight so its strategy can be shown",
+     "Strategy shown at your decision after the river action (villain checked)"
+    ]
+   },
+   "response": {
+    "status": "ok",
+    "spot": {
+     "board": "Kh9h4c2s7h",
+     "street": "river",
+     "potType": "srp",
+     "heroPosition": "BTN",
+     "villainPosition": "BB",
+     "oopPosition": "BB",
+     "ipPosition": "BTN",
+     "heroPlayer": "ip",
+     "heroHand": "Ah5h",
+     "potBb": 9.1,
+     "effectiveStackBb": 95.7,
+     "oopRange": "AJs:0.38,ATs,A9s,A8s,A7s,A6s,A5s:0.37,A4s,A3s,A2s,KJs,KTs,K9s,K8s,K7s,K6s:0.89,K5s,K4s:0.95,K3s:0.33,K2s:0.38,QJs:0.89,QTs:0.67,Q9s:0.87,Q8s:0.67,Q7s:0.81,Q6s:0.63,Q5s:0.8,Q4s:0.92,Q3s:0.39,Q2s:0.59,JTs:0.75,J9s:0.66,J8s:0.79,J7s:0.39,J6s:0.54,J5s:0.84,J4s:0.21,T9s:0.46,T8s:0.86,T7s:0.56,T6s:0.35,99:0.54,98s:0.88,97s,96s:0.95,88:0.86,87s:0.75,86s,85s,77:0.98,76s:0.77,75s,74s:0.91,66:0.89,65s:0.67,64s,55:0.84,54s:0.66,53s,44,43s,33,22,AQo:0.18,AJo:0.91,ATo:0.71,A9o:0.9,A8o:0.88,A7o:0.6,A5o:0.5,A4o:0.17,KQo:0.71,KJo:0.46,KTo:0.52,K9o:0.68,QJo:0.59,QTo:0.72,Q9o:0.35,JTo:0.63,J9o:0.38,T9o:0.71",
+     "ipRange": "AA,AKs,AQs,AJs,ATs,A9s,A8s,A7s,A6s,A5s,A4s,A3s,A2s,KK,KQs,KJs,KTs,K9s,K8s,K7s,K6s,K5s,K4s,K3s,K2s,QQ,QJs,QTs,Q9s,Q8s,Q7s,Q6s,Q5s,Q4s,Q3s,JJ,JTs,J9s,J8s,J7s,J6s,J5s,J4s:0.57,TT,T9s,T8s,T7s,T6s,99,98s,97s,96s:0.58,88,87s,86s,77,76s,75s:0.85,66,65s,55,54s:0.63,44,33,22:0.56,AKo,AQo,AJo,ATo,A9o,A8o,A7o,A6o,A5o,A4o,A3o,A2o:0.19,KQo,KJo,KTo,K9o,K8o:0.97,K7o:0.47,QJo,QTo,Q9o,JTo,J9o,J8o:0.03,T9o,T8o:0.64",
+     "betSizes": {
+      "flop": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "turn": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "river": {
+       "bet": "33%, 75%, a",
+       "raise": "3x"
+      }
+     }
+    },
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 9.1bb pot at the start of the river from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 95.7bb effective stack at the start of the river (100bb minus 4.3bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the river: 33%, 75%, all-in; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain checked, you bet 1.8bb, villain called on the flop; you checked, villain checked on the turn). Flop model: you bet 33%/75%, villain doesn't lead, no raises; your 1.8bb bet added for you. Turn model: both players bet 33%/75%, no raises. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Villain's line is unusual at equilibrium (~4% of his range) — his range is a rough estimate blended toward his starting range.",
+     "Your hand almost never takes this line in the flop solve; it was kept in your range at a small weight so its strategy can be shown",
+     "Strategy shown at your decision after the river action (villain checked)"
+    ],
+    "notes": null,
+    "players": {
+     "oop": {
+      "position": "BB",
+      "equity": 0.5559,
+      "evBb": 4.74
+     },
+     "ip": {
+      "position": "BTN",
+      "equity": 0.4441,
+      "evBb": 4.36
+     }
+    },
+    "nodes": [
+     {
+      "title": "BB acts first",
+      "player": "oop",
+      "position": "BB",
+      "isHero": false,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.4496,
+        "topClasses": [
+         {
+          "hand": "66",
+          "frequency": 1
+         },
+         {
+          "hand": "33",
+          "frequency": 1
+         },
+         {
+          "hand": "64s",
+          "frequency": 1
+         },
+         {
+          "hand": "ATo",
+          "frequency": 0.9553
+         },
+         {
+          "hand": "AJo",
+          "frequency": 0.9607
+         },
+         {
+          "hand": "AQo",
+          "frequency": 0.9446
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 3bb",
+        "amountBb": 3,
+        "potPct": 33,
+        "frequency": 0.2589,
+        "topClasses": [
+         {
+          "hand": "99",
+          "frequency": 0.8175
+         },
+         {
+          "hand": "J9o",
+          "frequency": 0.7399
+         },
+         {
+          "hand": "J9s",
+          "frequency": 0.7418
+         },
+         {
+          "hand": "88",
+          "frequency": 0.6942
+         },
+         {
+          "hand": "T9s",
+          "frequency": 0.6925
+         },
+         {
+          "hand": "T9o",
+          "frequency": 0.6729
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 6.83bb",
+        "amountBb": 6.83,
+        "potPct": 75,
+        "frequency": 0.1708,
+        "topClasses": [
+         {
+          "hand": "K3s",
+          "frequency": 0.7907
+         },
+         {
+          "hand": "K5s",
+          "frequency": 0.7659
+         },
+         {
+          "hand": "K6s",
+          "frequency": 0.7312
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.5613
+         },
+         {
+          "hand": "QJs",
+          "frequency": 0.5605
+         },
+         {
+          "hand": "K2s",
+          "frequency": 0.5411
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "AllIn",
+        "label": "All-in 95.7bb",
+        "amountBb": 95.7,
+        "potPct": null,
+        "frequency": 0.1207,
+        "topClasses": [
+         {
+          "hand": "A2s",
+          "frequency": 1
+         },
+         {
+          "hand": "A3s",
+          "frequency": 1
+         },
+         {
+          "hand": "A4s",
+          "frequency": 0.8576
+         },
+         {
+          "hand": "A8o",
+          "frequency": 0.6558
+         },
+         {
+          "hand": "AJs",
+          "frequency": 0.5055
+         },
+         {
+          "hand": "Q2s",
+          "frequency": 0.4033
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     },
+     {
+      "title": "BTN after BB checks",
+      "player": "ip",
+      "position": "BTN",
+      "isHero": true,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.5529,
+        "topClasses": [
+         {
+          "hand": "ATo",
+          "frequency": 1
+         },
+         {
+          "hand": "AJo",
+          "frequency": 0.9964
+         },
+         {
+          "hand": "A7o",
+          "frequency": 1
+         },
+         {
+          "hand": "76s",
+          "frequency": 0.9999
+         },
+         {
+          "hand": "T7s",
+          "frequency": 1
+         },
+         {
+          "hand": "J7s",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 3bb",
+        "amountBb": 3,
+        "potPct": 33,
+        "frequency": 0.2333,
+        "topClasses": [
+         {
+          "hand": "J9o",
+          "frequency": 1
+         },
+         {
+          "hand": "J9s",
+          "frequency": 1
+         },
+         {
+          "hand": "Q9s",
+          "frequency": 0.7962
+         },
+         {
+          "hand": "T9o",
+          "frequency": 0.7826
+         },
+         {
+          "hand": "T9s",
+          "frequency": 0.7807
+         },
+         {
+          "hand": "Q9o",
+          "frequency": 0.7595
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 6.83bb",
+        "amountBb": 6.83,
+        "potPct": 75,
+        "frequency": 0.2134,
+        "topClasses": [
+         {
+          "hand": "K7s",
+          "frequency": 0.9921
+         },
+         {
+          "hand": "K7o",
+          "frequency": 0.9948
+         },
+         {
+          "hand": "97s",
+          "frequency": 0.9813
+         },
+         {
+          "hand": "K5s",
+          "frequency": 0.8732
+         },
+         {
+          "hand": "K8s",
+          "frequency": 0.8268
+         },
+         {
+          "hand": "K3s",
+          "frequency": 0.8286
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "AllIn",
+        "label": "All-in 95.7bb",
+        "amountBb": 95.7,
+        "potPct": null,
+        "frequency": 0.0004,
+        "topClasses": [
+         {
+          "hand": "86s",
+          "frequency": 0.0052
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.0082
+         },
+         {
+          "hand": "K7s",
+          "frequency": 0.0079
+         },
+         {
+          "hand": "QTo",
+          "frequency": 0.0058
+         },
+         {
+          "hand": "K7o",
+          "frequency": 0.0052
+         },
+         {
+          "hand": "AQs",
+          "frequency": 0.0015
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     }
+    ],
+    "heroHand": {
+     "hand": "Ah5h",
+     "nodeTitle": "BTN after BB checks",
+     "situation": "when BB checks",
+     "decision": "after BB checks",
+     "streetAction": "BB checked",
+     "equity": 1,
+     "evBb": 20.83,
+     "actions": [
+      {
+       "action": "Check",
+       "label": "Check",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 9.1,
+       "best": false
+      },
+      {
+       "action": "Bet",
+       "label": "Bet 3bb",
+       "amountBb": 3,
+       "potPct": 33,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 19.71,
+       "best": false
+      },
+      {
+       "action": "Bet",
+       "label": "Bet 6.83bb",
+       "amountBb": 6.83,
+       "potPct": 75,
+       "frequency": 0.9912,
+       "topClasses": [],
+       "evBb": 20.84,
+       "best": true
+      },
+      {
+       "action": "AllIn",
+       "label": "All-in 95.7bb",
+       "amountBb": 95.7,
+       "potPct": null,
+       "frequency": 0.0088,
+       "topClasses": [],
+       "evBb": 20.67,
+       "best": false
+      }
+     ],
+     "verdict": {
+      "kind": "slight",
+      "text": "SLIGHT EDGE: BET 6.83bb (+0.17bb OVER ALL-IN 95.7bb)",
+      "gapBb": 0.17,
+      "gapPot": 0.018681318681318684
+     }
+    },
+    "narrowing": {
+     "players": {
+      "oop": {
+       "position": "BB",
+       "combosBefore": 285.8,
+       "combosAfter": 10.95,
+       "classes": [
+        {
+         "hand": "ATo",
+         "combos": 1.251,
+         "weight": 0.1042
+        },
+        {
+         "hand": "AJo",
+         "combos": 1.03,
+         "weight": 0.0858
+        },
+        {
+         "hand": "A8o",
+         "combos": 0.817,
+         "weight": 0.0681
+        },
+        {
+         "hand": "T9o",
+         "combos": 0.55,
+         "weight": 0.0612
+        },
+        {
+         "hand": "88",
+         "combos": 0.509,
+         "weight": 0.0849
+        },
+        {
+         "hand": "J9o",
+         "combos": 0.474,
+         "weight": 0.0527
+        },
+        {
+         "hand": "K5s",
+         "combos": 0.448,
+         "weight": 0.1492
+        },
+        {
+         "hand": "ATs",
+         "combos": 0.429,
+         "weight": 0.1072
+        },
+        {
+         "hand": "K9o",
+         "combos": 0.408,
+         "weight": 0.0679
+        },
+        {
+         "hand": "Q9o",
+         "combos": 0.383,
+         "weight": 0.0426
+        },
+        {
+         "hand": "77",
+         "combos": 0.378,
+         "weight": 0.1261
+        },
+        {
+         "hand": "K9s",
+         "combos": 0.304,
+         "weight": 0.1015
+        },
+        {
+         "hand": "QTo",
+         "combos": 0.282,
+         "weight": 0.0235
+        },
+        {
+         "hand": "Q9s",
+         "combos": 0.278,
+         "weight": 0.0928
+        },
+        {
+         "hand": "A2s",
+         "combos": 0.241,
+         "weight": 0.0802
+        },
+        {
+         "hand": "A9o",
+         "combos": 0.233,
+         "weight": 0.0259
+        },
+        {
+         "hand": "AQo",
+         "combos": 0.232,
+         "weight": 0.0193
+        },
+        {
+         "hand": "66",
+         "combos": 0.23,
+         "weight": 0.0383
+        },
+        {
+         "hand": "K3s",
+         "combos": 0.223,
+         "weight": 0.0743
+        },
+        {
+         "hand": "A4s",
+         "combos": 0.206,
+         "weight": 0.0687
+        },
+        {
+         "hand": "J9s",
+         "combos": 0.178,
+         "weight": 0.0592
+        },
+        {
+         "hand": "JTo",
+         "combos": 0.163,
+         "weight": 0.0136
+        },
+        {
+         "hand": "K4s",
+         "combos": 0.163,
+         "weight": 0.0814
+        },
+        {
+         "hand": "AJs",
+         "combos": 0.152,
+         "weight": 0.038
+        },
+        {
+         "hand": "QJo",
+         "combos": 0.15,
+         "weight": 0.0125
+        },
+        {
+         "hand": "A7o",
+         "combos": 0.129,
+         "weight": 0.0143
+        },
+        {
+         "hand": "Q2s",
+         "combos": 0.122,
+         "weight": 0.0406
+        },
+        {
+         "hand": "QJs",
+         "combos": 0.119,
+         "weight": 0.0298
+        },
+        {
+         "hand": "QTs",
+         "combos": 0.119,
+         "weight": 0.0296
+        },
+        {
+         "hand": "A8s",
+         "combos": 0.115,
+         "weight": 0.0287
+        },
+        {
+         "hand": "JTs",
+         "combos": 0.11,
+         "weight": 0.0274
+        },
+        {
+         "hand": "T9s",
+         "combos": 0.094,
+         "weight": 0.0312
+        },
+        {
+         "hand": "K2s",
+         "combos": 0.083,
+         "weight": 0.0415
+        },
+        {
+         "hand": "KQo",
+         "combos": 0.059,
+         "weight": 0.0065
+        },
+        {
+         "hand": "33",
+         "combos": 0.05,
+         "weight": 0.0083
+        },
+        {
+         "hand": "K6s",
+         "combos": 0.04,
+         "weight": 0.0134
+        },
+        {
+         "hand": "KTo",
+         "combos": 0.039,
+         "weight": 0.0044
+        },
+        {
+         "hand": "KJo",
+         "combos": 0.034,
+         "weight": 0.0038
+        },
+        {
+         "hand": "Q4s",
+         "combos": 0.03,
+         "weight": 0.0101
+        },
+        {
+         "hand": "64s",
+         "combos": 0.029,
+         "weight": 0.0098
+        },
+        {
+         "hand": "54s",
+         "combos": 0.021,
+         "weight": 0.0071
+        },
+        {
+         "hand": "K7s",
+         "combos": 0.012,
+         "weight": 0.0041
+        },
+        {
+         "hand": "43s",
+         "combos": 0.01,
+         "weight": 0.0032
+        },
+        {
+         "hand": "A9s",
+         "combos": 0.008,
+         "weight": 0.0025
+        },
+        {
+         "hand": "KTs",
+         "combos": 0.007,
+         "weight": 0.0024
+        },
+        {
+         "hand": "99",
+         "combos": 0.004,
+         "weight": 0.0014
+        },
+        {
+         "hand": "A3s",
+         "combos": 0.003,
+         "weight": 0.0007
+        },
+        {
+         "hand": "J4s",
+         "combos": 0.003,
+         "weight": 0.0009
+        },
+        {
+         "hand": "KJs",
+         "combos": 0.002,
+         "weight": 0.0007
+        }
+       ],
+       "range": "9s9c:0.006,9d9c:0.006,8s8h:0.179,8s8d:0.352,8s8c:0.309,8h8d:0.177,8h8c:0.161,8d8c:0.308,7s7d:0.405,7s7c:0.349,7d7c:0.35,6s6h:0.071,6s6d:0.18,6s6c:0.16,6h6d:0.073,6h6c:0.025,6d6c:0.161,3s3h:0.048,3h3d:0.048,3h3c:0.05,AsQh:0.037,AsQd:0.048,AsQc:0.043,AhQs:0.113,AhQd:0.113,AhQc:0.098,AdQs:0.046,AdQh:0.035,AdQc:0.041,AcQs:0.037,AcQh:0.029,AcQd:0.037,AhJh:0.238,AcJc:0.206,AsJh:0.436,AhJs:0.613,AhJd:0.613,AhJc:0.564,AdJh:0.415,AcJh:0.363,AhTh:0.251,AcTc,AsTh:0.561,AhTs:0.704,AhTd:0.704,AhTc:0.668,AdTh:0.551,AcTh:0.461,As9s:0.007,Ad9d:0.009,Ac9c:0.006,As9d:0.006,Ah9s:0.208,Ah9d:0.208,Ah9c:0.225,Ad9s:0.008,Ac9s:0.012,Ac9d:0.012,Ah8h:0.08,Ac8c:0.255,Ah8s:0.754,Ah8d:0.754,Ah8c:0.877,Ah7s:0.028,Ah7d:0.028,Ah7c:0.32,Ah4h:0.601,Ah3h:0.008,Ah2h:0.702,KsQh:0.062,KsQc:0.005,KdQh:0.058,KdQc:0.005,KcQh:0.041,KcJc:0.006,KsJh:0.032,KsJc:0.005,KdJh:0.032,KdJc:0.005,KcJh:0.025,KsTs:0.006,KdTd:0.006,KcTc:0.009,KsTh:0.037,KsTc:0.007,KdTh:0.04,KdTc:0.008,KcTh:0.023,Ks9s:0.267,Kd9d:0.269,Kc9c:0.352,Ks9d:0.178,Ks9c:0.208,Kd9s:0.18,Kd9c:0.209,Kc9s:0.207,Kc9d:0.207,Ks7s:0.009,Kd7d:0.011,Kc7c:0.016,Ks6s:0.032,Kd6d:0.032,Kc6c:0.053,Ks5s:0.446,Kd5d:0.461,Kc5c:0.399,Ks4s:0.238,Kd4d:0.237,Ks3s:0.225,Kd3d:0.23,Kc3c:0.195,Kd2d:0.115,Kc2c:0.127,QsJs:0.129,QdJd:0.13,QcJc:0.089,QsJd:0.085,QsJc:0.068,QdJs:0.085,QdJc:0.068,QcJs:0.066,QcJd:0.066,QsTs:0.154,QdTd:0.154,QcTc:0.038,QsTh:0.007,QsTd:0.165,QsTc:0.112,QdTs:0.165,QdTh:0.007,QdTc:0.112,QcTs:0.123,QcTh:0.007,QcTd:0.124,Qs9s:0.229,Qd9d:0.229,Qc9c:0.354,Qs9d:0.093,Qs9c:0.092,Qh9s:0.151,Qh9d:0.152,Qh9c:0.163,Qd9s:0.093,Qd9c:0.092,Qc9s:0.141,Qc9d:0.141,Qh4h:0.088,Qh2h:0.355,JsTs:0.149,JdTd:0.149,JcTc:0.022,JsTd:0.125,JsTc:0.048,JdTs:0.125,JdTc:0.049,JcTs:0.065,JcTd:0.065,Js9s:0.136,Jd9d:0.136,Jc9c:0.246,Js9d:0.078,Js9c:0.082,Jh9s:0.26,Jh9d:0.26,Jh9c:0.267,Jd9s:0.079,Jd9c:0.082,Jc9s:0.138,Jc9d:0.138,Jh4h:0.008,Ts9s:0.08,Td9d:0.08,Tc9c:0.113,Ts9d:0.124,Ts9c:0.12,Th9s:0.25,Th9d:0.25,Th9c:0.284,Td9s:0.124,Td9c:0.12,Tc9s:0.167,Tc9d:0.167,6s4s:0.044,6d4d:0.042,5s4s:0.018,5h4h:0.027,5d4d:0.017,4h3h:0.028",
+       "lineProbability": 0.03842,
+       "blended": true
+      },
+      "ip": {
+       "position": "BTN",
+       "combosBefore": 469.9,
+       "combosAfter": 32.79,
+       "classes": [
+        {
+         "hand": "ATo",
+         "combos": 1.876,
+         "weight": 0.1563
+        },
+        {
+         "hand": "A6o",
+         "combos": 1.547,
+         "weight": 0.1289
+        },
+        {
+         "hand": "A8o",
+         "combos": 1.5,
+         "weight": 0.125
+        },
+        {
+         "hand": "AJo",
+         "combos": 1.465,
+         "weight": 0.1221
+        },
+        {
+         "hand": "A7o",
+         "combos": 1.355,
+         "weight": 0.1505
+        },
+        {
+         "hand": "Q9o",
+         "combos": 0.965,
+         "weight": 0.1073
+        },
+        {
+         "hand": "J9o",
+         "combos": 0.92,
+         "weight": 0.1022
+        },
+        {
+         "hand": "QQ",
+         "combos": 0.912,
+         "weight": 0.1521
+        },
+        {
+         "hand": "A9o",
+         "combos": 0.861,
+         "weight": 0.0957
+        },
+        {
+         "hand": "JJ",
+         "combos": 0.851,
+         "weight": 0.1418
+        },
+        {
+         "hand": "JTo",
+         "combos": 0.791,
+         "weight": 0.0659
+        },
+        {
+         "hand": "T9o",
+         "combos": 0.76,
+         "weight": 0.0844
+        },
+        {
+         "hand": "K8o",
+         "combos": 0.702,
+         "weight": 0.078
+        },
+        {
+         "hand": "T8o",
+         "combos": 0.669,
+         "weight": 0.0557
+        },
+        {
+         "hand": "A4o",
+         "combos": 0.646,
+         "weight": 0.0718
+        },
+        {
+         "hand": "TT",
+         "combos": 0.58,
+         "weight": 0.0967
+        },
+        {
+         "hand": "AQo",
+         "combos": 0.522,
+         "weight": 0.0435
+        },
+        {
+         "hand": "AJs",
+         "combos": 0.518,
+         "weight": 0.1294
+        },
+        {
+         "hand": "86s",
+         "combos": 0.468,
+         "weight": 0.1171
+        },
+        {
+         "hand": "AQs",
+         "combos": 0.458,
+         "weight": 0.1145
+        },
+        {
+         "hand": "ATs",
+         "combos": 0.455,
+         "weight": 0.1138
+        },
+        {
+         "hand": "A3o",
+         "combos": 0.436,
+         "weight": 0.0363
+        },
+        {
+         "hand": "J6s",
+         "combos": 0.431,
+         "weight": 0.1078
+        },
+        {
+         "hand": "Q3s",
+         "combos": 0.421,
+         "weight": 0.1053
+        },
+        {
+         "hand": "QTo",
+         "combos": 0.417,
+         "weight": 0.0347
+        },
+        {
+         "hand": "Q7s",
+         "combos": 0.398,
+         "weight": 0.1328
+        },
+        {
+         "hand": "T6s",
+         "combos": 0.396,
+         "weight": 0.0989
+        },
+        {
+         "hand": "Q6s",
+         "combos": 0.395,
+         "weight": 0.0987
+        },
+        {
+         "hand": "Q8s",
+         "combos": 0.394,
+         "weight": 0.0984
+        },
+        {
+         "hand": "T8s",
+         "combos": 0.388,
+         "weight": 0.0971
+        },
+        {
+         "hand": "J8s",
+         "combos": 0.37,
+         "weight": 0.0924
+        },
+        {
+         "hand": "J5s",
+         "combos": 0.367,
+         "weight": 0.0917
+        },
+        {
+         "hand": "76s",
+         "combos": 0.352,
+         "weight": 0.1173
+        },
+        {
+         "hand": "75s",
+         "combos": 0.346,
+         "weight": 0.1152
+        },
+        {
+         "hand": "K5s",
+         "combos": 0.345,
+         "weight": 0.115
+        },
+        {
+         "hand": "Q5s",
+         "combos": 0.344,
+         "weight": 0.0859
+        },
+        {
+         "hand": "A5o",
+         "combos": 0.343,
+         "weight": 0.0286
+        },
+        {
+         "hand": "T7s",
+         "combos": 0.343,
+         "weight": 0.1143
+        },
+        {
+         "hand": "33",
+         "combos": 0.342,
+         "weight": 0.057
+        },
+        {
+         "hand": "87s",
+         "combos": 0.341,
+         "weight": 0.1138
+        },
+        {
+         "hand": "J7s",
+         "combos": 0.323,
+         "weight": 0.1077
+        },
+        {
+         "hand": "J9s",
+         "combos": 0.315,
+         "weight": 0.1051
+        },
+        {
+         "hand": "A8s",
+         "combos": 0.312,
+         "weight": 0.0781
+        },
+        {
+         "hand": "Q9s",
+         "combos": 0.311,
+         "weight": 0.1037
+        },
+        {
+         "hand": "98s",
+         "combos": 0.31,
+         "weight": 0.1034
+        },
+        {
+         "hand": "A9s",
+         "combos": 0.307,
+         "weight": 0.1023
+        },
+        {
+         "hand": "QJo",
+         "combos": 0.302,
+         "weight": 0.0252
+        },
+        {
+         "hand": "K7s",
+         "combos": 0.299,
+         "weight": 0.0997
+        },
+        {
+         "hand": "K6s",
+         "combos": 0.298,
+         "weight": 0.0994
+        },
+        {
+         "hand": "97s",
+         "combos": 0.29,
+         "weight": 0.0967
+        },
+        {
+         "hand": "A2s",
+         "combos": 0.276,
+         "weight": 0.0921
+        },
+        {
+         "hand": "A6s",
+         "combos": 0.273,
+         "weight": 0.0682
+        },
+        {
+         "hand": "A7s",
+         "combos": 0.271,
+         "weight": 0.0903
+        },
+        {
+         "hand": "T9s",
+         "combos": 0.27,
+         "weight": 0.0901
+        },
+        {
+         "hand": "K8s",
+         "combos": 0.257,
+         "weight": 0.0857
+        },
+        {
+         "hand": "55",
+         "combos": 0.249,
+         "weight": 0.0415
+        },
+        {
+         "hand": "K7o",
+         "combos": 0.243,
+         "weight": 0.0405
+        },
+        {
+         "hand": "A2o",
+         "combos": 0.237,
+         "weight": 0.0263
+        },
+        {
+         "hand": "66",
+         "combos": 0.233,
+         "weight": 0.0388
+        },
+        {
+         "hand": "JTs",
+         "combos": 0.207,
+         "weight": 0.0518
+        },
+        {
+         "hand": "65s",
+         "combos": 0.179,
+         "weight": 0.0447
+        },
+        {
+         "hand": "K3s",
+         "combos": 0.164,
+         "weight": 0.0547
+        },
+        {
+         "hand": "KTo",
+         "combos": 0.145,
+         "weight": 0.0161
+        },
+        {
+         "hand": "QTs",
+         "combos": 0.142,
+         "weight": 0.0354
+        },
+        {
+         "hand": "A4s",
+         "combos": 0.141,
+         "weight": 0.0469
+        },
+        {
+         "hand": "96s",
+         "combos": 0.133,
+         "weight": 0.0444
+        },
+        {
+         "hand": "QJs",
+         "combos": 0.096,
+         "weight": 0.0241
+        },
+        {
+         "hand": "A3s",
+         "combos": 0.054,
+         "weight": 0.0135
+        },
+        {
+         "hand": "KTs",
+         "combos": 0.042,
+         "weight": 0.0141
+        },
+        {
+         "hand": "J8o",
+         "combos": 0.037,
+         "weight": 0.0031
+        },
+        {
+         "hand": "54s",
+         "combos": 0.036,
+         "weight": 0.0121
+        },
+        {
+         "hand": "A5s",
+         "combos": 0.028,
+         "weight": 0.0071
+        },
+        {
+         "hand": "88",
+         "combos": 0.017,
+         "weight": 0.0028
+        },
+        {
+         "hand": "AKo",
+         "combos": 0.004,
+         "weight": 0.0004
+        }
+       ],
+       "range": "QsQh:0.653,QsQd:0.436,QsQc:0.436,QhQd:0.653,QhQc:0.655,QdQc:0.436,JsJh:0.523,JsJd:0.493,JsJc:0.491,JhJd:0.523,JhJc:0.528,JdJc:0.491,TsTh:0.369,TsTd:0.344,TsTc:0.322,ThTd:0.369,ThTc:0.353,TdTc:0.322,8s8h:0.021,8h8d:0.021,8h8c:0.019,6s6h:0.153,6s6d:0.1,6s6c:0.125,6h6d:0.152,6h6c:0.18,6d6c:0.125,5s5h:0.181,5s5d:0.125,5s5c:0.117,5h5d:0.181,5h5c:0.171,5d5c:0.117,3s3h:0.173,3s3d:0.264,3s3c:0.252,3h3d:0.173,3h3c:0.112,3d3c:0.252,AsKc:0.007,AdKc:0.007,AsQs:0.24,AhQh:0.451,AdQd:0.24,AcQc:0.71,AsQh:0.389,AsQd:0.251,AsQc:0.128,AhQs:0.024,AhQd:0.024,AhQc:0.009,AdQs:0.251,AdQh:0.388,AdQc:0.127,AcQs:0.045,AcQh:0.188,AcQd:0.045,AsJs:0.421,AhJh:0.356,AdJd:0.421,AcJc:0.657,AsJh:0.41,AsJd:0.449,AsJc:0.451,AhJs:0.573,AhJd:0.573,AhJc:0.536,AdJs:0.448,AdJh:0.409,AdJc:0.45,AcJs:0.372,AcJh:0.208,AcJd:0.372,AsTs:0.474,AhTh:0.06,AdTd:0.473,AcTc:0.624,AsTh:0.297,AsTd:0.465,AsTc:0.554,AhTs:0.837,AhTd:0.837,AhTc:0.845,AdTs:0.464,AdTh:0.296,AdTc:0.553,AcTs:0.612,AcTh:0.35,AcTd:0.612,As9s:0.344,Ad9d:0.344,Ac9c:0.412,As9d:0.344,As9c:0.346,Ah9s:0.38,Ah9d:0.38,Ah9c:0.366,Ad9s:0.344,Ad9c:0.346,Ac9s:0.29,Ac9d:0.29,As8s:0.269,Ah8h:0.005,Ad8d:0.267,Ac8c:0.578,As8h:0.155,As8d:0.266,As8c:0.252,Ah8s:0.898,Ah8d:0.897,Ah8c:0.91,Ad8s:0.264,Ad8h:0.154,Ad8c:0.251,Ac8s:0.486,Ac8h:0.357,Ac8d:0.486,As7s:0.253,Ad7d:0.251,Ac7c:0.467,As7d:0.247,As7c:0.225,Ah7s,Ah7d:0.999,Ah7c:0.955,Ad7s:0.246,Ad7c:0.219,Ac7s:0.482,Ac7d:0.482,As6s:0.267,Ah6h:0.006,Ad6d:0.264,Ac6c:0.44,As6h:0.215,As6d:0.263,As6c:0.214,Ah6s:0.932,Ah6d:0.932,Ah6c:0.861,Ad6s:0.261,Ad6h:0.213,Ad6c:0.212,Ac6s:0.508,Ac6h:0.424,Ac6d:0.508,Ah5h:0.01,Ac5c:0.092,Ah5s:0.317,Ah5d:0.317,Ah5c:0.301,Ac5s:0.091,Ac5h:0.114,Ac5d:0.09,As4s:0.254,Ad4d:0.25,As4h:0.223,As4d:0.255,Ah4s:0.352,Ah4d:0.352,Ad4s:0.252,Ad4h:0.22,Ac4s:0.25,Ac4h:0.16,Ac4d:0.25,As3s:0.013,Ad3d:0.013,Ac3c:0.167,As3h:0.013,As3d:0.011,As3c:0.011,Ah3s:0.329,Ah3d:0.328,Ah3c:0.317,Ad3s:0.01,Ad3h:0.013,Ad3c:0.01,Ac3s:0.181,Ac3h:0.158,Ac3d:0.181,Ah2h:0.04,Ad2d:0.418,Ac2c:0.532,As2h:0.064,As2d:0.078,As2c:0.079,Ah2d:0.142,Ah2c:0.151,Ad2h:0.064,Ad2c:0.079,Ac2h:0.088,Ac2d:0.103,KsTs:0.049,KdTd:0.042,KcTc:0.061,KsTh:0.07,KsTd:0.048,KsTc:0.038,KdTs:0.042,KdTh:0.063,KdTc:0.033,KcTs:0.067,KcTh:0.092,KcTd:0.067,Ks8s:0.284,Kd8d:0.275,Kc8c:0.362,Ks8h:0.344,Ks8d:0.273,Ks8c:0.218,Kd8s:0.265,Kd8h:0.334,Kd8c:0.212,Kc8s:0.277,Kc8h:0.316,Kc8d:0.277,Ks7s:0.333,Kd7d:0.324,Kc7c:0.415,Ks7d:0.158,Ks7c:0.127,Kd7s:0.154,Kd7c:0.124,Kc7s:0.154,Kc7d:0.154,Ks6s:0.323,Kd6d:0.317,Kc6c:0.429,Ks5s:0.362,Kd5d:0.358,Kc5c:0.516,Ks3s:0.101,Kd3d:0.101,Kc3c:0.386,QsJs:0.125,QdJd:0.125,QcJc:0.095,QsJh:0.116,QsJd:0.133,QsJc:0.13,QhJs:0.018,QhJd:0.018,QhJc:0.019,QdJs:0.133,QdJh:0.116,QdJc:0.13,QcJs:0.098,QcJh:0.073,QcJd:0.098,QsTs:0.155,QdTd:0.155,QcTc:0.198,QsTh:0.12,QsTd:0.153,QsTc:0.23,QhTs:0.022,QhTd:0.022,QhTc:0.104,QdTs:0.153,QdTh:0.12,QdTc:0.23,QcTs:0.122,QcTh:0.095,QcTd:0.122,Qs9s:0.353,Qd9d:0.353,Qc9c:0.409,Qs9d:0.354,Qs9c:0.347,Qh9s:0.448,Qh9d:0.448,Qh9c:0.442,Qd9s:0.355,Qd9c:0.347,Qc9s:0.359,Qc9d:0.359,Qs8s:0.537,Qd8d:0.537,Qc8c:0.336,Qs7s:0.566,Qd7d:0.566,Qc7c:0.295,Qs6s:0.561,Qd6d:0.561,Qc6c:0.293,Qs5s:0.486,Qd5d:0.485,Qc5c:0.26,Qs3s:0.585,Qd3d:0.584,Qc3c:0.34,JsTs:0.217,JdTd:0.217,JcTc:0.309,JsTh:0.197,JsTd:0.22,JsTc:0.284,JhTs:0.238,JhTd:0.238,JhTc:0.303,JdTs:0.22,JdTh:0.197,JdTc:0.284,JcTs:0.224,JcTh:0.205,JcTd:0.224,Js9s:0.354,Jd9d:0.354,Jc9c:0.422,Js9d:0.356,Js9c:0.353,Jh9s:0.395,Jh9d:0.395,Jh9c:0.391,Jd9s:0.356,Jd9c:0.353,Jc9s:0.348,Jc9d:0.348,Js8s:0.437,Jh8h:0.112,Jd8d:0.436,Jc8c:0.339,Js8h:0.01,Js8d:0.013,Js8c:0.013,Jh8s:0.01,Jh8d:0.01,Jh8c:0.01,Jd8s:0.013,Jd8h:0.01,Jd8c:0.013,Jc8s:0.011,Jc8h:0.008,Jc8d:0.011,Js7s:0.445,Jd7d:0.445,Jc7c:0.268,Js6s:0.539,Jh6h:0.113,Jd6d:0.539,Jc6c:0.354,Js5s:0.461,Jh5h:0.081,Jd5d:0.46,Jc5c:0.313,Ts9s:0.299,Td9d:0.299,Tc9c:0.371,Ts9d:0.297,Ts9c:0.291,Th9s:0.342,Th9d:0.342,Th9c:0.334,Td9s:0.297,Td9c:0.291,Tc9s:0.264,Tc9d:0.264,Ts8s:0.384,Th8h:0.144,Td8d:0.384,Tc8c:0.479,Ts8h:0.172,Ts8d:0.23,Ts8c:0.228,Th8s:0.134,Th8d:0.134,Th8c:0.115,Td8s:0.23,Td8h:0.172,Td8c:0.228,Tc8s:0.276,Tc8h:0.203,Tc8d:0.275,Ts7s:0.403,Td7d:0.403,Tc7c:0.423,Ts6s:0.475,Th6h:0.049,Td6d:0.475,Tc6c:0.419,9s8s:0.35,9d8d:0.35,9c8c:0.411,9s7s:0.325,9d7d:0.325,9c7c:0.389,9s6s:0.142,9d6d:0.142,9c6c:0.193,8s7s:0.418,8d7d:0.417,8c7c:0.388,8s6s:0.484,8h6h:0.252,8d6d:0.483,8c6c:0.459,7s6s:0.428,7d6d:0.427,7c6c:0.406,7s5s:0.419,7d5d:0.418,7c5c:0.401,6s5s:0.216,6d5d:0.214,6c5c:0.211,5s4s:0.065,5d4d:0.065",
+       "lineProbability": 0.06982,
+       "blended": false
+      }
+     },
+     "flopSolveMs": 8885,
+     "iterations": 40,
+     "exploitabilityPct": 0.9239
+    },
+    "streetLine": {
+     "matched": true,
+     "villainRange": {
+      "position": "BB",
+      "combosBefore": 32,
+      "combosAfter": 14.59,
+      "classes": [
+       {
+        "hand": "ATo",
+        "combos": 3.495,
+        "weight": 0.2912
+       },
+       {
+        "hand": "AJo",
+        "combos": 2.894,
+        "weight": 0.2412
+       },
+       {
+        "hand": "ATs",
+        "combos": 1,
+        "weight": 0.25
+       },
+       {
+        "hand": "77",
+        "combos": 0.888,
+        "weight": 0.296
+       },
+       {
+        "hand": "66",
+        "combos": 0.67,
+        "weight": 0.1117
+       },
+       {
+        "hand": "AQo",
+        "combos": 0.642,
+        "weight": 0.0535
+       },
+       {
+        "hand": "A8o",
+        "combos": 0.477,
+        "weight": 0.0397
+       },
+       {
+        "hand": "T9o",
+        "combos": 0.464,
+        "weight": 0.0516
+       },
+       {
+        "hand": "88",
+        "combos": 0.429,
+        "weight": 0.0715
+       },
+       {
+        "hand": "J9o",
+        "combos": 0.36,
+        "weight": 0.04
+       },
+       {
+        "hand": "Q9o",
+        "combos": 0.294,
+        "weight": 0.0327
+       },
+       {
+        "hand": "A7o",
+        "combos": 0.288,
+        "weight": 0.032
+       },
+       {
+        "hand": "K9o",
+        "combos": 0.274,
+        "weight": 0.0457
+       },
+       {
+        "hand": "K5s",
+        "combos": 0.263,
+        "weight": 0.0877
+       },
+       {
+        "hand": "A9o",
+        "combos": 0.233,
+        "weight": 0.0259
+       },
+       {
+        "hand": "AJs",
+        "combos": 0.206,
+        "weight": 0.0515
+       },
+       {
+        "hand": "K9s",
+        "combos": 0.205,
+        "weight": 0.0683
+       },
+       {
+        "hand": "K4s",
+        "combos": 0.197,
+        "weight": 0.0985
+       },
+       {
+        "hand": "Q9s",
+        "combos": 0.19,
+        "weight": 0.0633
+       },
+       {
+        "hand": "33",
+        "combos": 0.146,
+        "weight": 0.0243
+       },
+       {
+        "hand": "J9s",
+        "combos": 0.133,
+        "weight": 0.0443
+       },
+       {
+        "hand": "K3s",
+        "combos": 0.129,
+        "weight": 0.043
+       },
+       {
+        "hand": "A8s",
+        "combos": 0.101,
+        "weight": 0.0253
+       },
+       {
+        "hand": "Q2s",
+        "combos": 0.095,
+        "weight": 0.0317
+       },
+       {
+        "hand": "K2s",
+        "combos": 0.093,
+        "weight": 0.0465
+       },
+       {
+        "hand": "64s",
+        "combos": 0.086,
+        "weight": 0.0287
+       },
+       {
+        "hand": "T9s",
+        "combos": 0.075,
+        "weight": 0.025
+       },
+       {
+        "hand": "KQo",
+        "combos": 0.061,
+        "weight": 0.0068
+       },
+       {
+        "hand": "54s",
+        "combos": 0.043,
+        "weight": 0.0143
+       },
+       {
+        "hand": "KJo",
+        "combos": 0.039,
+        "weight": 0.0043
+       },
+       {
+        "hand": "KTo",
+        "combos": 0.037,
+        "weight": 0.0041
+       },
+       {
+        "hand": "Q4s",
+        "combos": 0.032,
+        "weight": 0.0107
+       },
+       {
+        "hand": "K6s",
+        "combos": 0.023,
+        "weight": 0.0077
+       },
+       {
+        "hand": "K7s",
+        "combos": 0.019,
+        "weight": 0.0063
+       },
+       {
+        "hand": "43s",
+        "combos": 0.008,
+        "weight": 0.0027
+       }
+      ]
+     }
+    },
+    "villainHand": null,
+    "stats": {
+     "exploitabilityPct": 0.4878,
+     "targetExploitabilityPct": 0.5,
+     "iterations": 90,
+     "solveMs": 8900,
+     "memoryMb": 0.3,
+     "compressed": false
+    }
+   }
+  },
+  {
+   "id": "rare-line-bb-donk-turn",
+   "pass": false,
+   "seconds": 11.92,
+   "outcomes": [
+    {
+     "label": "status ok",
+     "pass": true,
+     "detail": "ok"
+    },
+    {
+     "label": "spot.street=turn",
+     "pass": true,
+     "detail": "turn"
+    },
+    {
+     "label": "spot.potType=srp",
+     "pass": true,
+     "detail": "srp"
+    },
+    {
+     "label": "spot.heroPosition=BTN",
+     "pass": true,
+     "detail": "BTN"
+    },
+    {
+     "label": "spot.villainPosition=BB",
+     "pass": true,
+     "detail": "BB"
+    },
+    {
+     "label": "spot.board=Ks7d2c9h",
+     "pass": true,
+     "detail": "Ks7d2c9h"
+    },
+    {
+     "label": "spot.heroHand=KhQh",
+     "pass": true,
+     "detail": "KhQh"
+    },
+    {
+     "label": "narrowed, oop rare line",
+     "pass": false,
+     "detail": "line p=12% blended=false"
+    },
+    {
+     "label": "hero Fold <=30%",
+     "pass": true,
+     "detail": "0%"
+    },
+    {
+     "label": "not CLEAR Fold",
+     "pass": true,
+     "detail": "SLIGHT EDGE: CALL 9bb (+0.38bb OVER RAISE 27bb)"
+    },
+    {
+     "label": "time <=60s",
+     "pass": true,
+     "detail": "11.9s"
+    }
+   ],
+   "summary": {
+    "spot": "turn srp BTN(ip) v BB Ks7d2c9h KhQh pot 13.5 stack 93.5",
+    "hero": "Fold 0% ev 0 | Call 9bb 99% ev 5.57 | Raise 27bb 1% ev 5.19 | All-in 93.5bb 0% ev -1.26",
+    "heroEquity": 0.6155,
+    "verdict": "SLIGHT EDGE: CALL 9bb (+0.38bb OVER RAISE 27bb)",
+    "oopNode": "BB acts first: Check 56%, Bet 4.46bb 3%, Bet 9bb 15%, Bet 10.13bb 26%",
+    "ipNode": "BTN facing BB bet 9bb: Fold 34%, Call 9bb 64%, Raise 27bb 2%, All-in 93.5bb 0%",
+    "narrowing": {
+     "oop": {
+      "combos": 35,
+      "lineProbability": 0.11826,
+      "blended": false
+     },
+     "ip": {
+      "combos": 348,
+      "lineProbability": 0.72783,
+      "blended": false
+     }
+    },
+    "solveMs": 9295,
+    "exploitabilityPct": 0.4586,
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 13.5bb pot at the start of the turn from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 93.5bb effective stack at the start of the turn (100bb minus 6.5bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the turn and river: 33%, 75%, plus all-in on the river; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain bet 4bb, you called on the flop). Flop model: you bet 33%/75%, villain doesn't lead, no raises; villain's 4bb bet added for villain. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Strategy shown at your decision after the turn action (villain bet 9bb)",
+     "Added to the solver's turn sizes: villain's 9bb bet for villain"
+    ]
+   },
+   "response": {
+    "status": "ok",
+    "spot": {
+     "board": "Ks7d2c9h",
+     "street": "turn",
+     "potType": "srp",
+     "heroPosition": "BTN",
+     "villainPosition": "BB",
+     "oopPosition": "BB",
+     "ipPosition": "BTN",
+     "heroPlayer": "ip",
+     "heroHand": "KhQh",
+     "potBb": 13.5,
+     "effectiveStackBb": 93.5,
+     "oopRange": "AJs:0.38,ATs,A9s,A8s,A7s,A6s,A5s:0.37,A4s,A3s,A2s,KJs,KTs,K9s,K8s,K7s,K6s:0.89,K5s,K4s:0.95,K3s:0.33,K2s:0.38,QJs:0.89,QTs:0.67,Q9s:0.87,Q8s:0.67,Q7s:0.81,Q6s:0.63,Q5s:0.8,Q4s:0.92,Q3s:0.39,Q2s:0.59,JTs:0.75,J9s:0.66,J8s:0.79,J7s:0.39,J6s:0.54,J5s:0.84,J4s:0.21,T9s:0.46,T8s:0.86,T7s:0.56,T6s:0.35,99:0.54,98s:0.88,97s,96s:0.95,88:0.86,87s:0.75,86s,85s,77:0.98,76s:0.77,75s,74s:0.91,66:0.89,65s:0.67,64s,55:0.84,54s:0.66,53s,44,43s,33,22,AQo:0.18,AJo:0.91,ATo:0.71,A9o:0.9,A8o:0.88,A7o:0.6,A5o:0.5,A4o:0.17,KQo:0.71,KJo:0.46,KTo:0.52,K9o:0.68,QJo:0.59,QTo:0.72,Q9o:0.35,JTo:0.63,J9o:0.38,T9o:0.71",
+     "ipRange": "AA,AKs,AQs,AJs,ATs,A9s,A8s,A7s,A6s,A5s,A4s,A3s,A2s,KK,KQs,KJs,KTs,K9s,K8s,K7s,K6s,K5s,K4s,K3s,K2s,QQ,QJs,QTs,Q9s,Q8s,Q7s,Q6s,Q5s,Q4s,Q3s,JJ,JTs,J9s,J8s,J7s,J6s,J5s,J4s:0.57,TT,T9s,T8s,T7s,T6s,99,98s,97s,96s:0.58,88,87s,86s,77,76s,75s:0.85,66,65s,55,54s:0.63,44,33,22:0.56,AKo,AQo,AJo,ATo,A9o,A8o,A7o,A6o,A5o,A4o,A3o,A2o:0.19,KQo,KJo,KTo,K9o,K8o:0.97,K7o:0.47,QJo,QTo,Q9o,JTo,J9o,J8o:0.03,T9o,T8o:0.64",
+     "betSizes": {
+      "flop": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "turn": {
+       "bet": "33%, 75%",
+       "raise": "3x"
+      },
+      "river": {
+       "bet": "33%, 75%, a",
+       "raise": "3x"
+      }
+     }
+    },
+    "assumptions": [
+     "Assumed a 5.5bb pot (standard single raised pot at the flop)",
+     "Computed a 13.5bb pot at the start of the turn from the betting",
+     "Assumed 100bb effective stacks (starting stack)",
+     "Computed a 93.5bb effective stack at the start of the turn (100bb minus 6.5bb put in)",
+     "Assumed standard 100bb ranges: BTN open vs BB call",
+     "Bet sizes the solver considers on the turn and river: 33%, 75%, plus all-in on the river; raises 3x (you didn't specify)",
+     "Ranges narrowed by a simplified flop solve of your line (villain bet 4bb, you called on the flop). Flop model: you bet 33%/75%, villain doesn't lead, no raises; villain's 4bb bet added for villain. Later streets: one bet size, no raises or leads into the last bettor.",
+     "Strategy shown at your decision after the turn action (villain bet 9bb)",
+     "Added to the solver's turn sizes: villain's 9bb bet for villain"
+    ],
+    "notes": null,
+    "players": {
+     "oop": {
+      "position": "BB",
+      "equity": 0.5266,
+      "evBb": 18.8
+     },
+     "ip": {
+      "position": "BTN",
+      "equity": 0.4734,
+      "evBb": 3.7
+     }
+    },
+    "nodes": [
+     {
+      "title": "BB acts first",
+      "player": "oop",
+      "position": "BB",
+      "isHero": false,
+      "actions": [
+       {
+        "action": "Check",
+        "label": "Check",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.5619,
+        "topClasses": [
+         {
+          "hand": "54s",
+          "frequency": 0.9965
+         },
+         {
+          "hand": "55",
+          "frequency": 0.9983
+         },
+         {
+          "hand": "Q8s",
+          "frequency": 0.9994
+         },
+         {
+          "hand": "88",
+          "frequency": 0.9999
+         },
+         {
+          "hand": "K2s",
+          "frequency": 0.9967
+         },
+         {
+          "hand": "Q5s",
+          "frequency": 0.999
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 4.46bb",
+        "amountBb": 4.46,
+        "potPct": 33,
+        "frequency": 0.0262,
+        "topClasses": [
+         {
+          "hand": "KTs",
+          "frequency": 0.1643
+         },
+         {
+          "hand": "KJo",
+          "frequency": 0.1469
+         },
+         {
+          "hand": "KJs",
+          "frequency": 0.1397
+         },
+         {
+          "hand": "KTo",
+          "frequency": 0.1207
+         },
+         {
+          "hand": "J8s",
+          "frequency": 0.1118
+         },
+         {
+          "hand": "85s",
+          "frequency": 0.0874
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 9bb",
+        "amountBb": 9,
+        "potPct": 67,
+        "frequency": 0.1517,
+        "topClasses": [
+         {
+          "hand": "QJs",
+          "frequency": 0.3976
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.376
+         },
+         {
+          "hand": "KQo",
+          "frequency": 0.3206
+         },
+         {
+          "hand": "JTs",
+          "frequency": 0.3216
+         },
+         {
+          "hand": "JTo",
+          "frequency": 0.3187
+         },
+         {
+          "hand": "22",
+          "frequency": 0.311
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Bet",
+        "label": "Bet 10.13bb",
+        "amountBb": 10.13,
+        "potPct": 75,
+        "frequency": 0.2602,
+        "topClasses": [
+         {
+          "hand": "T8s",
+          "frequency": 0.6218
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.62
+         },
+         {
+          "hand": "QJs",
+          "frequency": 0.5983
+         },
+         {
+          "hand": "22",
+          "frequency": 0.5758
+         },
+         {
+          "hand": "86s",
+          "frequency": 0.5827
+         },
+         {
+          "hand": "JTo",
+          "frequency": 0.5297
+         }
+        ],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     },
+     {
+      "title": "BTN facing BB bet 9bb",
+      "player": "ip",
+      "position": "BTN",
+      "isHero": true,
+      "actions": [
+       {
+        "action": "Fold",
+        "label": "Fold",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.3447,
+        "topClasses": [
+         {
+          "hand": "AQo",
+          "frequency": 0.9993
+         },
+         {
+          "hand": "AJo",
+          "frequency": 0.9992
+         },
+         {
+          "hand": "ATo",
+          "frequency": 0.9991
+         },
+         {
+          "hand": "A8o",
+          "frequency": 0.9991
+         },
+         {
+          "hand": "AJs",
+          "frequency": 0.9988
+         },
+         {
+          "hand": "A8s",
+          "frequency": 0.9989
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Call",
+        "label": "Call 9bb",
+        "amountBb": 0,
+        "potPct": null,
+        "frequency": 0.637,
+        "topClasses": [
+         {
+          "hand": "JTo",
+          "frequency": 0.9991
+         },
+         {
+          "hand": "KJo",
+          "frequency": 0.998
+         },
+         {
+          "hand": "QJo",
+          "frequency": 0.9981
+         },
+         {
+          "hand": "JJ",
+          "frequency": 0.9987
+         },
+         {
+          "hand": "JTs",
+          "frequency": 0.9977
+         },
+         {
+          "hand": "86s",
+          "frequency": 1
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "Raise",
+        "label": "Raise 27bb",
+        "amountBb": 27,
+        "potPct": null,
+        "frequency": 0.0183,
+        "topClasses": [
+         {
+          "hand": "77",
+          "frequency": 0.4126
+         },
+         {
+          "hand": "99",
+          "frequency": 0.2148
+         },
+         {
+          "hand": "A2s",
+          "frequency": 0.1911
+         },
+         {
+          "hand": "87s",
+          "frequency": 0.1135
+         },
+         {
+          "hand": "A2o",
+          "frequency": 0.1026
+         },
+         {
+          "hand": "T7s",
+          "frequency": 0.0868
+         }
+        ],
+        "evBb": null,
+        "best": false
+       },
+       {
+        "action": "AllIn",
+        "label": "All-in 93.5bb",
+        "amountBb": 93.5,
+        "potPct": null,
+        "frequency": 0,
+        "topClasses": [],
+        "evBb": null,
+        "best": false
+       }
+      ]
+     }
+    ],
+    "heroHand": {
+     "hand": "KhQh",
+     "nodeTitle": "BTN facing BB bet 9bb",
+     "situation": "when BB bet",
+     "decision": "facing BB bet 9bb",
+     "streetAction": "BB bet 9bb",
+     "equity": 0.6155,
+     "evBb": 5.57,
+     "actions": [
+      {
+       "action": "Fold",
+       "label": "Fold",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": 0,
+       "best": false
+      },
+      {
+       "action": "Call",
+       "label": "Call 9bb",
+       "amountBb": 0,
+       "potPct": null,
+       "frequency": 0.99,
+       "topClasses": [],
+       "evBb": 5.57,
+       "best": true
+      },
+      {
+       "action": "Raise",
+       "label": "Raise 27bb",
+       "amountBb": 27,
+       "potPct": null,
+       "frequency": 0.01,
+       "topClasses": [],
+       "evBb": 5.19,
+       "best": false
+      },
+      {
+       "action": "AllIn",
+       "label": "All-in 93.5bb",
+       "amountBb": 93.5,
+       "potPct": null,
+       "frequency": 0,
+       "topClasses": [],
+       "evBb": -1.26,
+       "best": false
+      }
+     ],
+     "verdict": {
+      "kind": "slight",
+      "text": "SLIGHT EDGE: CALL 9bb (+0.38bb OVER RAISE 27bb)",
+      "gapBb": 0.38,
+      "gapPot": 0.01688888888888889
+     }
+    },
+    "narrowing": {
+     "players": {
+      "oop": {
+       "position": "BB",
+       "combosBefore": 293.6,
+       "combosAfter": 34.64,
+       "classes": [
+        {
+         "hand": "22",
+         "combos": 2.999,
+         "weight": 0.9996
+        },
+        {
+         "hand": "A3s",
+         "combos": 2.156,
+         "weight": 0.5391
+        },
+        {
+         "hand": "A4s",
+         "combos": 2.152,
+         "weight": 0.5381
+        },
+        {
+         "hand": "KQo",
+         "combos": 2.085,
+         "weight": 0.2317
+        },
+        {
+         "hand": "98s",
+         "combos": 2.074,
+         "weight": 0.6914
+        },
+        {
+         "hand": "86s",
+         "combos": 1.771,
+         "weight": 0.4428
+        },
+        {
+         "hand": "A6s",
+         "combos": 1.585,
+         "weight": 0.3964
+        },
+        {
+         "hand": "JTs",
+         "combos": 1.255,
+         "weight": 0.3136
+        },
+        {
+         "hand": "54s",
+         "combos": 1.185,
+         "weight": 0.2961
+        },
+        {
+         "hand": "T9s",
+         "combos": 1.142,
+         "weight": 0.3805
+        },
+        {
+         "hand": "77",
+         "combos": 1.103,
+         "weight": 0.3675
+        },
+        {
+         "hand": "65s",
+         "combos": 1.092,
+         "weight": 0.2729
+        },
+        {
+         "hand": "T8s",
+         "combos": 1.076,
+         "weight": 0.2689
+        },
+        {
+         "hand": "J9s",
+         "combos": 0.951,
+         "weight": 0.3169
+        },
+        {
+         "hand": "33",
+         "combos": 0.782,
+         "weight": 0.1303
+        },
+        {
+         "hand": "85s",
+         "combos": 0.77,
+         "weight": 0.1924
+        },
+        {
+         "hand": "A5s",
+         "combos": 0.749,
+         "weight": 0.1872
+        },
+        {
+         "hand": "44",
+         "combos": 0.719,
+         "weight": 0.1198
+        },
+        {
+         "hand": "QTs",
+         "combos": 0.71,
+         "weight": 0.1774
+        },
+        {
+         "hand": "JTo",
+         "combos": 0.653,
+         "weight": 0.0544
+        },
+        {
+         "hand": "A2s",
+         "combos": 0.615,
+         "weight": 0.2049
+        },
+        {
+         "hand": "QJs",
+         "combos": 0.577,
+         "weight": 0.1442
+        },
+        {
+         "hand": "KJs",
+         "combos": 0.569,
+         "weight": 0.1896
+        },
+        {
+         "hand": "A7s",
+         "combos": 0.568,
+         "weight": 0.1893
+        },
+        {
+         "hand": "K7s",
+         "combos": 0.517,
+         "weight": 0.2584
+        },
+        {
+         "hand": "K9s",
+         "combos": 0.482,
+         "weight": 0.2409
+        },
+        {
+         "hand": "K9o",
+         "combos": 0.475,
+         "weight": 0.0678
+        },
+        {
+         "hand": "A7o",
+         "combos": 0.437,
+         "weight": 0.0485
+        },
+        {
+         "hand": "KTs",
+         "combos": 0.419,
+         "weight": 0.1396
+        },
+        {
+         "hand": "75s",
+         "combos": 0.379,
+         "weight": 0.1263
+        },
+        {
+         "hand": "76s",
+         "combos": 0.374,
+         "weight": 0.1246
+        },
+        {
+         "hand": "96s",
+         "combos": 0.295,
+         "weight": 0.0983
+        },
+        {
+         "hand": "J8s",
+         "combos": 0.26,
+         "weight": 0.065
+        },
+        {
+         "hand": "Q9s",
+         "combos": 0.253,
+         "weight": 0.0843
+        },
+        {
+         "hand": "KJo",
+         "combos": 0.22,
+         "weight": 0.0244
+        },
+        {
+         "hand": "55",
+         "combos": 0.217,
+         "weight": 0.0362
+        },
+        {
+         "hand": "74s",
+         "combos": 0.205,
+         "weight": 0.0683
+        },
+        {
+         "hand": "KTo",
+         "combos": 0.177,
+         "weight": 0.0197
+        },
+        {
+         "hand": "A8s",
+         "combos": 0.156,
+         "weight": 0.039
+        },
+        {
+         "hand": "QJo",
+         "combos": 0.149,
+         "weight": 0.0124
+        },
+        {
+         "hand": "QTo",
+         "combos": 0.105,
+         "weight": 0.0087
+        },
+        {
+         "hand": "Q8s",
+         "combos": 0.086,
+         "weight": 0.0215
+        },
+        {
+         "hand": "88",
+         "combos": 0.049,
+         "weight": 0.0082
+        },
+        {
+         "hand": "K2s",
+         "combos": 0.016,
+         "weight": 0.008
+        },
+        {
+         "hand": "Q5s",
+         "combos": 0.012,
+         "weight": 0.003
+        },
+        {
+         "hand": "Q6s",
+         "combos": 0.01,
+         "weight": 0.0025
+        },
+        {
+         "hand": "Q4s",
+         "combos": 0.009,
+         "weight": 0.0022
+        },
+        {
+         "hand": "AJo",
+         "combos": 0.005,
+         "weight": 0.0004
+        }
+       ],
+       "range": "22,8s8h:0.01,8s8d:0.005,8s8c:0.006,8h8d:0.01,8h8c:0.012,8d8c:0.006,7s7h:0.373,7s7c:0.404,7h7c:0.326,5s5h:0.044,5s5d:0.032,5s5c:0.057,5h5d:0.025,5h5c:0.037,5d5c:0.022,4s4h:0.126,4s4d:0.117,4s4c:0.124,4h4d:0.116,4h4c:0.123,4d4c:0.113,3s3h:0.14,3s3d:0.099,3s3c:0.107,3h3d:0.154,3h3c:0.162,3d3c:0.12,AcJd:0.005,As8s:0.041,Ad8d:0.045,Ac8c:0.07,As7s:0.226,Ah7h:0.075,Ac7c:0.267,As7h:0.036,As7c:0.039,Ah7s:0.071,Ah7c:0.049,Ad7s:0.068,Ad7h:0.049,Ad7c:0.05,Ac7s:0.051,Ac7h:0.024,As6s:0.527,Ad6d:0.525,Ac6c:0.534,As5s:0.245,Ad5d:0.245,Ac5c:0.259,As4s:0.709,Ad4d:0.708,Ac4c:0.736,As3s:0.707,Ad3d:0.717,Ac3c:0.733,As2s:0.205,Ah2h:0.168,Ad2d:0.242,KhQs:0.202,KhQd:0.22,KhQc:0.211,KdQs:0.226,KdQh:0.306,KdQc:0.23,KcQs:0.194,KcQh:0.286,KcQd:0.211,KhJh:0.162,KdJd:0.186,KcJc:0.221,KhJs:0.012,KhJd:0.013,KhJc:0.011,KdJs:0.012,KdJh:0.072,KdJc:0.011,KcJs:0.011,KcJh:0.065,KcJd:0.013,KhTh:0.104,KdTd:0.125,KcTc:0.19,KhTs:0.012,KhTd:0.011,KhTc:0.01,KdTs:0.013,KdTh:0.052,KdTc:0.011,KcTs:0.011,KcTh:0.046,KcTd:0.011,Kd9d:0.217,Kc9c:0.265,Kh9s:0.075,Kh9d:0.076,Kh9c:0.063,Kd9s:0.072,Kd9c:0.057,Kc9s:0.067,Kc9d:0.065,Kh7h:0.176,Kc7c:0.341,Kd2d:0.016,QsJs:0.221,QhJh:0.006,QdJd:0.16,QcJc:0.19,QsJh:0.009,QsJd:0.02,QsJc:0.022,QhJs:0.006,QhJd:0.007,QhJc:0.008,QdJs:0.014,QdJh:0.007,QdJc:0.016,QcJs:0.015,QcJh:0.009,QcJd:0.016,QsTs:0.254,QdTd:0.223,QcTc:0.233,QsTh:0.006,QsTd:0.015,QsTc:0.016,QhTs:0.005,QhTd:0.005,QhTc:0.005,QdTs:0.01,QdTh:0.005,QdTc:0.011,QcTs:0.011,QcTh:0.005,QcTd:0.011,Qs9s:0.153,Qd9d:0.043,Qc9c:0.057,Qs8s:0.061,Qd8d:0.012,Qc8c:0.013,Qs6s:0.01,Qs5s:0.012,Qs4s:0.009,JsTs:0.425,JhTh:0.008,JdTd:0.41,JcTc:0.412,JsTh:0.018,JsTd:0.07,JsTc:0.084,JhTs:0.022,JhTd:0.025,JhTc:0.036,JdTs:0.073,JdTh:0.02,JdTc:0.097,JcTs:0.086,JcTh:0.025,JcTd:0.097,Js9s:0.333,Jd9d:0.314,Jc9c:0.304,Js8s:0.137,Jd8d:0.063,Jc8c:0.06,Ts9s:0.395,Td9d:0.384,Tc9c:0.363,Ts8s:0.389,Td8d:0.361,Tc8c:0.326,9s8s:0.709,9d8d:0.719,9c8c:0.647,9s6s:0.157,9d6d:0.091,9c6c:0.047,8s6s:0.624,8d6d:0.611,8c6c:0.537,8s5s:0.304,8d5d:0.268,8c5c:0.198,7s6s:0.105,7h6h:0.123,7c6c:0.146,7s5s:0.104,7h5h:0.12,7c5c:0.155,7s4s:0.05,7h4h:0.046,7c4c:0.109,6s5s:0.387,6d5d:0.371,6c5c:0.334,5s4s:0.413,5d4d:0.403,5c4c:0.369",
+       "lineProbability": 0.11826,
+       "blended": false
+      },
+      "ip": {
+       "position": "BTN",
+       "combosBefore": 478.5,
+       "combosAfter": 348.27,
+       "classes": [
+        {
+         "hand": "AQo",
+         "combos": 12,
+         "weight": 1
+        },
+        {
+         "hand": "AJo",
+         "combos": 11.878,
+         "weight": 0.9898
+        },
+        {
+         "hand": "ATo",
+         "combos": 11.791,
+         "weight": 0.9826
+        },
+        {
+         "hand": "JTo",
+         "combos": 9.487,
+         "weight": 0.7906
+        },
+        {
+         "hand": "A7o",
+         "combos": 9,
+         "weight": 1
+        },
+        {
+         "hand": "AKo",
+         "combos": 9,
+         "weight": 1
+        },
+        {
+         "hand": "KJo",
+         "combos": 9,
+         "weight": 1
+        },
+        {
+         "hand": "KQo",
+         "combos": 9,
+         "weight": 1
+        },
+        {
+         "hand": "KTo",
+         "combos": 9,
+         "weight": 1
+        },
+        {
+         "hand": "K8o",
+         "combos": 8.73,
+         "weight": 0.97
+        },
+        {
+         "hand": "A9o",
+         "combos": 8.655,
+         "weight": 0.9617
+        },
+        {
+         "hand": "A8o",
+         "combos": 8.183,
+         "weight": 0.6819
+        },
+        {
+         "hand": "QJo",
+         "combos": 7.847,
+         "weight": 0.6539
+        },
+        {
+         "hand": "K9o",
+         "combos": 7,
+         "weight": 1
+        },
+        {
+         "hand": "33",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "44",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "55",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "66",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "88",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "AA",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "JJ",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "QQ",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "TT",
+         "combos": 6,
+         "weight": 1
+        },
+        {
+         "hand": "T9o",
+         "combos": 5.613,
+         "weight": 0.6237
+        },
+        {
+         "hand": "AJs",
+         "combos": 4,
+         "weight": 1
+        },
+        {
+         "hand": "AQs",
+         "combos": 4,
+         "weight": 1
+        },
+        {
+         "hand": "ATs",
+         "combos": 4,
+         "weight": 1
+        },
+        {
+         "hand": "A8s",
+         "combos": 3.994,
+         "weight": 0.9985
+        },
+        {
+         "hand": "JTs",
+         "combos": 3.994,
+         "weight": 0.9985
+        },
+        {
+         "hand": "QJs",
+         "combos": 3.981,
+         "weight": 0.9953
+        },
+        {
+         "hand": "86s",
+         "combos": 3.88,
+         "weight": 0.97
+        },
+        {
+         "hand": "QTo",
+         "combos": 3.812,
+         "weight": 0.3177
+        },
+        {
+         "hand": "A5s",
+         "combos": 3.565,
+         "weight": 0.8912
+        },
+        {
+         "hand": "QTs",
+         "combos": 3.55,
+         "weight": 0.8875
+        },
+        {
+         "hand": "A4s",
+         "combos": 3.405,
+         "weight": 0.8513
+        },
+        {
+         "hand": "T8s",
+         "combos": 3.314,
+         "weight": 0.8285
+        },
+        {
+         "hand": "K7o",
+         "combos": 3.29,
+         "weight": 0.47
+        },
+        {
+         "hand": "65s",
+         "combos": 3.236,
+         "weight": 0.809
+        },
+        {
+         "hand": "A3s",
+         "combos": 3.056,
+         "weight": 0.764
+        },
+        {
+         "hand": "76s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "77",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "87s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "98s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "99",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "A2s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "A6s",
+         "combos": 3,
+         "weight": 0.75
+        },
+        {
+         "hand": "A7s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "A9s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "AKs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "J7s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "J9s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K3s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K4s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K5s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K6s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "K8s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KJs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KK",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KQs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "KTs",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "Q7s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "T7s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "T9s",
+         "combos": 3,
+         "weight": 1
+        },
+        {
+         "hand": "Q9s",
+         "combos": 2.999,
+         "weight": 0.9997
+        },
+        {
+         "hand": "A5o",
+         "combos": 2.752,
+         "weight": 0.2293
+        },
+        {
+         "hand": "75s",
+         "combos": 2.55,
+         "weight": 0.85
+        },
+        {
+         "hand": "J8s",
+         "combos": 2.187,
+         "weight": 0.5467
+        },
+        {
+         "hand": "97s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "K2s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "K7s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "K9s",
+         "combos": 2,
+         "weight": 1
+        },
+        {
+         "hand": "54s",
+         "combos": 1.952,
+         "weight": 0.488
+        },
+        {
+         "hand": "96s",
+         "combos": 1.739,
+         "weight": 0.5797
+        },
+        {
+         "hand": "A2o",
+         "combos": 1.71,
+         "weight": 0.19
+        },
+        {
+         "hand": "22",
+         "combos": 1.68,
+         "weight": 0.56
+        },
+        {
+         "hand": "Q8s",
+         "combos": 1.554,
+         "weight": 0.3885
+        },
+        {
+         "hand": "A4o",
+         "combos": 0.829,
+         "weight": 0.0691
+        },
+        {
+         "hand": "J9o",
+         "combos": 0.719,
+         "weight": 0.0799
+        },
+        {
+         "hand": "Q6s",
+         "combos": 0.535,
+         "weight": 0.1337
+        },
+        {
+         "hand": "T6s",
+         "combos": 0.433,
+         "weight": 0.1082
+        },
+        {
+         "hand": "Q5s",
+         "combos": 0.423,
+         "weight": 0.1057
+        },
+        {
+         "hand": "Q4s",
+         "combos": 0.402,
+         "weight": 0.1005
+        },
+        {
+         "hand": "Q3s",
+         "combos": 0.37,
+         "weight": 0.0925
+        },
+        {
+         "hand": "T8o",
+         "combos": 0.172,
+         "weight": 0.0143
+        }
+       ],
+       "range": "33+,22:0.56,A9s+,A7s,A2s,AQo+,A7o,A2o:0.19,K2s+,K9o+,K8o:0.97,K7o:0.47,Q7s,J9s,J7s,T9s,T7s,97s+,87s,76s,75s:0.85,AsJh,AsJd:0.983,AsJc:0.986,AhJs,AhJd,AhJc,AdJs:0.975,AdJh,AdJc:0.984,AcJs:0.972,AcJh,AcJd:0.978,AsTh,AsTd:0.967,AsTc:0.975,AhTs,AhTd,AhTc,AdTs:0.96,AdTh,AdTc:0.972,AcTs:0.957,AcTh,AcTd:0.96,As9d:0.955,As9c:0.971,Ah9s,Ah9d,Ah9c,Ad9s:0.904,Ad9c:0.964,Ac9s:0.913,Ac9d:0.948,As8s,Ah8h:0.994,Ad8d,Ac8c,As8h:0.768,As8d:0.567,As8c:0.608,Ah8s:0.773,Ah8d:0.823,Ah8c:0.895,Ad8s:0.528,Ad8h:0.741,Ad8c:0.598,Ac8s:0.543,Ac8h:0.766,Ac8d:0.573,As6s,Ad6d,Ac6c,As5s,Ah5h:0.565,Ad5d,Ac5c,As5h:0.322,As5d:0.099,As5c:0.172,Ah5s:0.396,Ah5d:0.418,Ah5c:0.463,Ad5s:0.031,Ad5h:0.27,Ad5c:0.1,Ac5s:0.063,Ac5h:0.321,Ac5d:0.097,As4s,Ah4h:0.405,Ad4d,Ac4c,As4h:0.026,Ah4s:0.236,Ah4d:0.245,Ah4c:0.291,Ad4h:0.006,Ac4h:0.025,As3s,Ah3h:0.056,Ad3d,Ac3c,QsJs,QhJh:0.981,QdJd,QcJc,QsJh:0.766,QsJd:0.598,QsJc:0.622,QhJs:0.632,QhJd:0.737,QhJc:0.769,QdJs:0.504,QdJh:0.741,QdJc:0.61,QcJs:0.516,QcJh:0.755,QcJd:0.597,QsTs,QhTh:0.55,QdTd,QcTc,QsTh:0.45,QsTd:0.269,QsTc:0.304,QhTs:0.309,QhTd:0.382,QhTc:0.411,QdTs:0.139,QdTh:0.422,QdTc:0.274,QcTs:0.163,QcTh:0.435,QcTd:0.254,Qs9s,Qd9d,Qc9c:0.999,Qs8s:0.64,Qd8d:0.5,Qc8c:0.414,Qs6s:0.39,Qd6d:0.145,Qs5s:0.366,Qd5d:0.057,Qs4s:0.385,Qd4d:0.017,Qs3s:0.37,JsTs,JhTh:0.994,JdTd,JcTc,JsTh:0.811,JsTd:0.614,JsTc:0.639,JhTs:0.811,JhTd:0.931,JhTc:0.972,JdTs:0.636,JdTh:0.967,JdTc:0.736,JcTs:0.658,JcTh:0.98,JcTd:0.732,Js9c:0.008,Jh9s:0.091,Jh9d:0.217,Jh9c:0.261,Jd9s:0.006,Jd9c:0.07,Jc9s:0.011,Jc9d:0.055,Js8s:0.748,Jd8d:0.78,Jc8c:0.659,Ts9d:0.523,Ts9c:0.554,Th9s:0.674,Th9d:0.768,Th9c:0.82,Td9s:0.514,Td9c:0.617,Tc9s:0.537,Tc9d:0.606,Ts8s,Th8h:0.314,Td8d,Tc8c,Ts8h:0.007,Td8h:0.07,Tc8h:0.095,Ts6s:0.193,Td6d:0.203,Tc6c:0.037,9s6s:0.58,9d6d:0.58,9c6c:0.579,8s6s,8h6h:0.88,8d6d,8c6c,6s5s,6h5h:0.237,6d5d,6c5c:0.999,5s4s:0.63,5h4h:0.062,5d4d:0.63,5c4c:0.63",
+       "lineProbability": 0.72783,
+       "blended": false
+      }
+     },
+     "flopSolveMs": 7018,
+     "iterations": 40,
+     "exploitabilityPct": 0.7979
+    },
+    "streetLine": {
+     "matched": true,
+     "villainRange": {
+      "position": "BB",
+      "combosBefore": 34.7,
+      "combosAfter": 5.22,
+      "classes": [
+       {
+        "hand": "22",
+        "combos": 0.933,
+        "weight": 0.3109
+       },
+       {
+        "hand": "KQo",
+        "combos": 0.668,
+        "weight": 0.0743
+       },
+       {
+        "hand": "86s",
+        "combos": 0.438,
+        "weight": 0.1096
+       },
+       {
+        "hand": "JTs",
+        "combos": 0.403,
+        "weight": 0.1007
+       },
+       {
+        "hand": "T8s",
+        "combos": 0.298,
+        "weight": 0.0744
+       },
+       {
+        "hand": "65s",
+        "combos": 0.26,
+        "weight": 0.065
+       },
+       {
+        "hand": "QJs",
+        "combos": 0.228,
+        "weight": 0.057
+       },
+       {
+        "hand": "85s",
+        "combos": 0.227,
+        "weight": 0.0566
+       },
+       {
+        "hand": "QTs",
+        "combos": 0.221,
+        "weight": 0.0553
+       },
+       {
+        "hand": "JTo",
+        "combos": 0.208,
+        "weight": 0.0173
+       },
+       {
+        "hand": "77",
+        "combos": 0.181,
+        "weight": 0.0603
+       },
+       {
+        "hand": "KJs",
+        "combos": 0.135,
+        "weight": 0.045
+       },
+       {
+        "hand": "98s",
+        "combos": 0.13,
+        "weight": 0.0432
+       },
+       {
+        "hand": "K9s",
+        "combos": 0.083,
+        "weight": 0.0416
+       },
+       {
+        "hand": "K9o",
+        "combos": 0.08,
+        "weight": 0.0114
+       },
+       {
+        "hand": "K7s",
+        "combos": 0.077,
+        "weight": 0.0385
+       },
+       {
+        "hand": "A6s",
+        "combos": 0.068,
+        "weight": 0.0171
+       },
+       {
+        "hand": "QJo",
+        "combos": 0.057,
+        "weight": 0.0047
+       },
+       {
+        "hand": "J8s",
+        "combos": 0.054,
+        "weight": 0.0134
+       },
+       {
+        "hand": "76s",
+        "combos": 0.053,
+        "weight": 0.0176
+       },
+       {
+        "hand": "A3s",
+        "combos": 0.053,
+        "weight": 0.0133
+       },
+       {
+        "hand": "75s",
+        "combos": 0.047,
+        "weight": 0.0157
+       },
+       {
+        "hand": "A2s",
+        "combos": 0.047,
+        "weight": 0.0157
+       },
+       {
+        "hand": "KJo",
+        "combos": 0.044,
+        "weight": 0.0049
+       },
+       {
+        "hand": "33",
+        "combos": 0.041,
+        "weight": 0.0068
+       },
+       {
+        "hand": "A4s",
+        "combos": 0.037,
+        "weight": 0.0093
+       },
+       {
+        "hand": "A7s",
+        "combos": 0.031,
+        "weight": 0.0104
+       },
+       {
+        "hand": "QTo",
+        "combos": 0.031,
+        "weight": 0.0026
+       },
+       {
+        "hand": "A5s",
+        "combos": 0.019,
+        "weight": 0.0048
+       },
+       {
+        "hand": "T9s",
+        "combos": 0.019,
+        "weight": 0.0062
+       },
+       {
+        "hand": "A7o",
+        "combos": 0.013,
+        "weight": 0.0015
+       },
+       {
+        "hand": "KTs",
+        "combos": 0.013,
+        "weight": 0.0045
+       },
+       {
+        "hand": "74s",
+        "combos": 0.009,
+        "weight": 0.0029
+       },
+       {
+        "hand": "96s",
+        "combos": 0.009,
+        "weight": 0.0031
+       },
+       {
+        "hand": "KTo",
+        "combos": 0.004,
+        "weight": 0.0004
+       },
+       {
+        "hand": "Q9s",
+        "combos": 0.003,
+        "weight": 0.0009
+       }
+      ]
+     }
+    },
+    "villainHand": null,
+    "stats": {
+     "exploitabilityPct": 0.4586,
+     "targetExploitabilityPct": 0.5,
+     "iterations": 170,
+     "solveMs": 9295,
+     "memoryMb": 54.1,
+     "compressed": false
+    }
+   }
+  }
+ ]
+}

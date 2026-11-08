@@ -10,6 +10,7 @@ export function extraction(overrides: Partial<Extraction> = {}): Extraction {
     hero_position: null,
     villain_position: null,
     hero_hand: null,
+    villain_hand: null,
     pot_type: null,
     pot_bb: null,
     effective_stack_bb: null,

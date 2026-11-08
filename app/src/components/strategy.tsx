@@ -53,22 +53,43 @@ function Swatch({ fill }: { fill: string }) {
   return <span aria-hidden className={`${fill} inline-block h-[1em] w-[2ch] shrink-0 self-center`} />;
 }
 
-/** Bar plus one row per action: swatch, label, size as % of pot, frequency, top hand classes. */
+/** Hero EV in bb with a sign: "+32.1bb", "0bb", "-1.25bb". */
+export const fmtEv = (bb: number) => {
+  const r = Math.round(bb * 100) / 100;
+  return `${r > 0 ? "+" : ""}${r === 0 ? 0 : r}bb`;
+};
+
+/**
+ * Bar plus one row per action: swatch, label, size as % of pot, frequency, then (hero
+ * actions) the hand's EV right-aligned, with the best action inverted; or the top hand classes.
+ */
 export function ActionBreakdown({ actions, showHands = true }: { actions: DisplayAction[]; showHands?: boolean }) {
   const colors = actionColors(actions);
+  const showEv = actions.some((a) => a.evBb !== null);
   return (
     <div>
       <StackedBar actions={actions} colors={colors} />
-      <ul className="mt-[1.6em]">
+      {showEv && (
+        <div className="mt-[1.6em] flex gap-[1ch] text-mute">
+          <span className="ml-auto">FREQ</span>
+          <span className="w-[10ch] text-right">EV</span>
+        </div>
+      )}
+      <ul className={showEv ? "" : "mt-[1.6em]"}>
         {actions.map((a, i) => {
           const muted = a.frequency < 0.005;
+          const rowClass = a.best ? "-mx-[0.5ch] bg-ink px-[0.5ch] text-paper" : muted ? "text-mute" : "";
           return (
-            <li key={i} className={muted ? "text-mute" : ""}>
+            <li key={i} className={rowClass}>
               <div className="flex items-baseline gap-[1ch]">
                 <Swatch fill={colors[i]} />
                 <span>{upper(a.label)}</span>
-                {sizeNote(a) && <span className="text-mute">{sizeNote(a)}</span>}
+                {sizeNote(a) && <span className={a.best ? "" : "text-mute"}>{sizeNote(a)}</span>}
+                {a.best && <span className="sr-only">(best EV)</span>}
                 <span className="ml-auto tabular-nums">{pct(a.frequency)}</span>
+                {showEv && (
+                  <span className="w-[10ch] text-right tabular-nums">{a.evBb === null ? "" : fmtEv(a.evBb)}</span>
+                )}
               </div>
               {showHands && a.topClasses.length > 0 && !muted && (
                 <div

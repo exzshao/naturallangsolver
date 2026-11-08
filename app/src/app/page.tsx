@@ -29,10 +29,11 @@ function Elapsed({ since }: { since: number }) {
 
 function Loading({ since, progress }: { since: number; progress: Progress }) {
   const queued = progress.phase === "queued" ? progress.position : null;
+  const narrowing = progress.phase === "narrowing";
   return (
     <div role="status" className="inv -mx-3 px-3 py-[1.6em]">
       <p>
-        {queued ? `QUEUED (#${queued})... ` : "SOLVING... "}
+        {queued ? `QUEUED (#${queued})... ` : narrowing ? "NARROWING RANGES... " : "SOLVING... "}
         <Elapsed since={since} />
         <span aria-hidden className="cursor-blink">
           _
@@ -41,7 +42,9 @@ function Loading({ since, progress }: { since: number; progress: Progress }) {
       <p className="text-mute">
         {queued
           ? `${queued} SOLVE${queued > 1 ? "S" : ""} AHEAD. FLOP: ~15s EACH.`
-          : "RIVER: ~1s. FLOP: UP TO ~90s."}
+          : narrowing
+            ? "REPLAYING YOUR EARLIER BETTING IN A FLOP SOLVE, THEN SOLVING THIS STREET."
+            : "RIVER: ~1s. FLOP: UP TO ~90s."}
       </p>
     </div>
   );

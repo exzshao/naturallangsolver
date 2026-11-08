@@ -1,0 +1,27 @@
+# Threads (shared memory + atomics) and SIMD for the wasm build only.
+# std must be rebuilt with atomics: build with -Z build-std=panic_abort,std (see build.sh).
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+simd128",
+  "-C", "link-arg=--max-memory=4294967296",
+  # Recent rustc no longer adds these for +atomics; wasm-bindgen's thread transform needs them.
+  "-C", "link-arg=--shared-memory",
+  "-C", "link-arg=--import-memory",
+  "-C", "link-arg=--export=__wasm_init_tls",
+  "-C", "link-arg=--export=__tls_size",
+  "-C", "link-arg=--export=__tls_align",
+  "-C", "link-arg=--export=__tls_base",
+]
+
+[target.wasm64-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+simd128",
+  "-C", "link-arg=--max-memory=17179869184",
+  # Recent rustc no longer adds these for +atomics; wasm-bindgen's thread transform needs them.
+  "-C", "link-arg=--shared-memory",
+  "-C", "link-arg=--import-memory",
+  "-C", "link-arg=--export=__wasm_init_tls",
+  "-C", "link-arg=--export=__tls_size",
+  "-C", "link-arg=--export=__tls_align",
+  "-C", "link-arg=--export=__tls_base",
+]

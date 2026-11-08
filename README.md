@@ -97,7 +97,7 @@ cd app && npm run evals       # live LLM extraction evals (costs a few cents)
 
 ## Limits
 
-Heads-up only. Postflop only. Ranges are default preflop ranges for the positions and aren't narrowed by earlier action. Flop spots use a simplified tree (one bet size, no raises) to fit in memory.
+Heads-up only. Postflop only. Ranges start as default preflop ranges for the positions and pot type. On turn and river spots with earlier postflop betting, the solver first narrows both ranges with a simplified flop solve of that line (only the sizes you described, one size and no raises elsewhere, 1% exploitability), then solves the current street from the narrowed ranges; if the line can't be replayed, the full ranges are used and an assumption says why. Flop spots use a simplified tree (one bet size, no raises) to fit in memory.
 
 ## License
 

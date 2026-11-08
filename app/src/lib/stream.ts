@@ -3,6 +3,7 @@
 //
 // A stream is zero or more status lines, then exactly one final line:
 //   {"type":"queued","position":3}   place in the solver queue (1 = next); repeats as a heartbeat
+//   {"type":"narrowing"}             a turn/river line solve is narrowing ranges (flop solve); repeats
 //   {"type":"solving"}               the solve is running; repeats as a heartbeat
 //   {"type":"result", ...ok body}    final, success
 //   {"type":"error", ...§6 body}     final, can't solve
@@ -13,10 +14,14 @@ import { cantSolve } from "./validate";
 
 export const NDJSON = "application/x-ndjson";
 
-export type StatusEvent = { type: "queued"; position: number } | { type: "solving" };
+export type StatusEvent = { type: "queued"; position: number } | { type: "narrowing" } | { type: "solving" };
 
 /** Progress shown while waiting. "working" = before the solver reports anything (LLM, cold start). */
-export type Progress = { phase: "working" } | { phase: "queued"; position: number } | { phase: "solving" };
+export type Progress =
+  | { phase: "working" }
+  | { phase: "queued"; position: number }
+  | { phase: "narrowing" }
+  | { phase: "solving" };
 
 export type StreamLine =
   | { kind: "status"; event: StatusEvent }
@@ -51,6 +56,7 @@ export function parseLine(line: string): StreamLine | null {
     return { kind: "status", event: { type: "queued", position } };
   }
   if (type === "solving") return { kind: "status", event: { type: "solving" } };
+  if (type === "narrowing") return { kind: "status", event: { type: "narrowing" } };
   if ((type === "result" || type === "error") && typeof rest.status === "string") {
     return { kind: "final", body: rest as Record<string, unknown> & { status: string } };
   }
@@ -58,7 +64,7 @@ export function parseLine(line: string): StreamLine | null {
 }
 
 export function progressFor(event: StatusEvent): Progress {
-  return event.type === "queued" ? { phase: "queued", position: event.position } : { phase: "solving" };
+  return event.type === "queued" ? { phase: "queued", position: event.position } : { phase: event.type };
 }
 
 function isReason(x: unknown): x is CantSolveReason {

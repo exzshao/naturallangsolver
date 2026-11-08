@@ -1,0 +1,36 @@
+[package]
+name = "wasm-spike"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+# Standalone: not part of any parent workspace.
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Same commit as solver/Cargo.lock.
+postflop-solver = { git = "https://github.com/b-inary/postflop-solver", rev = "9d1509fe5077d019825f833eed04b16d342dfda1", default-features = false, features = ["rayon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+web-time = "1"
+rayon = "1"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-rayon = "1"
+js-sys = "0.3"
+
+[features]
+# postflop-solver's stack allocator (nightly allocator_api); wasm-postflop enables it because
+# dlmalloc behind a global lock is slow with many wasm threads.
+custom-alloc = ["postflop-solver/custom-alloc"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -8,10 +8,13 @@
 //   - "3-way" / "three-way" / "multiway"                 -> MULTIWAY
 //   - "preflop"                                          -> PREFLOP
 //   - "every size" / "many sizes" / "huge tree"          -> deep flop, many sizes (TREE_TOO_LARGE)
+//   - "flop: villain checks, I bet 6bb, he calls"         -> that flop line in `actions` (bb)
+//   - "BB checks to me" / "BB leads 75%" / "goes all in"  -> that action on the decision street
+//   - "reveals his cards (72 off)" / "shows 7c2d"         -> villain_hand
 //   - anything else: board/hand/positions/stacks by regex (a duplicate-card
 //     board like "Td9dTd" then fails validation with INVALID_BOARD)
 import { MockLanguageModelV4, MockProviderV4 } from "ai/test";
-import type { Extraction, Position } from "./schema";
+import type { Action, Extraction, Position } from "./schema";
 
 const EMPTY: Extraction = {
   is_poker_spot: true,
@@ -21,6 +24,7 @@ const EMPTY: Extraction = {
   hero_position: null,
   villain_position: null,
   hero_hand: null,
+  villain_hand: null,
   pot_type: null,
   pot_bb: null,
   effective_stack_bb: null,
@@ -47,6 +51,7 @@ const POSITION_WORDS: [RegExp, Position][] = [
 ];
 
 const CARD = "[2-9TJQKA][cdhs]";
+const FLOP_LINE_RE = /\bflop\b[^.]*?\b(?:villain|he) checks?,?\s+I bet (\d+(?:\.\d+)?)\s*bb,?\s+(?:villain|he) calls\b/i;
 const HAND_RE = new RegExp(`\\b(?:with|holding|have|hold)\\s+((?:${CARD}){2})\\b`, "i");
 const BOARD_RE = new RegExp(`\\b((?:${CARD}){3,5})\\b`, "gi");
 
@@ -104,6 +109,31 @@ export function mockExtraction(text: string): Extraction {
           ? "srp"
           : null;
 
+  const line = FLOP_LINE_RE.exec(text);
+  const actions: Action[] | null = line
+    ? [
+        { street: "flop", actor: "villain", action: "check", amount: null, pot_pct: null },
+        { street: "flop", actor: "hero", action: "bet", amount: Number(line[1]), pot_pct: null },
+        { street: "flop", actor: "villain", action: "call", amount: null, pot_pct: null },
+      ]
+    : null;
+
+  // Action on the decision street, before hero acts.
+  const lead = /\b(?:villain|he|bb|sb|btn|co|hj|utg)\s+(?:leads|bets|donks|c-?bets|fires)\s+(\d+(?:\.\d+)?)\s*%/i.exec(text);
+  const current: Action | null =
+    street === null
+      ? null
+      : /\b(?:goes all[- ]in|shoves|jams|all[- ]in)\b/i.test(text)
+        ? { street, actor: "villain", action: "allin", amount: null, pot_pct: null }
+        : lead
+          ? { street, actor: "villain", action: "bet", amount: null, pot_pct: Number(lead[1]) }
+          : /\bchecks to (me|hero)\b/i.test(text)
+            ? { street, actor: "villain", action: "check", amount: null, pot_pct: null }
+            : null;
+  const allActions = current ? [...(actions ?? []), current] : actions;
+  const shown = /\b(?:reveals|shows|flashes|showed|revealed)\b[^.]*?\b((?:[2-9TJQKA][cdhs]){2}|[2-9TJQKA]{2}\s*(?:off|o|s|suited)?)\b/i.exec(text);
+  const villain_hand = shown ? shown[1].replace(/\s+/g, "").replace(/off$/i, "o").replace(/suited$/i, "s") : null;
+
   const notes = /\bchecks to (me|hero)\b/i.test(text)
     ? `${villain_position ?? "Villain"} checks to hero.`
     : null;
@@ -120,6 +150,9 @@ export function mockExtraction(text: string): Extraction {
     pot_bb: num(/(\d+(?:\.\d+)?)\s*bb pot\b/i, text),
     effective_stack_bb: num(/(\d+(?:\.\d+)?)\s*bb (?:behind|effective)\b/i, text),
     starting_stack_bb: num(/(\d+(?:\.\d+)?)\s*bb deep\b/i, text),
+    amount_unit: actions ? "bb" : null,
+    actions: allActions,
+    villain_hand,
     notes,
   };
 }

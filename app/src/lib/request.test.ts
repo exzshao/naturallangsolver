@@ -13,10 +13,18 @@ describe("buildSolverRequest (§7)", () => {
       starting_pot: 550,
       effective_stack: 9750,
       bet_sizes: {
-        flop: { bet: "50%", raise: "" },
-        turn: { bet: "75%", raise: "" },
-        river: { bet: "75%", raise: "" },
+        flop: { bet: "33%, 75%", raise: "", oop: { bet: "", raise: "3x" } },
+        turn: { bet: "75%", raise: "", donk: "" },
+        river: { bet: "75%", raise: "", donk: "" },
       },
+      bet_size_fallbacks: [
+        {
+          flop: { bet: "33%", raise: "", oop: { bet: "", raise: "3x" } },
+          turn: { bet: "75%", raise: "", donk: "" },
+          river: { bet: "75%", raise: "", donk: "" },
+        },
+      ],
+      preflop_aggressor: "ip",
       hero: { player: "ip", hand: "AhKh" },
       max_iterations: 1000,
       target_exploitability_pct: 0.5,

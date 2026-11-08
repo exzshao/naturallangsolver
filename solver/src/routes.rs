@@ -4,7 +4,7 @@
 
 use std::convert::Infallible;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::Duration;
 
 use axum::{
@@ -28,7 +28,7 @@ use crate::config::{self, Prepared, Settings};
 use crate::error::{QUEUE_TIMED_OUT, Reason, SolveError};
 use crate::queue::{Admission, Permit, QueueError, SolveQueue};
 use crate::rate_limit::{Decision, RateLimiter};
-use crate::solve;
+use crate::solve::{self, Phase};
 
 /// `Accept` value that switches `/solve` to a streamed NDJSON response.
 pub const NDJSON: &str = "application/x-ndjson";
@@ -92,10 +92,13 @@ async fn admit_handler(State(state): State<AppState>, body: Bytes) -> Response {
 pub enum Event {
     /// In line; 1 = next to run. Sent on joining, on every move, and as a heartbeat.
     Queued { position: usize },
-    /// Holding the slot. Sent once, then as a heartbeat.
+    /// Holding the slot, running stage 1 of a `line` solve (narrowing the ranges with a
+    /// flop solve). Sent once, then as a heartbeat, then replaced by `solving`.
+    Narrowing,
+    /// Holding the slot, solving the current street. Sent once, then as a heartbeat.
     Solving,
     /// Final line on success: the plain-JSON 200 body plus `type`.
-    Result(SolveResponse),
+    Result(Box<SolveResponse>),
     /// Final line on failure: the §6 body plus `type`.
     Error(ErrorBody),
 }
@@ -153,7 +156,7 @@ async fn solve_handler(State(state): State<AppState>, headers: HeaderMap, body: 
             }
         },
     };
-    match run_solve(prepared, permit, state.settings.clone()).await {
+    match run_solve(prepared, permit, state.settings.clone(), |_| {}).await {
         Ok(resp) => (StatusCode::OK, Json(resp)).into_response(),
         Err(e) => e.into_response(),
     }
@@ -162,10 +165,15 @@ async fn solve_handler(State(state): State<AppState>, headers: HeaderMap, body: 
 /// Runs the solve on the blocking pool. The permit moves into the blocking
 /// task, so it stays held until the solve actually ends, even if the client
 /// disconnects and this future is dropped.
-async fn run_solve(prepared: Prepared, permit: Permit, settings: Arc<Settings>) -> Result<SolveResponse, SolveError> {
+async fn run_solve(
+    prepared: Prepared,
+    permit: Permit,
+    settings: Arc<Settings>,
+    on_phase: impl Fn(Phase) + Send + 'static,
+) -> Result<SolveResponse, SolveError> {
     let handle = tokio::task::spawn_blocking(move || {
         let _permit = permit;
-        solve::run(prepared, &settings)
+        solve::run_with(prepared, &settings, on_phase)
     });
     match handle.await {
         Ok(r) => r,
@@ -242,15 +250,28 @@ async fn drive_stream(settings: Arc<Settings>, prepared: Prepared, admission: Ad
         }
     };
 
-    let _ = tx.try_send(Event::Solving);
-    let solve = run_solve(prepared, permit, settings);
+    // A line solve starts with stage 1 ("narrowing"); the blocking task flips the
+    // phase to "solving" when stage 2 starts.
+    let narrowing = Arc::new(AtomicBool::new(prepared.line.is_plan()));
+    let status = |narrowing: &AtomicBool| {
+        if narrowing.load(Ordering::Relaxed) { Event::Narrowing } else { Event::Solving }
+    };
+    let _ = tx.try_send(status(&narrowing));
+    let on_phase = {
+        let (tx, narrowing) = (tx.clone(), narrowing.clone());
+        move |phase: Phase| {
+            narrowing.store(phase == Phase::Narrowing, Ordering::Relaxed);
+            let _ = tx.try_send(if phase == Phase::Narrowing { Event::Narrowing } else { Event::Solving });
+        }
+    };
+    let solve = run_solve(prepared, permit, settings, on_phase);
     tokio::pin!(solve);
     let mut beat = interval_at(Instant::now() + HEARTBEAT, HEARTBEAT);
     loop {
         tokio::select! {
             r = &mut solve => {
                 let event = match r {
-                    Ok(resp) => Event::Result(resp),
+                    Ok(resp) => Event::Result(Box::new(resp)),
                     Err(e) => {
                         e.log();
                         Event::Error(e.body())
@@ -260,7 +281,7 @@ async fn drive_stream(settings: Arc<Settings>, prepared: Prepared, admission: Ad
                 return;
             }
             _ = beat.tick() => {
-                let _ = tx.try_send(Event::Solving);
+                let _ = tx.try_send(status(&narrowing));
             }
             _ = tx.closed() => {
                 // The blocking solve keeps the slot until it finishes.

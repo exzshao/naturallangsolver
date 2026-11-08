@@ -1,0 +1,164 @@
+[
+ {
+  "name": "A slim 50/75/75 no raise",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "50%",
+   ""
+  ],
+  "turn": [
+   "75%",
+   ""
+  ],
+  "river": [
+   "75%",
+   ""
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "B 33,75 all streets, no raise",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "33%, 75%",
+   ""
+  ],
+  "turn": [
+   "33%, 75%",
+   ""
+  ],
+  "river": [
+   "33%, 75%, a",
+   ""
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "C 50/75/75 + 3x raise all streets",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "50%",
+   "3x"
+  ],
+  "turn": [
+   "75%",
+   "3x"
+  ],
+  "river": [
+   "75%",
+   "3x"
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "D 33,75 all + 3x river only",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "33%, 75%",
+   ""
+  ],
+  "turn": [
+   "33%, 75%",
+   ""
+  ],
+  "river": [
+   "33%, 75%, a",
+   "3x"
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "E 33,75 all + 3x turn+river",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "33%, 75%",
+   ""
+  ],
+  "turn": [
+   "33%, 75%",
+   "3x"
+  ],
+  "river": [
+   "33%, 75%, a",
+   "3x"
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "F 33,75 + 3x all streets (app default)",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "33%, 75%",
+   "3x"
+  ],
+  "turn": [
+   "33%, 75%",
+   "3x"
+  ],
+  "river": [
+   "33%, 75%, a",
+   "3x"
+  ],
+  "max_iterations": 1000,
+  "target_pct": 0.5,
+  "size_only": true
+ },
+ {
+  "name": "C compressed 10 iters",
+  "board": "Td9d6h",
+  "oop_range": "JJ-22,AJs-A2s,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,75s+,64s+,53s+,AJo-A2o,K9o+,Q9o+,J9o+,T9o",
+  "ip_range": "22+,A2s+,K2s+,Q4s+,J6s+,T6s+,96s+,85s+,75s+,64s+,54s,A2o+,K8o+,Q9o+,J9o+,T9o",
+  "starting_pot": 550,
+  "effective_stack": 9750,
+  "flop": [
+   "50%",
+   "3x"
+  ],
+  "turn": [
+   "75%",
+   "3x"
+  ],
+  "river": [
+   "75%",
+   "3x"
+  ],
+  "max_iterations": 10,
+  "target_pct": 0.0,
+  "size_only": false,
+  "compressed": true
+ }
+]

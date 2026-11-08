@@ -100,10 +100,36 @@ export function historyProblem(x: Pick<Extraction, "amount_unit" | "big_blind_si
   return null;
 }
 
+/**
+ * Street-level size in bb of a bet / raise given as a percent of the pot: a bet is that
+ * share of the pot; a raise calls first, then adds that share of the pot after the call.
+ * Null without a usable `pot_pct`.
+ */
+export function potPctTo(a: Pick<Action, "pot_pct">, streetPotBb: number, facingBb: number): number | null {
+  if (a.pot_pct === null || a.pot_pct === undefined || !(a.pot_pct > 0)) return null;
+  const share = a.pot_pct / 100;
+  return facingBb === 0 ? streetPotBb * share : facingBb + (streetPotBb + 2 * facingBb) * share;
+}
+
+/** One postflop action of the line, amounts resolved to bb (street-level: bet size, raise-to total). */
+export type LineStep = {
+  actor: Actor;
+  action: "check" | "bet" | "call" | "raise" | "fold";
+  amountBb: number | null;
+};
+
+/** A postflop street before the current one. `steps: null` = no action given, assumed checked through. */
+export type LineStreet = { street: Exclude<Postflop, "river">; steps: LineStep[] | null };
+
 export type HistoryPot = {
   potBb: number;
   /** What each player has put in so far (equal once every street is closed). */
   investedBb: number;
+  /** Pot and per-player investment at the start of the flop. */
+  flopPotBb: number;
+  flopInvestedBb: number;
+  /** Postflop streets before the current one, in order, with implied calls filled in. */
+  streets: LineStreet[];
   assumptions: string[];
 };
 
@@ -141,13 +167,14 @@ export function potFromHistory(
   if (bbAssumption && before.some((a) => a.amount !== null)) assumptions.push(bbAssumption);
   const unitLabel = (a: Action) => (a.amount === null ? "" : ` ${fmt(a.amount)}${x.amount_unit === "bb" ? "bb" : ""}`);
 
-  /** Closes a street: an unmatched bet or raise is assumed called. */
-  const close = (c: Record<Actor, number>, last: { actor: Actor; action: Action } | null, street: Street) => {
-    if (c.hero === c.villain || !last) return;
+  /** Closes a street: an unmatched bet or raise is assumed called. Returns the caller, if any. */
+  const close = (c: Record<Actor, number>, last: { actor: Actor; action: Action } | null, street: Street): Actor | null => {
+    if (c.hero === c.villain || !last) return null;
     const caller: Actor = c.hero < c.villain ? "hero" : "villain";
     const kind = KIND_LABEL[last.action.action] ?? last.action.action;
     assumptions.push(`Assumed ${who(caller)} called ${whose(last.actor)}${unitLabel(last.action)} ${kind} ${street === "preflop" ? "preflop" : `on the ${street}`}`);
     c[caller] = Math.max(c.hero, c.villain);
+    return caller;
   };
 
   // Preflop
@@ -185,21 +212,30 @@ export function potFromHistory(
   }
 
   // Postflop streets before the current one
+  const flopPotBb = pot;
+  const flopInvestedBb = invested;
+  const streets: LineStreet[] = [];
   const checkedThrough: Postflop[] = [];
-  for (const s of POSTFLOP.slice(0, POSTFLOP.indexOf(ctx.street))) {
+  for (const s of POSTFLOP.slice(0, POSTFLOP.indexOf(ctx.street)) as LineStreet["street"][]) {
     const acts = before.filter((a) => a.street === s);
     if (acts.length === 0) {
       checkedThrough.push(s);
+      streets.push({ street: s, steps: null });
       continue;
     }
+    const steps: LineStep[] = [];
     const c: Record<Actor, number> = { hero: 0, villain: 0 };
     let current = 0;
     let last: { actor: Actor; action: Action } | null = null;
     for (const a of acts) {
-      if (a.action === "call") c[a.actor] = current;
-      else if (isBetOrRaise(a)) {
+      if (a.action === "call") {
+        c[a.actor] = current;
+        steps.push({ actor: a.actor, action: "call", amountBb: null });
+      } else if (a.action === "check" || a.action === "fold") {
+        steps.push({ actor: a.actor, action: a.action, amountBb: null });
+      } else if (isBetOrRaise(a)) {
         // "Raise" into a check is a bet; a "bet" facing a bet is a raise.
-        let to = toBb(a);
+        let to = toBb(a) ?? potPctTo(a, pot, current);
         if (to === null) {
           to = current === 0 ? (pot * MISSING_BET_POT_FRACTION) : current * MISSING_RAISE_MULTIPLE;
           assumptions.push(
@@ -208,17 +244,25 @@ export function potFromHistory(
               : `Assumed ${whose(a.actor)} ${s} raise was ${MISSING_RAISE_MULTIPLE}x (size not given in big blinds)`,
           );
         }
+        steps.push({ actor: a.actor, action: current === 0 ? "bet" : "raise", amountBb: to });
         current = to;
         c[a.actor] = to;
         last = { actor: a.actor, action: a };
       }
     }
-    close(c, last, s);
+    const caller = close(c, last, s);
+    if (caller) steps.push({ actor: caller, action: "call", amountBb: null });
+    // A street that reached the next card after one check was checked behind.
+    const tail = steps.at(-1);
+    if (tail?.action === "check" && steps.at(-2)?.action !== "check") {
+      steps.push({ actor: tail.actor === "hero" ? "villain" : "hero", action: "check", amountBb: null });
+    }
+    streets.push({ street: s, steps });
     pot += c.hero + c.villain;
     invested += c.hero;
   }
   if (checkedThrough.length > 0) {
     assumptions.push(`Assumed the ${checkedThrough.join(" and ")} checked through`);
   }
-  return { potBb: pot, investedBb: invested, assumptions };
+  return { potBb: pot, investedBb: invested, flopPotBb, flopInvestedBb, streets, assumptions };
 }

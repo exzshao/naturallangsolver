@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "evals": "RUN_LLM_EVALS=1 vitest run evals"
+    "evals": "RUN_LLM_EVALS=1 vitest run evals",
+    "benchmark": "RUN_BENCHMARK=1 node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON benchmark/run.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.98",

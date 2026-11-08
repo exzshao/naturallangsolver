@@ -395,6 +395,56 @@ describe("streaming (Accept: application/x-ndjson)", () => {
     expect(new Headers(init?.headers).get("accept")).toBe("application/x-ndjson");
   });
 
+  it("sends the earlier-street line, relays narrowing, and shows the narrowed ranges", async () => {
+    mockExtract.mockResolvedValue(
+      extraction({
+        num_players: 2,
+        street: "turn",
+        board: "Qh2c7h8h",
+        hero_hand: "2h2s",
+        amount_unit: "chips",
+        actions: [
+          { street: "preflop", actor: "hero", action: "open", amount: 15 },
+          { street: "preflop", actor: "villain", action: "3bet", amount: 60 },
+          { street: "preflop", actor: "hero", action: "call", amount: null },
+          { street: "flop", actor: "villain", action: "check", amount: null },
+          { street: "flop", actor: "hero", action: "bet", amount: 125 },
+          { street: "flop", actor: "villain", action: "call", amount: null },
+        ],
+      }),
+    );
+    const narrowing = {
+      narrowed: true,
+      reason: null,
+      oop_range: "QQ+:0.9,AhQh",
+      ip_range: "22",
+      ranges: {
+        oop: { combos_before: 60, combos_after: 20, classes: [{ hand: "QQ", combos: 2.7, weight: 0.9 }] },
+        ip: { combos_before: 150, combos_after: 90, classes: [{ hand: "22", combos: 3, weight: 1 }] },
+      },
+      sizes: [{ street: "flop", player: "ip", action: "bet", requested: 2500, used: 2500, size: "102.04%", added: true }],
+      line_bets: "33%, 75%",
+      line_raises: null,
+      hero_weight: 1,
+      hero_floored: false,
+      iterations: 90,
+      exploitability_pct: 0.95,
+      memory_mb: 120,
+      solve_ms: 1800,
+    };
+    solverStreams([{ type: "narrowing" }, { type: "solving" }, { type: "result", ...SOLVER_OK, narrowing }]);
+    const { events } = await postStream({ text: "turn spot with a flop line" });
+    expect(events.slice(0, -1)).toEqual([{ type: "narrowing" }, { type: "solving" }]);
+    const last = events.at(-1);
+    expect(last.narrowing.players.oop).toMatchObject({ position: "BB", combosAfter: 20, range: "QQ+:0.9,AhQh" });
+    expect(last.assumptions.at(-1)).toBe(
+      "Ranges narrowed by a simplified flop solve of your line (villain checked, you bet 25bb, villain called on the flop). Flop model: both players bet 33%/75%, no raises; your 25bb bet (from your line) added. Later streets: one bet size, no raises or leads into the last bettor.",
+    );
+    const sent = JSON.parse(String(callsTo("/solve")[0][1]?.body));
+    expect(sent).toMatchObject({ flop_pot: 2450, flop_stack: 8800, starting_pot: 7450, effective_stack: 6300 });
+    expect(sent.line).toHaveLength(3);
+  });
+
   it("ends with the app's message when the solver's queue times out", async () => {
     mockExtract.mockResolvedValue(SPEC_EXAMPLE);
     solverStreams([

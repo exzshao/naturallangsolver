@@ -19,6 +19,10 @@ primary_region = "sjc"
   RATE_LIMIT_GLOBAL_DAY = "10000"
   QUEUE_MAX_WAITING = "5"
   QUEUE_MAX_WAIT_SECS = "120"
+  # Stage-2 tree budget (solve::pick_tree): richer trees estimated over 30 s get swapped
+  # for simpler ones; 40 ms per raw MB is this machine's rough solve speed.
+  TREE_BUDGET_SECS = "30"
+  TREE_MS_PER_MB = "40"
   # SOLVER_API_KEY is a secret: `fly secrets set SOLVER_API_KEY=...`
 
 [http_service]

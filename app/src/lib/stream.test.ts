@@ -18,6 +18,7 @@ describe("parseLine", () => {
   it("reads status lines and strips type from final lines", () => {
     expect(parseLine('{"type":"queued","position":3}')).toEqual({ kind: "status", event: { type: "queued", position: 3 } });
     expect(parseLine('{"type":"solving"}')).toEqual({ kind: "status", event: { type: "solving" } });
+    expect(parseLine('{"type":"narrowing"}')).toEqual({ kind: "status", event: { type: "narrowing" } });
     expect(parseLine('{"type":"error","status":"cant_solve","reason":"TIMEOUT","message":"m"}')).toEqual({
       kind: "final",
       body: { status: "cant_solve", reason: "TIMEOUT", message: "m" },
@@ -33,6 +34,14 @@ describe("parseLine", () => {
 });
 
 describe("applyLine (UI progress)", () => {
+  it("line solves move queued -> narrowing -> solving, heartbeats are no-ops", () => {
+    let s = run(['{"type":"queued","position":1}', '{"type":"narrowing"}']);
+    expect(s.progress).toEqual({ phase: "narrowing" });
+    expect(applyLine(s, '{"type":"narrowing"}')).toBe(s);
+    s = applyLine(s, '{"type":"solving"}');
+    expect(s.progress).toEqual({ phase: "solving" });
+  });
+
   it("moves working -> queued #3 -> #2 -> #1 -> solving -> result", () => {
     const seen: string[] = [];
     let s = INITIAL_STREAM;
